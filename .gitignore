@@ -3,7 +3,14 @@
 !*.json
 !*.txt
 
-# IDE/editor directories and files
+# proj files
+*.env
+.env.*
+/data
+/technical_refs
+/research
+
+# file sys
 .vscode/
 .idea/
 .vs/
