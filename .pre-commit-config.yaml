@@ -13,11 +13,12 @@ repos:
     hooks:
       - id: end-of-file-fixer
       - id: check-json
-      - id: check-xml
+        types: [json]
       - id: check-toml
+        types: [toml]
       - id: check-yaml
+        types: [yaml]
       - id: check-merge-conflict
-      - id: fix-byte-order-marker
       - id: check-docstring-first
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
