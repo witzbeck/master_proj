@@ -1,0 +1,365 @@
+drop table first30.all_features;
+select
+ ac.student_id
+,ac.course_id
+,ac.module_id
+,ac.presentation_id
+,ac.final_result
+,ac.final_result_id
+,ac.is_pass_or_distinction
+,ac.is_withdraw_or_fail
+,ac.is_distinction
+,ac.is_pass
+,ac.is_fail
+,ac.is_withdrawn
+,ac.module_presentation_length
+,ac.start_year
+,ac.start_month
+,ac.is_stem
+,ac.course_level
+,ac.num_of_prev_attempts
+,ac.studied_credits
+,ac.reg_date
+,ac.unreg_date
+,ac.reg_date_dif
+,ac.is_female
+,ac.has_disability
+,ac.age_band
+,ac.age_band_id
+,ac.is_age_0_to_35
+,ac.is_age_35_to_55
+,ac.is_age_55_up
+,ac.highest_education_id
+,ac.highest_education
+,ac.is_highest_ed_a_level_or_equivalent
+,ac.is_highest_ed_he_qualification
+,ac.is_highest_ed_lower_than_a_level
+,ac.is_highest_ed_no_formal_quals
+,ac.is_highest_ed_post_graduate_qualification
+,ac.imd_band_id
+,ac.imd_band
+,ac.is_0_10_percent
+,ac.is_imd_10_20_percent
+,ac.is_imd_20_30_percent
+,ac.is_imd_30_40_percent
+,ac.is_imd_40_50_percent
+,ac.is_imd_50_60_percent
+,ac.is_imd_60_70_percent
+,ac.is_imd_70_80_percent
+,ac.is_imd_80_90_percent
+,ac.is_imd_90_100_percent
+,ac.region_id
+,ac.region
+,ac.is_region_east_anglian
+,ac.is_region_east_midlands
+,ac.is_region_ireland
+,ac.is_region_london
+,ac.is_region_north
+,ac.is_region_north_western
+,ac.is_region_scotland
+,ac.is_region_south_east
+,ac.is_region_south
+,ac.is_region_south_west
+,ac.is_region_wales
+,ac.is_region_west_midlands
+,ac.is_region_yorkshire
+,am.n_interactions
+,am.avg_n_activity_types
+,am.var_n_activity_types
+,am.stddev_n_activity_types
+,am.skew_n_activity_types
+,am.kurt_n_activity_types
+,am.avg_n_activities
+,am.var_n_activities
+,am.stddev_n_activities
+,am.skew_n_activities
+,am.kurt_n_activities
+,am.avg_interaction_date
+,am.var_interaction_date
+,am.stddev_interaction_date
+,am.skew_interaction_date
+,am.kurt_interaction_date
+,am.avg_interactions_clicks        avg_interactions_clicks
+,am.var_interactions_clicks        var_interactions_clicks
+,am.stddev_interactions_clicks     stddev_interactions_clicks
+,am.skew_interactions_clicks       skew_interactions_clicks
+,am.kurt_interactions_clicks       kurt_interactions_clicks
+,am.interaction_fp_coeff
+,am.n_assessments
+,am.avg_days_before_due_submitted
+,am.var_days_before_due_submitted
+,am.stddev_days_before_due_submitted
+,am.skew_days_before_due_submitted
+,am.kurt_days_before_due_submitted
+,am.fp_coeff_assessments
+,am.dataplus_n
+,am.dataplus_avg_date
+,am.dataplus_var_date
+,am.dataplus_stddev_date
+,am.dataplus_skew_date
+,am.dataplus_kurt_date
+,am.dataplus_avg_clicks
+,am.dataplus_var_clicks
+,am.dataplus_stddev_clicks
+,am.dataplus_skew_clicks
+,am.dataplus_kurt_clicks
+,am.dataplus_fp_coeff
+,am.dualpane_n
+,am.dualpane_avg_date
+,am.dualpane_var_date
+,am.dualpane_stddev_date
+,am.dualpane_skew_date
+,am.dualpane_kurt_date
+,am.dualpane_avg_clicks
+,am.dualpane_var_clicks
+,am.dualpane_stddev_clicks
+,am.dualpane_skew_clicks
+,am.dualpane_kurt_clicks
+,am.dualpane_fp_coeff
+--no folder responses --,am.folder_n
+--no folder responses --,am.folder_avg_date
+--no folder responses --,am.folder_var_date
+--no folder responses --,am.folder_stddev_date
+--no folder responses --,am.folder_skew_date
+--no folder responses --,am.folder_kurt_date
+--no folder responses --,am.folder_avg_clicks
+--no folder responses --,am.folder_var_clicks
+--no folder responses --,am.folder_stddev_clicks
+--no folder responses --,am.folder_skew_clicks
+--no folder responses --,am.folder_kurt_clicks
+--no folder responses --,am.folder_fp_coeff
+,am.forumng_n
+,am.forumng_avg_date
+,am.forumng_var_date
+,am.forumng_stddev_date
+,am.forumng_skew_date
+,am.forumng_kurt_date
+,am.forumng_avg_clicks
+,am.forumng_var_clicks
+,am.forumng_stddev_clicks
+,am.forumng_skew_clicks
+,am.forumng_kurt_clicks
+,am.forumng_fp_coeff
+,am.glossary_n
+,am.glossary_avg_date
+,am.glossary_var_date
+,am.glossary_stddev_date
+,am.glossary_skew_date
+,am.glossary_kurt_date
+,am.glossary_avg_clicks
+,am.glossary_var_clicks
+,am.glossary_stddev_clicks
+,am.glossary_skew_clicks
+,am.glossary_kurt_clicks
+,am.glossary_fp_coeff
+,am.homepage_n
+,am.homepage_avg_date
+,am.homepage_var_date
+,am.homepage_stddev_date
+,am.homepage_skew_date
+,am.homepage_kurt_date
+,am.homepage_avg_clicks
+,am.homepage_var_clicks
+,am.homepage_stddev_clicks
+,am.homepage_skew_clicks
+,am.homepage_kurt_clicks
+,am.homepage_fp_coeff
+,am.html_activity_n
+,am.html_activity_avg_date
+,am.html_activity_var_date
+,am.html_activity_stddev_date
+,am.html_activity_skew_date
+,am.html_activity_kurt_date
+,am.html_activity_avg_clicks
+,am.html_activity_var_clicks
+,am.html_activity_stddev_clicks
+,am.html_activity_skew_clicks
+,am.html_activity_kurt_clicks
+,am.html_activity_fp_coeff
+,am.oucollaborate_n
+,am.oucollaborate_avg_date
+,am.oucollaborate_var_date
+,am.oucollaborate_stddev_date
+,am.oucollaborate_skew_date
+,am.oucollaborate_kurt_date
+,am.oucollaborate_avg_clicks
+,am.oucollaborate_var_clicks
+,am.oucollaborate_stddev_clicks
+,am.oucollaborate_skew_clicks
+,am.oucollaborate_kurt_clicks
+,am.oucollaborate_fp_coeff
+,am.oucontent_n
+,am.oucontent_avg_date
+,am.oucontent_var_date
+,am.oucontent_stddev_date
+,am.oucontent_skew_date
+,am.oucontent_kurt_date
+,am.oucontent_avg_clicks
+,am.oucontent_var_clicks
+,am.oucontent_stddev_clicks
+,am.oucontent_skew_clicks
+,am.oucontent_kurt_clicks
+,am.oucontent_fp_coeff
+,am.ouelluminate_n
+,am.ouelluminate_avg_date
+,am.ouelluminate_var_date
+,am.ouelluminate_stddev_date
+,am.ouelluminate_skew_date
+,am.ouelluminate_kurt_date
+,am.ouelluminate_avg_clicks
+,am.ouelluminate_var_clicks
+,am.ouelluminate_stddev_clicks
+,am.ouelluminate_skew_clicks
+,am.ouelluminate_kurt_clicks
+,am.ouelluminate_fp_coeff
+,am.ouwiki_n
+,am.ouwiki_avg_date
+,am.ouwiki_var_date
+,am.ouwiki_stddev_date
+,am.ouwiki_skew_date
+,am.ouwiki_kurt_date
+,am.ouwiki_avg_clicks
+,am.ouwiki_var_clicks
+,am.ouwiki_stddev_clicks
+,am.ouwiki_skew_clicks
+,am.ouwiki_kurt_clicks
+,am.ouwiki_fp_coeff
+,am.page_n
+,am.page_avg_date
+,am.page_var_date
+,am.page_stddev_date
+,am.page_skew_date
+,am.page_kurt_date
+,am.page_avg_clicks
+,am.page_var_clicks
+,am.page_stddev_clicks
+,am.page_skew_clicks
+,am.page_kurt_clicks
+,am.page_fp_coeff
+,am.questionnaire_n
+,am.questionnaire_avg_date
+,am.questionnaire_var_date
+,am.questionnaire_stddev_date
+,am.questionnaire_skew_date
+,am.questionnaire_kurt_date
+,am.questionnaire_avg_clicks
+,am.questionnaire_var_clicks
+,am.questionnaire_stddev_clicks
+,am.questionnaire_skew_clicks
+,am.questionnaire_kurt_clicks
+,am.questionnaire_fp_coeff
+,am.externalquiz_n
+,am.externalquiz_avg_date
+,am.externalquiz_var_date
+,am.externalquiz_stddev_date
+,am.externalquiz_skew_date
+,am.externalquiz_kurt_date
+,am.externalquiz_avg_clicks
+,am.externalquiz_var_clicks
+,am.externalquiz_stddev_clicks
+,am.externalquiz_skew_clicks
+,am.externalquiz_kurt_clicks
+,am.externalquiz_fp_coeff
+,am.quiz_n
+,am.quiz_avg_date
+,am.quiz_var_date
+,am.quiz_stddev_date
+,am.quiz_skew_date
+,am.quiz_kurt_date
+,am.quiz_avg_clicks
+,am.quiz_var_clicks
+,am.quiz_stddev_clicks
+,am.quiz_skew_clicks
+,am.quiz_kurt_clicks
+,am.quiz_fp_coeff
+--no repeatactivity responses --,am.repeatactivity_n
+--no repeatactivity responses --,am.repeatactivity_avg_date
+--no repeatactivity responses --,am.repeatactivity_var_date
+--no repeatactivity responses --,am.repeatactivity_stddev_date
+--no repeatactivity responses --,am.repeatactivity_skew_date
+--no repeatactivity responses --,am.repeatactivity_kurt_date
+--no repeatactivity responses --,am.repeatactivity_avg_clicks
+--no repeatactivity responses --,am.repeatactivity_var_clicks
+--no repeatactivity responses --,am.repeatactivity_stddev_clicks
+--no repeatactivity responses --,am.repeatactivity_skew_clicks
+--no repeatactivity responses --,am.repeatactivity_kurt_clicks
+--no repeatactivity responses --,am.repeatactivity_fp_coeff
+,am.resource_n
+,am.resource_avg_date
+,am.resource_var_date
+,am.resource_stddev_date
+,am.resource_skew_date
+,am.resource_kurt_date
+,am.resource_avg_clicks
+,am.resource_var_clicks
+,am.resource_stddev_clicks
+,am.resource_skew_clicks
+,am.resource_kurt_clicks
+,am.resource_fp_coeff
+,am.sharedsubpage_n
+,am.sharedsubpage_avg_date
+,am.sharedsubpage_var_date
+,am.sharedsubpage_stddev_date
+,am.sharedsubpage_skew_date
+,am.sharedsubpage_kurt_date
+,am.sharedsubpage_avg_clicks
+,am.sharedsubpage_var_clicks
+,am.sharedsubpage_stddev_clicks
+,am.sharedsubpage_skew_clicks
+,am.sharedsubpage_kurt_clicks
+,am.sharedsubpage_fp_coeff
+,am.subpage_n
+,am.subpage_avg_date
+,am.subpage_var_date
+,am.subpage_stddev_date
+,am.subpage_skew_date
+,am.subpage_kurt_date
+,am.subpage_avg_clicks
+,am.subpage_var_clicks
+,am.subpage_stddev_clicks
+,am.subpage_skew_clicks
+,am.subpage_kurt_clicks
+,am.subpage_fp_coeff
+,am.url_n
+,am.url_avg_date
+,am.url_var_date
+,am.url_stddev_date
+,am.url_skew_date
+,am.url_kurt_date
+,am.url_avg_clicks
+,am.url_var_clicks
+,am.url_stddev_clicks
+,am.url_skew_clicks
+,am.url_kurt_clicks
+,am.url_fp_coeff
+,ae.sum_weight
+,ae.sum_score
+,ae.course_weight
+,ae.day30_grade
+,ae.avg_score_weighted
+,ae.avg_score_unweighted
+,ae.avg_score_combined
+,ae.submitted_ratio_combined_weighted
+,ae.submitted_ratio_combined_unweighted
+,ae.submitted_ratio_combined
+,ae.n_expected
+,ae.n_weighted
+,ae.n_unweighted
+,ae.min_days_before_due_submitted
+,ae.max_days_before_due_submitted
+,ae.n_total_clicks_by_top_5th_clicks
+,ae.n_total_clicks_by_top_5th_visits
+,ae.n_total_visits_by_top_5th_clicks
+,ae.n_total_visits_by_top_5th_visits
+,ae.n_distinct_top_5th_by_clicks
+,ae.n_distinct_top_5th_by_visits
+,ae.n_days_active
+,ae.max_clicks_any_activity
+,ae.n_revisits_total
+,ae.max_revisits_total
+,ae.mean_prod_3_click
+into first30.all_features
+from first30.all_classes ac
+join first30.all_engagement ae on ae.student_id=ac.student_id
+join first30.all_moments am on am.student_id=ac.student_id
+where ae.n_days_active is not null
