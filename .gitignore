@@ -2,6 +2,7 @@
 
 # proj files
 *.env
+.env.*
 /data
 /technical_refs
 /research
