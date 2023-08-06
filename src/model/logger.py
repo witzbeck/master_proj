@@ -86,7 +86,7 @@ class Logger:
                 schema=self.log_schema,
                 if_exists=self.if_exists,
                 index=False,
-                )
+            )
         except DatatypeMismatch:
             existing = self.dbh.get_table(self.log_schema, log_table)
             if len(existing.columns) == len(df.columns):
@@ -97,7 +97,7 @@ class Logger:
                     schema=self.log_schema,
                     if_exists="replace",
                     index=False,
-                    )
+                )
 
     def log_run(self,
                 keys: list = ["id", "model_type", "timestamp"]

@@ -16,14 +16,14 @@ from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import RepeatedStratifiedKFold
 
 # local imports
-from pkg.src.model.analysis import RocCurve
-from pkg.src.model.logger import Logger
-from pkg.src.model.params import Params
-from pkg.src.model.preprocessing import DataPrep
-from pkg.src.model.features import Features
+from model.analysis import RocCurve
+from model.features import Features
+from model.logger import Logger
+from model.params import Params
+from model.preprocessing import DataPrep
 from utils import istrue, overwrite_std_params, keyslist
-
 from utils import set_envs
+
 set_envs("model")
 LEFT, ROPE, RIGHT, OUT = range(-1, 3)
 
@@ -71,12 +71,8 @@ class ModelEngine:
     def set_gridsearch(
         self,
         scoring: list = [
-            # "f1",
-            # "precision",
-            # "recall",
-            # "accuracy",
             "roc_auc",
-            ],
+        ],
         n_jobs: int = -1,
     ):
         verbose = self.verbose
@@ -96,15 +92,15 @@ class ModelEngine:
             )
         else:
             gs = self.params.searchcv(
-                    self.pipe,
-                    self.params._dict,
-                    cv=self.crossval,
-                    pre_dispatch=self.params.pre_dispatch,
-                    scoring=scoring,
-                    refit=self.params.refit,
-                    n_jobs=n_jobs,
-                    verbose=verbose,
-                )
+                self.pipe,
+                self.params._dict,
+                cv=self.crossval,
+                pre_dispatch=self.params.pre_dispatch,
+                scoring=scoring,
+                refit=self.params.refit,
+                n_jobs=n_jobs,
+                verbose=verbose,
+            )
         return gs
 
     def set_logger(self):

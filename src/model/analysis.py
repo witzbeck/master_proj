@@ -32,10 +32,10 @@ LEFT, ROPE, RIGHT, OUT = __range__
 MID = ROPE
 
 # colors
-BLUE = (68/255, 155/255, 214/255, 1.)
+BLUE = (68 / 255, 155 / 255, 214 / 255, 1.)
 LIGHTGRAY = (.925, .925, .925, 1.)
 WHITE = LIGHTGRAY
-ORANGE = (222/255, 142/255, 8/255, 1.)
+ORANGE = (222 / 255, 142 / 255, 8 / 255, 1.)
 GRAY = (.5, .5, .5, 1.)
 
 # decisions
@@ -645,10 +645,10 @@ class Results:
             df = self.eval_all(bayes, use_matsym)
         cbar_params = Results.get_window_params(bayes)
         if figsize is None:
-            aspectratio = 16/25
-            lenratio = 1/2
-            w = int(len(df)*lenratio)
-            h = int(w*aspectratio)
+            aspectratio = 16 / 25
+            lenratio = 1 / 2
+            w = int(len(df) * lenratio)
+            h = int(w * aspectratio)
             figsize = (w, h)
 
         cbar_rgb = cbar_params["rgb"]
@@ -680,10 +680,7 @@ class Results:
                      cmap=cmap,
                      norm=norm,
                      xticklabels=False,
-                     cbar_kws={
-                         "shrink": 0.15,
-                         # "extend": "min"
-                         },
+                     cbar_kws={"shrink": 0.15},
                      annot=annot,
                      annot_kws={
                          "fontsize": annot_fontsize,
@@ -715,7 +712,7 @@ class Results:
             ival = top_row[i]
             if i == 1:
                 i += 1
-            elif (ival == top_val or (isnan(ival) and isnan(top_row[i-1]))):
+            elif (ival == top_val or (isnan(ival) and isnan(top_row[i - 1]))):
                 i += 1
             elif _len:
                 return i

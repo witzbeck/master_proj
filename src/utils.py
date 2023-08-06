@@ -3,9 +3,9 @@ from pathlib import Path
 from os import getenv
 
 from dotenv import load_dotenv
+from matplotlib.pyplot import savefig
 from numpy import array
 from numpy.random import randint
-from matplotlib.pyplot import savefig
 
 from pandas import DataFrame, Series
 
@@ -158,8 +158,7 @@ def get_props(series: Series):
             "value": dist_vals,
             "frequency": freqs,
             "proportion": props
-            }
-        )
+        })
 
 
 def make_prop_dict(df: DataFrame):
