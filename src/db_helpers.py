@@ -1,16 +1,16 @@
 # standard library imports
 from math import log, sqrt
-from pathlib import Path
 from os import getenv
+from pathlib import Path
 from subprocess import Popen, PIPE
 from typing import Any
 
 # third party imports
 from matplotlib.pyplot import xticks, subplots
 from numpy.random import choice
+from pandas import read_sql, DataFrame, Series
 from psycopg2 import connect
 from psycopg2.errors import UndefinedTable, ProgrammingError
-from pandas import read_sql, DataFrame, Series
 from seaborn import histplot
 from sqlalchemy import create_engine
 

@@ -98,7 +98,7 @@ class DataPrep:
             self.y,
             test_size=self.test_size,
             random_state=rand_state
-            )
+        )
 
         if make_c_cont:
             X_train = ascontiguousarray(X_train)

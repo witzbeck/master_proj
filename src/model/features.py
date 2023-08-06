@@ -1,13 +1,13 @@
 # standard library imports
-from os import getenv
 from itertools import chain
+from os import getenv
 
 # third party imports
 from pandas import DataFrame
 
 # local imports
-from utils import filter_df, istrue, set_envs
 from db_helpers import Table
+from utils import filter_df, istrue, set_envs
 
 if __name__ == '__main__':
     set_envs("model")
@@ -24,7 +24,7 @@ class Features:
         "student_id",
         "unreg_date",
         "reg_date_dif"
-        ]
+    ]
     final_result_cols = [
         'final_result',
         'final_result_id',
@@ -34,7 +34,7 @@ class Features:
         'is_fail',
         'is_withdrawn',
         'is_withdraw_or_fail'
-        ]
+    ]
 
     def get_col_names(self,
                       df: DataFrame

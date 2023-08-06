@@ -68,7 +68,7 @@ class Params:
                         "sag",
                         "newton-cg",
                         "newton-cholesky"
-                        ],
+                    ],
                     "clf__penalty": [None, "l2"],
                     "clf__C": expon(scale=0.1),
                     # "clf__warm_start": [False],
@@ -221,7 +221,7 @@ class Params:
                         "newton-cg",
                         "sag",
                         "newton-cholesky"
-                        ],
+                    ],
                     "clf__penalty": ["l2"],
                     "clf__C": discrete_exp_dist(-2, 2),
                     "clf__random_state": [self.random_state],
@@ -233,7 +233,7 @@ class Params:
                         "newton-cg",
                         "sag",
                         "newton-cholesky"
-                        ],
+                    ],
                     "clf__penalty": [None],
                     "clf__random_state": [self.random_state],
                     "clf__n_jobs": [jobint],
@@ -426,5 +426,5 @@ class Params:
                 test_size=self.test_size,
                 random_state=self.random_state,
                 params=_params
-                )
+            )
             yield pobj
