@@ -3,8 +3,7 @@ name = "master-proj"
 version = "1.0.0"
 description = "code associated w ms stats capstone"
 authors = ["Alex Beckwith <57322567+witzbeck@users.noreply.github.com>"]
-readme = "README.md"
-packages = [{include = "master_proj"}]
+packages = [{include = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
