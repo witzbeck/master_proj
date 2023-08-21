@@ -3,11 +3,10 @@ name = "master-proj"
 version = "1.0.0"
 description = "code associated w ms stats capstone"
 authors = ["Alex Beckwith <57322567+witzbeck@users.noreply.github.com>"]
-readme = "README.md"
-packages = [{include = "master_proj"}]
+packages = [{include = "src"}]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.11rc1"
 matplotlib = "^3.7.2"
 pandas = "^2.0.3"
 scikit-learn = "^1.3.0"
