@@ -7,11 +7,17 @@ from pandas import DataFrame
 
 # local imports
 from db_helpers import Table
-from utils import filter_df, istrue, set_envs
+from src.setup import istrue, set_envs
+from alexlib.iters import rm_pattern
+from alexlib.df import filter_df
 
 if __name__ == '__main__':
     set_envs("model")
     print(getenv("PREDICT_COL"))
+
+
+def wo_ids(x: str):
+    return rm_pattern(x, "_id")
 
 
 class Features:

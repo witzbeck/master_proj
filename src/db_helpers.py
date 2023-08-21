@@ -1,5 +1,5 @@
 # standard library imports
-from math import log, sqrt
+from math import log
 from os import getenv
 from pathlib import Path
 from subprocess import Popen, PIPE
@@ -14,21 +14,21 @@ from psycopg2.errors import UndefinedTable, ProgrammingError
 from seaborn import histplot
 from sqlalchemy import create_engine
 
-from utils import get_distinct_col_vals, get_props, series_col
-from utils import set_envs, filter_df, pathsearch
+from alexlib.df import get_distinct_col_vals, series_col, filter_df
+from alexlib.envs import ConfigFile
+from alexlib.file import pathsearch
+from alexlib.maths import get_props
 
-set_envs("db")
-
-if getenv("CONTEXT") is None:
-    set_envs("model")
-
+config = ConfigFile(name=".env.db")
+__dbvars__ = [
+    "DBNAME",
+    "DBHOST",
+    "DBPORT",
+    
+]
 
 def onehot_case(col: str, val: str):
     return f"case when {col} = '{val}' then 1 else 0 end"
-
-
-def pyth(_list: list):
-    return sqrt(sum([x ** 2 for x in _list]))
 
 
 def get_deets(context: str):

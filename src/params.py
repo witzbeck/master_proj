@@ -47,6 +47,53 @@ def wrap_dict_vals(_dict):
     return _dict
 
 
+def unpack_clf_keys(params_dict: dict):
+    keys = keyslist(params_dict)
+    return [x.split("__")[-1] for x in keys]
+
+
+def unpack_clf_params(params_dict: dict):
+    new_keys = unpack_clf_keys(params_dict)
+    vals = valslist(params_dict)
+    _range = range(len(new_keys))
+    return {new_keys[i]: vals[i] for i in _range}
+
+
+def lengthen_params_log(params_log: dict):
+    keys = keyslist(params_log)
+    vals = valslist(params_log)
+    rg = range(len(keys))
+    log = []
+    for i in rg:
+        val = vals[i]
+        if val is None:
+            log.append([val])
+        elif (valt := type(val)) in [str, float, int, bool]:
+            log.append([val])
+        elif valt in [list, tuple]:
+            log.append(list(val))
+        else:
+            log.append(val.data.tolist())
+    plen = max([len(x) for x in log])
+    return {keys[i]: log[i] * plen if len(log[i]) == 1 else log[i] for i in rg}
+
+
+def overwrite_std_params(clf_params: dict,
+                         std_params: dict,
+                         all: bool = True
+                         ):
+    sp = std_params
+    np = unpack_clf_params(clf_params)
+    keys = keyslist(std_params)
+    new_keys = keyslist(np)
+    out_params = {key: np[key] if key in new_keys else sp[key] for key in keys}
+    if all:
+        return lengthen_params_log(out_params)
+    else:
+        return out_params
+
+
+
 @dataclass
 class Params:
     model_type: int = getenv("MODEL_TYPE")
