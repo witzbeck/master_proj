@@ -1,5 +1,4 @@
 # standard library imports
-from os import getenv
 
 # third party imports
 from numpy import ravel, ascontiguousarray
@@ -15,12 +14,14 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.model_selection import train_test_split
 
 # local imports
-from db_helpers import Table
-from model.features import Features
-from utils import set_envs, set_nrows, set_rand_state, filter_df
+from alexlib.df import filter_df
+from alexlib.envs import chkenv
+from db_helpers import ProjectTable
+from features import Features
+from setup import nrows as nr, random_state as rs, model_config
 
 if __name__ == "__main__":
-    set_envs("model")
+    model_config()
 
 
 class DataPrep:
@@ -49,10 +50,12 @@ class DataPrep:
     )
 
     def get_data(self) -> DataFrame:
-        self.data = Table(getenv("CONTEXT"),
-                          self.schema,
-                          self.table,
-                          nrows=self.nrows)
+        self.data = ProjectTable(
+            chkenv("CONTEXT"),
+            self.schema,
+            self.table,
+            nrows=self.nrows
+        )
         return self.data.df
 
     def set_y(self) -> Series:
@@ -121,13 +124,13 @@ class DataPrep:
 
     def __init__(self,
                  feat: Features,  # Features
-                 context: str = getenv("CONTEXT"),
+                 context: str = chkenv("CONTEXT"),
                  schema: str = "first30",
                  table: str = "all_features",
-                 nrows: int = set_nrows(),
-                 test_size: float = float(getenv("TEST_SIZE")),
-                 random_state: int = set_rand_state(),
-                 simple_num_impute: bool = getenv("SIMPLE_NUM_IMPUTE"),
+                 nrows: int = nr,
+                 test_size: float = chkenv("TEST_SIZE", type=float),
+                 random_state: int = rs,
+                 simpnum: bool = chkenv("SIMPLE_NUM_IMPUTE", type=bool),
                  df_filter: tuple = None,
                  ):
         self.feat = feat
@@ -137,7 +140,7 @@ class DataPrep:
         self.nrows = nrows
         self.test_size = test_size
         self.random_state = random_state
-        self.simple_num_impute = simple_num_impute
+        self.simple_num_impute = simpnum
         self.df_filter = df_filter
         self.main_steps()
 

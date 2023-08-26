@@ -1,29 +1,30 @@
 # standard library imports
-from os import getenv
 from tqdm import tqdm
+from random import choice
 
 # third party imports
-from numpy.random import choice
 
 # local imports
-from model.engine import ModelEngine
-from model.params import Params, model_types
-from model.features import Features
-from utils import set_envs, list_gen, istrue, pathsearch
-from db_helpers import DbHelper
+from alexlib.db import Connection
+from alexlib.envs import chkenv
+from alexlib.iters import list_gen
+from engine import ModelEngine
+from params import Params, model_types
+from features import Features
+from setup import model_config
 
 if __name__ == "__main__":
-    set_envs("model")
-    dbh = DbHelper("LOCAL")
+    model_config()
+    dbh = Connection.from_context("LOCAL")
 
 
 split_cols = ["is_stem", "is_female", "has_disability"]
-search_int = int(getenv("SEARCH_ITER"))
-grouped = istrue(getenv("SEARCH_GROUPED"))
-rand = istrue(getenv("SEARCH_RANDOM"))
-inf = istrue(getenv("INF_ITER"))
-schema = getenv("LOG_SCHEMA")
-reset_schema = istrue(getenv("RESET_SCHEMA"))
+search_int = chkenv("SEARCH_ITER", type=int)
+grouped = chkenv("SEARCH_GROUPED", type=bool)
+rand = chkenv("SEARCH_RANDOM", type=bool)
+inf = chkenv("INF_ITER", type=bool)
+schema = chkenv("LOG_SCHEMA")
+reset_schema = chkenv("RESET_SCHEMA", type=bool)
 
 feat_dict = {
     "demographic": Features(to_include=split_cols, use_demographic=True),
@@ -40,7 +41,7 @@ def rand_feat():
 
 def drop_tab_pattern(pattern: str,
                      schema: str = schema,
-                     dbh: DbHelper = dbh,
+                     dbh: Connection = dbh,
                      cascade: bool = True,
                      ):
     tabs = dbh.get_all_schema_tables(schema)
@@ -51,7 +52,7 @@ def drop_tab_pattern(pattern: str,
 
 def run_all_models(schema: str = schema,
                    reset_schema: bool = reset_schema,
-                   dbh: DbHelper = dbh
+                   dbh: Connection = dbh
                    ):
     if reset_schema:
         drop_tab_pattern("results")
@@ -62,7 +63,7 @@ def run_all_models(schema: str = schema,
         try:
             model = next(model_gen)
             for feat in tqdm(rand_feat()):
-                set_envs("model")
+                model_config()
                 params = Params(model_type=model)
                 if grouped:
                     m = ModelEngine(
@@ -87,9 +88,3 @@ def try_except_pass(func, *args, **kwargs):
         func(*args, **kwargs)
     except RuntimeError:
         pass
-
-
-def create_view():
-    path = pathsearch("eval_run_iter_results.sql")
-    text = path.read_text()
-    dbh.run_postgres_query(text)

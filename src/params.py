@@ -1,31 +1,17 @@
 # standard library imports
 from dataclasses import dataclass, field
-from os import getenv
 
 # third party imports
 from scipy.stats import expon, uniform
 
 # local imports
-from utils import set_envs, set_nrows, set_rand_state, istrue
+from alexlib.envs import chkenv
+from alexlib.iters import keys, vals
+from setup import nrows as nr, random_state as rs, jobint, model_types
+from setup import model_config
 
-if __name__ == "__main__":
-    set_envs("model")
-
-
-jobint = int(getenv("JOB_CORES"))
-model_types = [
-    "hxg_boost",
-    "logreg",
-    "rforest",
-    "ada_boost",
-    "etree",
-    "dtree",
-    "knn",
-    "mlp",
-    "svc",
-    # "compnb",
-    # "gauss",
-]
+if __name__ == '__main__':
+    model_config
 
 
 def discrete_exp_dist(
@@ -34,38 +20,38 @@ def discrete_exp_dist(
         exp_int: int = 10,
         exp_inc: int = 1,
         numerator: int = 1
-):
+) -> list[float]:
     exp_max += 1
     rng = range(exp_min, exp_max, exp_inc)
     return [numerator / (exp_int ** i) for i in rng]
 
 
-def wrap_dict_vals(_dict):
-    for key in list(_dict.keys()):
+def wrap_dict_vals(_dict: dict):
+    for key in keys(_dict):
         val = _dict[key]
         _dict[key] = [val]
     return _dict
 
 
 def unpack_clf_keys(params_dict: dict):
-    keys = keyslist(params_dict)
-    return [x.split("__")[-1] for x in keys]
+    _keys = keys(params_dict)
+    return [x.split("__")[-1] for x in _keys]
 
 
 def unpack_clf_params(params_dict: dict):
     new_keys = unpack_clf_keys(params_dict)
-    vals = valslist(params_dict)
+    _vals = vals(params_dict)
     _range = range(len(new_keys))
-    return {new_keys[i]: vals[i] for i in _range}
+    return {new_keys[i]: _vals[i] for i in _range}
 
 
 def lengthen_params_log(params_log: dict):
-    keys = keyslist(params_log)
-    vals = valslist(params_log)
-    rg = range(len(keys))
+    _keys = keys(params_log)
+    _vals = vals(params_log)
+    r = range(len(keys))
     log = []
-    for i in rg:
-        val = vals[i]
+    for i in r:
+        val = _vals[i]
         if val is None:
             log.append([val])
         elif (valt := type(val)) in [str, float, int, bool]:
@@ -75,7 +61,7 @@ def lengthen_params_log(params_log: dict):
         else:
             log.append(val.data.tolist())
     plen = max([len(x) for x in log])
-    return {keys[i]: log[i] * plen if len(log[i]) == 1 else log[i] for i in rg}
+    return {_keys[i]: log[i] * plen if len(log[i]) == 1 else log[i] for i in r}
 
 
 def overwrite_std_params(clf_params: dict,
@@ -84,23 +70,22 @@ def overwrite_std_params(clf_params: dict,
                          ):
     sp = std_params
     np = unpack_clf_params(clf_params)
-    keys = keyslist(std_params)
-    new_keys = keyslist(np)
-    out_params = {key: np[key] if key in new_keys else sp[key] for key in keys}
+    _ks = keys(std_params)
+    new_keys = keys(np)
+    out_params = {key: np[key] if key in new_keys else sp[key] for key in _ks}
     if all:
         return lengthen_params_log(out_params)
     else:
         return out_params
 
 
-
 @dataclass
 class Params:
-    model_type: int = getenv("MODEL_TYPE")
-    predict_col: int = getenv("PREDICT_COL")
-    nrows: int = set_nrows()
-    test_size: float = float(getenv("TEST_SIZE"))
-    random_state: int = set_rand_state()
+    model_type: int = chkenv("MODEL_TYPE")
+    predict_col: int = chkenv("PREDICT_COL")
+    nrows: int = nr
+    test_size: float = chkenv("TEST_SIZE", type=float)
+    random_state: int = rs
     params: dict = field(default_factory=dict)
 
     def set_rand_param_dict(self):
@@ -118,7 +103,7 @@ class Params:
                     ],
                     "clf__penalty": [None, "l2"],
                     "clf__C": expon(scale=0.1),
-                    # "clf__warm_start": [False],
+                    "clf__warm_start": [False],
                     "clf__max_iter": [i for i in range(30, 150)],
                     "clf__random_state": [self.random_state],
                     "clf__n_jobs": [jobint],
@@ -147,7 +132,7 @@ class Params:
                     "clf__solver": ["liblinear"],
                     "clf__penalty": ["l1", "l2"],
                     "clf__C": expon(scale=0.1),
-                    # "clf__warm_start": _bool,
+                    "clf__warm_start": _bool,
                     # "clf__max_iter": max_iter_dist,
                     "clf__random_state": [self.random_state],
                 },
@@ -190,7 +175,7 @@ class Params:
                 "clf__min_samples_leaf": [i for i in range(1, 10)],
                 "clf__bootstrap": [True],
                 "clf__oob_score": [True],
-                # "clf__warm_start": _bool,
+                "clf__warm_start": _bool,
                 "clf__max_samples": uniform(),
                 "clf__random_state": [self.random_state],
                 "clf__n_jobs": [jobint],
@@ -204,7 +189,7 @@ class Params:
                 "clf__max_features": [None, "sqrt", "log2"],
                 "clf__bootstrap": [True],
                 "clf__oob_score": [True],
-                # "clf__warm_start": _bool,
+                "clf__warm_start": _bool,
                 "clf__max_samples": uniform(),
                 "clf__random_state": [self.random_state],
                 "clf__n_jobs": [jobint],
@@ -219,7 +204,7 @@ class Params:
                 "clf__power_t": expon(scale=0.1),
                 "clf__alpha": expon(scale=0.01),
                 "clf__max_iter": [i for i in range(30, 150)],
-                # "clf__warm_start": _bool,
+                "clf__warm_start": _bool,
                 "clf__early_stopping": _bool,
                 "clf__random_state": [self.random_state],
             }
@@ -432,10 +417,10 @@ class Params:
         return clf
 
     def __post_init__(self):
-        self.pre_dispatch = int(getenv("PRE_DISPATCH"))
-        self.n_iter = int(getenv("SEARCH_ITER"))
-        self.rand = istrue(getenv("SEARCH_RANDOM"))
-        self.refit = getenv("CV_REFIT").lower()
+        self.pre_dispatch = chkenv("PRE_DISPATCH", type=int)
+        self.n_iter = chkenv("SEARCH_ITER", type=int)
+        self.rand = chkenv("SEARCH_RANDOM", type=bool)
+        self.refit = chkenv("CV_REFIT").lower()
         self.clf = self.set_model_type()
         self.model_types = model_types
 
