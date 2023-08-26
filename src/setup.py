@@ -1,34 +1,23 @@
-from pathlib import Path
-from os import getenv
+from alexlib.envs import ConfigFile, chkenv
 
-from dotenv import load_dotenv
-from numpy.random import randint
-from sqlalchemy import engine
+model_config = lambda: ConfigFile.from_dotenv_name("model")
+db_config = lambda: ConfigFile.from_dotenv_name("db")
+server_config = lambda: ConfigFile.from_dotenv_name("server")
 
-from alexlib.file import Directory
-from alexlib.mystdlib import set_envint
+nrows = chkenv("NROWS", type=int)
+random_state = chkenv("RANDOM_STATE", type=int)
+jobint = chkenv("JOB_CORES", type=int)
 
-
-def set_envs(envname: str):
-    return load_dotenv(f".env.{envname}")
-
-
-def set_nrows():
-    set_envint(getenv("NROWS"))
-
-
-def set_rand_state():
-    set_envint(getenv("RANDOM_STATE"))
-
-
-schema = "landing"
-datadir = Directory(Path(__file__).parent.parent / "data")
-
-mkengine = engine
-
-
-if __name__ == "__main__":
-    datadir.insert_all_files(
-        mkengine("learning"),
-        schema=schema,
-    )
+model_types = [
+    "hxg_boost",
+    "logreg",
+    "rforest",
+    "ada_boost",
+    "etree",
+    "dtree",
+    "knn",
+    "mlp",
+    "svc",
+    # "compnb",
+    # "gauss",
+]

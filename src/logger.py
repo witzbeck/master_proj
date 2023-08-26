@@ -2,24 +2,25 @@
 from dataclasses import dataclass, field
 from datetime import datetime as dt
 from functools import partial
-from os import getenv
 
 # third party imports
 from pandas import DataFrame, concat
 from psycopg2.errors import DatatypeMismatch
 
 # local imports
-from utils import set_envs, keyslist
-from db_helpers import DbHelper
+from alexlib.db import Connection
+from alexlib.envs import chkenv
+from alexlib.iters import keys
+from setup import model_config
 
 if __name__ == "__main__":
-    set_envs("model")
+    model_config()
 
 
 @dataclass
 class Logger:
     model_type: str
-    log_schema: str = field(default=getenv("LOG_SCHEMA"))
+    log_schema: str = field(default=chkenv("LOG_SCHEMA"))
     log_runs_table: str = field(default="runs")
     log_runs_id_col: str = field(default="id")
     log_id_col: str = field(default="run_id")
@@ -52,8 +53,8 @@ class Logger:
         self.log_results = partial(self.log_to_table, self.log_results_table)
 
     def __post_init__(self):
-        self.dbh = DbHelper(getenv("CONTEXT"))
-        self.cv_results = getenv("CV_RESULTS")
+        self.dbh = Connection.from_context(chkenv("CONTEXT"))
+        self.cv_results = chkenv("CV_RESULTS")
         ptab = f"params_{self.model_type}"
         if self.cv_results == "ALL":
             self.log_results_table = self.log_results_table + "_all"
@@ -71,7 +72,7 @@ class Logger:
         if (cvisall and ("param" in log_table or "result" in log_table)):
             list_dict = _dict
         else:
-            list_dict = {x: [_dict[x]] for x in keyslist(_dict)}
+            list_dict = {x: [_dict[x]] for x in keys(_dict)}
 
         df = DataFrame.from_dict(list_dict)
         if ("param" in log_table or "result" in log_table):
@@ -100,10 +101,10 @@ class Logger:
                 )
 
     def log_run(self,
-                keys: list = ["id", "model_type", "timestamp"]
+                _keys: list = ["id", "model_type", "timestamp"]
                 ) -> None:
         now: dt = dt.now(),
         vals = [self.run_id, self.model_type, now]
-        _range = range(len(keys))
-        _dict = {keys[i]: vals[i] for i in _range}
+        _range = range(len(_keys))
+        _dict = {_keys[i]: vals[i] for i in _range}
         self.send_log(self.log_runs_table, _dict)

@@ -1,8 +1,6 @@
 # standard library imports
 from dataclasses import dataclass, field
 from datetime import datetime
-from itertools import chain
-from os import getenv
 
 # third party imports
 from tqdm import tqdm
@@ -21,10 +19,12 @@ from scikit_posthocs import posthoc_nemenyi_friedman
 from sklearn.metrics import roc_curve, roc_auc_score
 
 # local imports
-from db_helpers import DbHelper
-from utils import filter_df, keyslist, get_comb_gen
-from utils import set_envs, get_distinct_col_vals, istrue
-from utils import combine_domains, get_list_difs, get_idx_val, get_rect_area
+from alexlib.db import Connection
+from alexlib.df import filter_df, get_distinct_col_vals
+from alexlib.envs import chkenv
+from alexlib.iters import keys, get_comb_gen, get_idx_val, link
+from alexlib.maths import combine_domains, get_list_difs, get_rect_area
+from setup import model_config
 
 __range__ = range(-1, 3)
 # values
@@ -74,8 +74,8 @@ window_params = {
 }
 
 if __name__ == "__main__":
-    set_envs("model")
-    dbh = DbHelper("LOCAL")
+    model_config()
+    dbh = Connection.from_context("LOCAL")
 
 
 class Abroca:
@@ -135,7 +135,7 @@ class Abroca:
                  curve_dict: dict
                  ):
         self.split_col = split_col
-        self.keys = keyslist(curve_dict)
+        self.keys = keys(curve_dict)
         self.roc1 = curve_dict[self.keys[0]]
         self.roc2 = curve_dict[self.keys[-1]]
         self.steps()
@@ -276,8 +276,8 @@ class RocCurve:
                      X_slices: dict,
                      ):
         curves = {}
-        keys = keyslist(X_slices)
-        for key in keys:
+        _keys = keys(X_slices)
+        for key in _keys:
             X_test = X_slices[key]
             curves[key] = self.get_roc_obj(X_test)
         return curves
@@ -382,26 +382,26 @@ class ModelResult:
         kwargs["splits_test_roc_auc"] = split_vals
         return ModelResult(**kwargs)
 
-    def get_params(self, dbh: DbHelper):
+    def get_params(self, dbh: Connection):
         sql = f"""
         select *
-        from {getenv("LOG_SCHEMA")}.params_{self.model_type}
+        from {chkenv("LOG_SCHEMA")}.params_{self.model_type}
         where run_id={self.run_id}
         and iter_id={self.iter_id}
         """
         series = dbh.run_pd_query(sql)
         return format_clf_params(series)
 
-    def set_params(self, dbh: DbHelper):
+    def set_params(self, dbh: Connection):
         self.params = self.get_params(dbh)
 
 
 @dataclass
 class Results:
-    schema: str = field(default=getenv("LOG_SCHEMA"))
+    schema: str = field(default=chkenv("LOG_SCHEMA"))
     table: str = field(default="v_all_runs_results")
-    rope: float = field(default=float(getenv("EVAL_ROPE")))
-    runs: int = field(default=int(getenv("CV_NREPEATS")))
+    rope: float = field(default=chkenv("EVAL_ROPE", type=float))
+    runs: int = field(default=chkenv("CV_NREPEATS", type=int))
     lim: int = field(default=None)
     obj_list: list = field(default_factory=list)
 
@@ -409,7 +409,7 @@ class Results:
     def alpha_eval(p: float,
                    i: int,
                    j: int,
-                   alpha: float = float(getenv("ALPHA")),
+                   alpha: float = chkenv("ALPHA", type=float),
                    ):
         if p > alpha:
             return MID
@@ -418,8 +418,8 @@ class Results:
 
     @staticmethod
     def rope_eval(outcome: tuple,
-                  flexible: bool = istrue(getenv("ROPE_FLEXIBLE")),
-                  upbound: float = float(getenv("ROPE_UPBOUND")),
+                  flexible: bool = chkenv("ROPE_FLEXIBLE", type=bool),
+                  upbound: float = chkenv("ROPE_UPBOUND", type=float),
                   ) -> float:
         pleft, prope, pright = outcome
         absdif = abs(pleft - pright)
@@ -513,12 +513,12 @@ class Results:
         return len(self.obj_list)
 
     def __post_init__(self):
-        self.dbh = DbHelper("LOCAL")
+        self.dbh = Connection.from_context("LOCAL")
         self.init_steps()
 
     def get_comp_index(self):
         lists = [[(i, j) for i in self._range] for j in self._range]
-        _list = list(chain.from_iterable(lists))
+        _list = link(lists)
         return _list
 
     def get_comp_grid(self, bayes: bool):
@@ -746,7 +746,7 @@ def comp_rope_vals():
             records = []
             res = Results(rope=rope, runs=runs, lim=150)
             if rope_comp_id == 0:
-                res.dbh.trunc_table(getenv("LOG_SCHEMA"), "rope_comp")
+                res.dbh.trunc_table(chkenv("LOG_SCHEMA"), "rope_comp")
                 if_exists = "append"
                 ncomp = (len(res.obj_list) ** 2) / 2
                 print(f"n comparisons = {ncomp}")
@@ -788,7 +788,7 @@ def comp_rope_vals():
             df.to_sql(
                 "rope_comp",
                 con=res.dbh.engine,
-                schema=getenv("LOG_SCHEMA"),
+                schema=chkenv("LOG_SCHEMA"),
                 if_exists=if_exists,
                 index=True,
                 method="multi"

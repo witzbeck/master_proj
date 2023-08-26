@@ -1,5 +1,4 @@
 # standard library imports
-from os import getenv
 from warnings import catch_warnings
 
 # third party imports
@@ -16,15 +15,18 @@ from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import RepeatedStratifiedKFold
 
 # local imports
-from model.analysis import RocCurve
-from model.features import Features
-from model.logger import Logger
-from model.params import Params
-from model.preprocessing import DataPrep
-from utils import istrue, overwrite_std_params, keyslist
-from utils import set_envs
+from alexlib.envs import chkenv
+from alexlib.iters import keys
+from analysis import RocCurve
+from features import Features
+from logger import Logger
+from params import Params, overwrite_std_params
+from preprocessing import DataPrep
+from setup import model_config
 
-set_envs("model")
+if __name__ == "__main__":
+    model_config()
+
 LEFT, ROPE, RIGHT, OUT = range(-1, 3)
 
 
@@ -35,9 +37,9 @@ class ModelEngine:
         n_repeats=None
     ):
         if n_splits is None:
-            n_splits = int(getenv("CV_NSPLITS"))
+            n_splits = chkenv("CV_NSPLITS", type=int)
         if n_repeats is None:
-            n_repeats = int(getenv("CV_NREPEATS"))
+            n_repeats = chkenv("CV_NREPEATS", type=int)
         rskf = RepeatedStratifiedKFold(
             n_splits=n_splits,
             n_repeats=n_repeats,
@@ -53,7 +55,7 @@ class ModelEngine:
             nrows=self.params.nrows,
             test_size=self.params.test_size,
             random_state=self.params.random_state,
-            simple_num_impute=istrue(getenv("SIMPLE_NUM_IMPUTE")),
+            simple_num_impute=chkenv("SIMPLE_NUM_IMPUTE", type=bool),
             df_filter=self.df_filter
         )
         return data
@@ -76,7 +78,7 @@ class ModelEngine:
         n_jobs: int = -1,
     ):
         verbose = self.verbose
-        rand = istrue(getenv("SEARCH_RANDOM"))
+        rand = chkenv("SEARCH_RANDOM", type=bool)
         if rand:
             gs = self.params.searchcv(
                 self.pipe,
@@ -108,7 +110,7 @@ class ModelEngine:
 
     def get_all_params_log(self):
         all_params = {}
-        cv_keys = keyslist(self.gridsearch.cv_results_)
+        cv_keys = keys(self.gridsearch.cv_results_)
         p_keys = [x for x in cv_keys if x[:6] == "param_"]
         for key in p_keys:
             all_params[key] = self.gridsearch.cv_results_[key]
@@ -137,7 +139,7 @@ class ModelEngine:
         self.logger.log_feat(log)
 
     def get_all_results_log(self):
-        cv_keys = keyslist(self.gridsearch.cv_results_)
+        cv_keys = keys(self.gridsearch.cv_results_)
         nonp_keys = [x for x in cv_keys if x[:5] != "param"]
         cvr = self.gridsearch.cv_results_
         results_log = {key: cvr[key].tolist() for key in nonp_keys}
@@ -149,7 +151,7 @@ class ModelEngine:
         results_log["false_pos"] = self.conf_matrix[0][1]
         results_log["false_neg"] = self.conf_matrix[1][0]
         results_log["true_neg"] = self.conf_matrix[1][1]
-        cv_keys = keyslist(self.gridsearch.cv_results_)
+        cv_keys = keys(self.gridsearch.cv_results_)
         nonp_keys = [x for x in cv_keys if x[:5] not in ["param", "split"]]
         for key in nonp_keys:
             results_log[key] = self.gridsearch.cv_results_[key][0]
@@ -197,11 +199,11 @@ class ModelEngine:
         if reduce_dim is not None:
             self.reduce_dim = reduce_dim
         else:
-            self.reduce_dim = istrue(getenv("REDUCE_DIM"))
+            self.reduce_dim = chkenv("REDUCE_DIM", type=bool)
         if verbose is not None:
             self.verbose = verbose
         else:
-            self.verbose = int(getenv("CV_VERBOSE"))
+            self.verbose = chkenv("CV_VERBOSE", type=int)
         if df_filter == -1:
             self.df_filter = None
         else:

@@ -1,19 +1,17 @@
 # standard library imports
-from itertools import chain
-from os import getenv
 
 # third party imports
 from pandas import DataFrame
 
 # local imports
-from db_helpers import Table
-from src.setup import istrue, set_envs
-from alexlib.iters import rm_pattern
+from alexlib.envs import chkenv
 from alexlib.df import filter_df
+from alexlib.iters import rm_pattern, link
+from db_helpers import ProjectTable
+from setup import model_config
 
 if __name__ == '__main__':
-    set_envs("model")
-    print(getenv("PREDICT_COL"))
+    model_config()
 
 
 def wo_ids(x: str):
@@ -86,7 +84,7 @@ class Features:
             keep_cols.append(self.obj)
         if self.use_by_activity:
             keep_cols.append(self.by_activity)
-        return list(chain.from_iterable(keep_cols))
+        return link(keep_cols)
 
     def get_drop_cols(self):
         drop_cols = [
@@ -94,7 +92,7 @@ class Features:
             self.to_exclude,
             Features.final_result_cols,
         ]
-        return list(chain.from_iterable(drop_cols))
+        return link(drop_cols)
 
     def set_cols(self) -> list:
         self.set_col_cats()
@@ -103,25 +101,25 @@ class Features:
         return [x for x in self.keep_cols if x not in self.drop_cols]
 
     def __init__(self,
-                 to_predict_col: str = getenv("PREDICT_COL"),
-                 context: str = getenv("CONTEXT"),
+                 to_predict_col: str = chkenv("PREDICT_COL"),
+                 context: str = chkenv("CONTEXT"),
                  schema: str = "eval",  # features view cur only on eval
                  table: str = "v_features",
                  field_col: str = "column_name",
-                 use_all: bool = istrue(getenv("USE_ALL")),
-                 use_academic: bool = istrue(getenv("USE_ACADEMIC")),
-                 use_demographic: bool = istrue(getenv("USE_DEMOGRAPHIC")),
-                 use_engagement: bool = istrue(getenv("USE_ENGAGEMENT")),
-                 use_moments: bool = istrue(getenv("USE_MOMENTS")),
-                 use_student_info: bool = istrue(getenv("USE_STUDENT_INFO")),
-                 use_ids: bool = istrue(getenv("USE_IDS")),
-                 use_text: bool = istrue(getenv("USE_TEXT")),
-                 use_by_activity: bool = istrue(getenv("USE_BY_ACTIVITY")),
+                 use_all: bool = chkenv("USE_ALL", type=bool),
+                 use_academic: bool = chkenv("USE_ACADEMIC", type=bool),
+                 use_demographic: bool = chkenv("USE_DEMOGRAPHIC", type=bool),
+                 use_engagement: bool = chkenv("USE_ENGAGEMENT", type=bool),
+                 use_moments: bool = chkenv("USE_MOMENTS", type=bool),
+                 use_stud_info: bool = chkenv("USE_STUDENT_INFO", type=bool),
+                 use_ids: bool = chkenv("USE_IDS", type=bool),
+                 use_text: bool = chkenv("USE_TEXT", type=bool),
+                 use_by_activity: bool = chkenv("USE_BY_ACTIVITY", type=bool),
                  to_exclude: list = [],
                  to_include: list = [],
                  ):
         self.field_col = field_col
-        self.tbl = Table(context, schema, table)
+        self.tbl = ProjectTable(context, schema, table)
         self.all = self.get_col_names(self.tbl.df)
         self.demographic = self.get_col_cat("is_demographics", 1)
         self.academic = self.get_col_cat("is_academic", 1)
@@ -144,7 +142,7 @@ class Features:
         else:
             self.name = ""
         self.use_moments = use_moments
-        self.use_student_info = use_student_info
+        self.use_student_info = use_stud_info
         self.use_ids = use_ids
         self.use_text = use_text
         self.use_by_activity = use_by_activity
