@@ -15,17 +15,17 @@ from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import RepeatedStratifiedKFold
 
 # local imports
-from alexlib.envs import chkenv
+from alexlib.cnfg import chkenv
 from alexlib.iters import keys
 from analysis import RocCurve
 from features import Features
 from logger import Logger
 from params import Params, overwrite_std_params
 from preprocessing import DataPrep
-from setup import model_config
 
 if __name__ == "__main__":
-    model_config()
+    from setup import config
+    config
 
 LEFT, ROPE, RIGHT, OUT = range(-1, 3)
 
@@ -55,7 +55,7 @@ class ModelEngine:
             nrows=self.params.nrows,
             test_size=self.params.test_size,
             random_state=self.params.random_state,
-            simple_num_impute=chkenv("SIMPLE_NUM_IMPUTE", type=bool),
+            simpnum=chkenv("SIMPLE_NUM_IMPUTE", type=bool),
             df_filter=self.df_filter
         )
         return data

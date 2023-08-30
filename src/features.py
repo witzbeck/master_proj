@@ -4,14 +4,14 @@
 from pandas import DataFrame
 
 # local imports
-from alexlib.envs import chkenv
+from alexlib.cnfg import chkenv
 from alexlib.df import filter_df
 from alexlib.iters import rm_pattern, link
 from db_helpers import ProjectTable
-from setup import model_config
 
 if __name__ == '__main__':
-    model_config()
+    from setup import config
+    config
 
 
 def wo_ids(x: str):

@@ -1,11 +1,11 @@
-from alexlib.envs import ConfigFile, chkenv
+from alexlib.cnfg import ConfigFile, chkenv
+from alexlib.db import Connection
 
-model_config = lambda: ConfigFile.from_dotenv_name("model")
-db_config = lambda: ConfigFile.from_dotenv_name("db")
-server_config = lambda: ConfigFile.from_dotenv_name("server")
+config = ConfigFile.from_dotenv_name_list(["model", "db", "server"])
+dbh = Connection()
 
-nrows = chkenv("NROWS", type=int)
-random_state = chkenv("RANDOM_STATE", type=int)
+nrows = chkenv("NROWS", type=int, required=False)
+random_state = chkenv("RANDOM_STATE", type=int, required=False)
 jobint = chkenv("JOB_CORES", type=int)
 
 model_types = [
@@ -21,3 +21,11 @@ model_types = [
     # "compnb",
     # "gauss",
 ]
+
+if __name__ == "__main__":
+    print(dbh.dbname)
+    print(dbh.user)
+    print(dbh.pw)
+    print(dbh.host)
+    print(dbh.port)
+    print(dbh.info_schema)

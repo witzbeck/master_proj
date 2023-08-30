@@ -6,22 +6,17 @@ from random import choice
 
 # local imports
 from alexlib.db import Connection
-from alexlib.envs import chkenv
+from alexlib.cnfg import chkenv
 from alexlib.iters import list_gen
 from engine import ModelEngine
 from params import Params, model_types
 from features import Features
-from setup import model_config
-
-if __name__ == "__main__":
-    model_config()
-    dbh = Connection.from_context("LOCAL")
+from setup import dbh, random_state as rand
 
 
 split_cols = ["is_stem", "is_female", "has_disability"]
 search_int = chkenv("SEARCH_ITER", type=int)
 grouped = chkenv("SEARCH_GROUPED", type=bool)
-rand = chkenv("SEARCH_RANDOM", type=bool)
 inf = chkenv("INF_ITER", type=bool)
 schema = chkenv("LOG_SCHEMA")
 reset_schema = chkenv("RESET_SCHEMA", type=bool)
@@ -63,7 +58,6 @@ def run_all_models(schema: str = schema,
         try:
             model = next(model_gen)
             for feat in tqdm(rand_feat()):
-                model_config()
                 params = Params(model_type=model)
                 if grouped:
                     m = ModelEngine(
@@ -88,3 +82,7 @@ def try_except_pass(func, *args, **kwargs):
         func(*args, **kwargs)
     except RuntimeError:
         pass
+
+
+if __name__ == "__main__":
+    run_all_models()

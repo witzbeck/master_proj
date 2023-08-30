@@ -21,10 +21,10 @@ from sklearn.metrics import roc_curve, roc_auc_score
 # local imports
 from alexlib.db import Connection
 from alexlib.df import filter_df, get_distinct_col_vals
-from alexlib.envs import chkenv
+from alexlib.cnfg import chkenv
 from alexlib.iters import keys, get_comb_gen, get_idx_val, link
 from alexlib.maths import combine_domains, get_list_difs, get_rect_area
-from setup import model_config
+from setup import config
 
 __range__ = range(-1, 3)
 # values
@@ -74,7 +74,7 @@ window_params = {
 }
 
 if __name__ == "__main__":
-    model_config()
+    config
     dbh = Connection.from_context("LOCAL")
 
 
