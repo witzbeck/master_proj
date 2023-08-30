@@ -8,13 +8,13 @@ from pandas import DataFrame, concat
 from psycopg2.errors import DatatypeMismatch
 
 # local imports
-from alexlib.db import Connection
-from alexlib.envs import chkenv
+from alexlib.cnfg import chkenv
 from alexlib.iters import keys
-from setup import model_config
+from setup import dbh
 
 if __name__ == "__main__":
-    model_config()
+    from setup import config
+    config
 
 
 @dataclass
@@ -53,7 +53,7 @@ class Logger:
         self.log_results = partial(self.log_to_table, self.log_results_table)
 
     def __post_init__(self):
-        self.dbh = Connection.from_context(chkenv("CONTEXT"))
+        self.dbh = dbh
         self.cv_results = chkenv("CV_RESULTS")
         ptab = f"params_{self.model_type}"
         if self.cv_results == "ALL":

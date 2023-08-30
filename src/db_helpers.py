@@ -1,28 +1,21 @@
 # standard library imports
+from dataclasses import dataclass
 from math import log
 
 # third party imports
 from matplotlib.pyplot import xticks, subplots
-from numpy.random import choice
-from pandas import DataFrame, Series
+from pandas import Series
 from seaborn import histplot
 
-from alexlib.db import Connection, Table, Column
-from alexlib.df import series_col
-from alexlib.envs import ConfigFile
+from alexlib.db import Table, Column
 from alexlib.maths import get_props, pyth
-
-config = ConfigFile(name=".env.db")
-__dbvars__ = [
-    "DBNAME",
-    "DBHOST",
-    "DBPORT",
-]
+from setup import dbh
 
 
 class ProjectColumn(Column):
-    def is_id(col: str):
-        return False if col[-3:] != "_id" else True
+    @property
+    def is_id(self):
+        return False if self.col_name[-3:] != "_id" else True
 
     def auto_xtick_angle(self,
                          ndist_min: int = 5,
@@ -78,13 +71,11 @@ class ProjectColumn(Column):
                  table: str,
                  col_name: str,
                  series: Series,
-                 calc_desc: bool = False
                  ) -> None:
         self.schema = schema
         self.table = table
         self.col_name = col_name
         self.series = series
-        self.is_id = Column.is_id(self.col_name)
 
     def desc(self,
              show_props: bool = False,
@@ -142,37 +133,16 @@ class ProjectColumn(Column):
             return fig, ax
 
 
+@dataclass
 class ProjectTable(Table):
-    def set_cols(self):
-        self.col_names = self.df.columns
-        self.ncols = len(self.col_names)
-        self.col_series = {x: series_col(self.df, x) for x in self.col_names}
-        s, t, c = self.schema, self.table, self.col_series
-        d, n = self.calc_desc, self.col_names
-        self.cols = {x: Column(s, t, x, c[x], calc_desc=d) for x in n}
 
-    def set_funcs(self):
-        self.rand_col = lambda: choice(list(self.cols.values()))
-        self.head = lambda x: self.df.head(x)
-
-    def __init__(self,
-                 context: str,
-                 schema: str,
-                 table: str,
-                 calc_desc: bool = False,
-                 df: DataFrame = None,
-                 nrows: int = None
-                 ) -> None:
-        self.schema = schema
-        self.table = table
-        if df is None:
-            dbh = Connection.from_context(context)
-            self.df = dbh.get_table(schema, table, nrows=nrows)
-        else:
-            self.df = df
-        self.calc_desc = calc_desc
-        self.set_cols()
-        self.set_funcs()
+    def __post_init__(self):
+        if self.df is None:
+            self.df = dbh.get_table(
+                self.schema,
+                self.table,
+                nrows=self.nrows,
+            )
 
     def desc_col(self, col: str, **kwargs):
         col = self.cols[col]
@@ -182,13 +152,3 @@ class ProjectTable(Table):
         for i, col in enumerate(self.col_names):
             print(f"({i+1}/{self.ncols})")
             self.desc_col(col, show_hist=False)
-
-    @classmethod
-    def from_df(cls,
-                df: DataFrame,
-                calc_desc: bool = False,
-                context: str = None,
-                schema: str = None,
-                table: str = None,
-                ):
-        return cls(context, schema, table, calc_desc=calc_desc, df=df)

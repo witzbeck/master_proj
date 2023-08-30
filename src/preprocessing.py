@@ -15,13 +15,10 @@ from sklearn.model_selection import train_test_split
 
 # local imports
 from alexlib.df import filter_df
-from alexlib.envs import chkenv
+from alexlib.cnfg import chkenv
 from db_helpers import ProjectTable
 from features import Features
-from setup import nrows as nr, random_state as rs, model_config
-
-if __name__ == "__main__":
-    model_config()
+from setup import nrows as nr, random_state as rs
 
 
 class DataPrep:
@@ -170,3 +167,7 @@ class DataPrep:
 
     def desc_predict_col(self):
         self.desc_col(self.feat.to_predict_col)
+
+
+if __name__ == "__main__":
+    print(DataPrep(feat=Features()))

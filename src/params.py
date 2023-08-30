@@ -5,13 +5,13 @@ from dataclasses import dataclass, field
 from scipy.stats import expon, uniform
 
 # local imports
-from alexlib.envs import chkenv
+from alexlib.cnfg import chkenv
 from alexlib.iters import keys, vals
 from setup import nrows as nr, random_state as rs, jobint, model_types
-from setup import model_config
 
 if __name__ == '__main__':
-    model_config
+    from setup import config
+    config
 
 
 def discrete_exp_dist(
@@ -81,7 +81,7 @@ def overwrite_std_params(clf_params: dict,
 
 @dataclass
 class Params:
-    model_type: int = chkenv("MODEL_TYPE")
+    model_type: str = chkenv("MODEL_TYPE")
     predict_col: int = chkenv("PREDICT_COL")
     nrows: int = nr
     test_size: float = chkenv("TEST_SIZE", type=float)
