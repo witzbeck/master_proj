@@ -1,4 +1,4 @@
-from alexlib.cnfg import ConfigFile, chkenv
+from alexlib.config import ConfigFile, chkenv
 from alexlib.db import Connection
 
 config = ConfigFile.from_dotenv_name_list(["model", "db", "server"])

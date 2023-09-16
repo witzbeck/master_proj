@@ -15,7 +15,7 @@ from sklearn.model_selection import train_test_split
 
 # local imports
 from alexlib.df import filter_df
-from alexlib.cnfg import chkenv
+from alexlib.config import chkenv
 from db_helpers import ProjectTable
 from features import Features
 from setup import nrows as nr, random_state as rs
