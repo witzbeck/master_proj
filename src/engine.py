@@ -15,7 +15,7 @@ from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import RepeatedStratifiedKFold
 
 # local imports
-from alexlib.cnfg import chkenv
+from alexlib.config import chkenv
 from alexlib.iters import keys
 from analysis import RocCurve
 from features import Features

@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from scipy.stats import expon, uniform
 
 # local imports
-from alexlib.cnfg import chkenv
+from alexlib.config import chkenv
 from alexlib.iters import keys, vals
 from setup import nrows as nr, random_state as rs, jobint, model_types
 

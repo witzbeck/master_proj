@@ -6,7 +6,7 @@ from random import choice
 
 # local imports
 from alexlib.db import Connection
-from alexlib.cnfg import chkenv
+from alexlib.config import chkenv
 from alexlib.iters import list_gen
 from engine import ModelEngine
 from params import Params, model_types

@@ -4,7 +4,7 @@
 from pandas import DataFrame
 
 # local imports
-from alexlib.cnfg import chkenv
+from alexlib.config import chkenv
 from alexlib.df import filter_df
 from alexlib.iters import rm_pattern, link
 from db_helpers import ProjectTable

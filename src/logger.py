@@ -8,7 +8,7 @@ from pandas import DataFrame, concat
 from psycopg2.errors import DatatypeMismatch
 
 # local imports
-from alexlib.cnfg import chkenv
+from alexlib.config import chkenv
 from alexlib.iters import keys
 from setup import dbh
 
