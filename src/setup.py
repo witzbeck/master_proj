@@ -21,11 +21,3 @@ model_types = [
     # "compnb",
     # "gauss",
 ]
-
-if __name__ == "__main__":
-    print(dbh.dbname)
-    print(dbh.user)
-    print(dbh.pw)
-    print(dbh.host)
-    print(dbh.port)
-    print(dbh.info_schema)
