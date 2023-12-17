@@ -6,18 +6,19 @@ authors = ["Alex Beckwith <57322567+witzbeck@users.noreply.github.com>"]
 packages = [{include = "src"}]
 
 [tool.poetry.dependencies]
-python = "^3.11rc1"
-matplotlib = "^3.7.2"
-pandas = "^2.0.3"
-scikit-learn = "^1.3.0"
-tqdm = "^4.65.0"
-baycomp = "^1.0.3"
-seaborn = "^0.12.2"
-scikit-posthocs = "^0.7.0"
-python-dotenv = "^1.0.0"
-SQLAlchemy = "^2.0.19"
-psycopg2-binary = "^2.9.7"
+python = "^3.10"
+scikit-learn = "*"
+tqdm = "*"
+baycomp = "*"
+seaborn = "*"
+scikit-posthocs = "*"
+alexlib = {path = "../alexlib"}
 
+[tool.poetry.group.dev.dependencies]
+alexlib = {path = "../alexlib", develop = true}
+pytest = "*"
+coverage = "*"
+ipykernel = "*"
 
 [build-system]
 requires = ["poetry-core"]

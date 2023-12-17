@@ -1,4 +1,4 @@
-drop table staging.vle;
+drop table if exists staging.vle;
 select 
  cast(id_site as int)                   site_id
 ,cast(code_module as varchar(3))        code_module
