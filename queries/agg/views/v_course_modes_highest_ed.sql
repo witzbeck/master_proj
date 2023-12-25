@@ -1,4 +1,4 @@
-create view agg.course_modes_result_highest_ed as
+create view agg.v_course_modes_highest_ed as
 select 
 
 course_id

@@ -1,4 +1,4 @@
-create view agg.course_modes_result_age_band as
+create view agg.v_course_modes_age_band as
 select 
 
 course_id
