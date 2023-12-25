@@ -1,13 +1,17 @@
-from pathlib import Path
+from tqdm import tqdm
+from psycopg.errors import DuplicateSchema
 
 from alexlib.files import Directory
-from master_proj.setup import cnxn
+from src.setup import cnxn, queries
 
-queries_path = Path.home() / "repos/master_proj/queries"
-d = Directory.from_path(queries_path / "staging")
+d = Directory.from_path(queries / "staging")
 schema = "staging"
-cnxn.create_schema(schema)
-[
-    cnxn.file_to_db(f, schema, f.path.stem)
-    for f in d.csv_filelist
-]
+
+if not cnxn.schema_exists(schema):
+    try:
+        cnxn.create_schema(schema)
+    except DuplicateSchema:
+        pass
+for f in tqdm(d.filelist):
+    if not cnxn.table_exists(schema, f.path.stem):
+        cnxn.execute(f)

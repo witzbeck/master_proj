@@ -1,11 +1,11 @@
 from logging import info
-from pathlib import Path
+
+from tqdm import tqdm
 
 from alexlib.files import Directory
-from master_proj.setup import cnxn
+from src.setup import cnxn, data
 
-datadir = Path.home() / "repos/master_proj/data"
-d = Directory.from_path(datadir)
+d = Directory.from_path(data)
 schema = "landing"
 
 try:
@@ -13,7 +13,5 @@ try:
 except ValueError:
     info("database already exists")
 cnxn.create_schema(schema)
-[
+for f in tqdm(d.csv_filelist):
     cnxn.file_to_db(f, schema, f.path.stem)
-    for f in d.csv_filelist
-]

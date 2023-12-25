@@ -1,4 +1,4 @@
-drop table main.course_info cascade;
+drop table if exists main.course_info cascade;
 select 
  row_number()over()         id
 ,m.id module_id
