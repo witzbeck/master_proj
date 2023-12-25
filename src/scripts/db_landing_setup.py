@@ -1,12 +1,19 @@
+from logging import info
 from pathlib import Path
 
-from alexlib.auth import Auth
-from alexlib.db import Connection
 from alexlib.files import Directory
+from master_proj.setup import auth, cnxn
 
-auth = Auth("remote.dev.learning")
 datadir = Path.home() / "repos/master_proj/data"
-cnxn = Connection.from_auth(auth)
 d = Directory.from_path(datadir)
-for f in d.csv_filelist:
-    cnxn.file_to_db(f, auth.database, f.path.stem)
+schema = "landing"
+
+try:
+    cnxn.create_db()
+except ValueError:
+    info("database already exists")
+cnxn.create_schema(schema)
+[
+    cnxn.file_to_db(f, schema, f.path.stem)
+    for f in d.csv_filelist
+]

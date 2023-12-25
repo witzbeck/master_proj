@@ -13,6 +13,7 @@ baycomp = "*"
 seaborn = "*"
 scikit-posthocs = "*"
 alexlib = {path = "../alexlib"}
+psycopg-binary = "^3.1.16"
 
 [tool.poetry.group.dev.dependencies]
 alexlib = {path = "../alexlib", develop = true}
