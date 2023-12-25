@@ -29,6 +29,5 @@ for group in tqdm(dirs):
             except UnicodeDecodeError as e:
                 warning(f"{e} for {f}")
             except Exception as e:
-                print(f)
-                warning(f"{e} for {f}")
+                print(f, "\n", e)
                 raise Exception
