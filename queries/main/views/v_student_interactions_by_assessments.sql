@@ -13,7 +13,7 @@ select
 ,sab.date_submitted
 ,sab.date_submitted - a.date days_submitted_early
 ,svb.sum_click
-,si.student_id
+,si.id student_id
 ,si.imd_band_id
 ,si.highest_education_id
 ,he.highest_education
@@ -23,14 +23,14 @@ select
 ,scb.age_band_id
 ,ab.age_band
 from main.student_info si
-join main.student_vle_bridge svb on svb.student_id=si.student_id
+join main.student_vle_bridge svb on svb.student_id=si.id
 join main.vle_course_bridge vcb on vcb.site_id=svb.site_id
                                 and vcb.module_id=svb.module_id
                                 and vcb.presentation_id=svb.presentation_id
-join main.student_course_bridge scb on scb.student_id=si.student_id
+join main.student_course_bridge scb on scb.student_id=si.id
                                 and scb.module_id=svb.module_id
                                 and scb.presentation_id=svb.presentation_id
-join main.student_assessment_bridge sab on sab.student_id=si.student_id
+join main.student_assessment_bridge sab on sab.student_id=si.id
 join main.assessments a on a.assessment_id=sab.assessment_id
                         and a.module_id=scb.module_id
                         and a.presentation_id=scb.presentation_id
@@ -41,5 +41,4 @@ join main.final_result fr on fr.id=scb.final_result_id
 join main.highest_education he on he.id=si.highest_education_id
 where sab.date_submitted - a.date > 0
 and a.date - svb.date > 0
-
-limit 50000;
+;

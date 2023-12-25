@@ -2,6 +2,8 @@ drop table if exists main.student_vle_bridge cascade;
 select
      site_id
     ,si.id              student_id
+    ,m.id               module_id
+    ,p.id               presentation_id
     ,date
     ,sum_click
 into main.student_vle_bridge
