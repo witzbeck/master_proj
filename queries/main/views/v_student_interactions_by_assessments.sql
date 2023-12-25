@@ -9,7 +9,7 @@ select
 ,a.date - svb.date  activity_days_before_due
 ,a.weight           assessment_weight
 ,scb.final_result_id
-fr.final_result
+,fr.final_result
 ,sab.date_submitted
 ,sab.date_submitted - a.date days_submitted_early
 ,svb.sum_click

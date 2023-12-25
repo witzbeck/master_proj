@@ -20,7 +20,7 @@ select distinct
 into main.student_info
 from staging."studentInfo" s
 join main.highest_education e on e.highest_education=s.highest_education
-join main.regions r on r.region=s.region
+join main.region r on r.region=s.region
 join main.course_info c on c.module_code=s.code_module and c.presentation_code=s.code_presentation
 left join main.imd_band i on i.imd_band=s.imd_band
 join staging."studentRegistration" sr on sr.student_id=s.student_id
