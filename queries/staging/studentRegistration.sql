@@ -5,4 +5,5 @@ select
 ,cast(date_registration as int)         date_registration
 ,cast(date_unregistration as int)       date_unregistration
 into staging."studentRegistration"
-from landing."studentRegistration";
+from landing."studentRegistration"
+;

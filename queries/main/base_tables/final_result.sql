@@ -1,9 +1,9 @@
-CREATE TABLE main.age_band (
+CREATE TABLE main.final_result (
     id SERIAL PRIMARY KEY,
-    age_band VARCHAR(5) NOT NULL
+    final_result VARCHAR(11) NOT NULL
 );
-insert into main.age_band (age_band)
-select distinct age_band
+insert into main.final_result (final_result)
+select distinct final_result
 from staging."studentInfo"
-where age_band is not null
-order by age_band;
+where final_result is not null
+order by final_result;

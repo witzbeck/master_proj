@@ -7,3 +7,4 @@ select
 
 into staging."studentAssessment"
 from landing."studentAssessment"
+;

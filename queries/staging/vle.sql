@@ -8,4 +8,5 @@ select
 ,cast(week_to as smallint)              week_to
 
 into staging.vle
-from landing.vle;
+from landing.vle
+;

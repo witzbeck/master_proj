@@ -8,3 +8,4 @@ select
 
 into staging."studentVle"
 from landing."studentVle"
+;

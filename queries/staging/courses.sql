@@ -4,3 +4,4 @@ select
 ,cast(module_presentation_length as int)    module_presentation_length
 into staging.courses
 from landing.courses
+;
