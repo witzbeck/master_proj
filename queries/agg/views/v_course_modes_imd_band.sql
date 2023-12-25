@@ -1,4 +1,4 @@
-create view agg.course_modes_result_imd_band as
+create view agg.v_course_modes_imd_band as
 select 
 
 course_id

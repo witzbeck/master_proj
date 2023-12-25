@@ -1,5 +1,6 @@
+create view agg.v_course_modes as
 select
-c.id course_id
+ c.id course_id
 ,a.final_result_id
 ,a.age_band_top_1
 ,a.age_band_top_2

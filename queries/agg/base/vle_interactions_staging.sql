@@ -1,5 +1,4 @@
-truncate table agg.vle_interactions_staging;
-insert into agg.vle_interactions_staging
+drop table if exists agg.vle_interactions_staging;
 SELECT
 
  b.student_id
@@ -29,6 +28,7 @@ SELECT
 ,o.is_sharedsubpage
 ,o.is_subpage
 ,o.is_url
+into agg.vle_interactions_staging
 FROM main.student_vle_bridge b
 JOIN main.vle_course_bridge v on b.site_id=v.site_id
 JOIN main.v_activity_types_onehot o on o.id=v.activity_type_id

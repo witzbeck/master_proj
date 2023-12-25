@@ -24,4 +24,4 @@ where (f.top_student_activity_by_visits between 1 and 3
     or f.top_student_activity_by_clicks between 1 and 3
     or f.bot_student_activity_by_visits between 1 and 3
     or f.bot_student_activity_by_clicks between 1 and 3)
-limit 1000;
+;

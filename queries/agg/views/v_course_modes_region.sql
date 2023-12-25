@@ -1,4 +1,4 @@
-create view agg.course_modes_result_region as
+create view agg.v_course_modes_region as
 select 
 
 course_id
