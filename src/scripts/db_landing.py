@@ -2,7 +2,7 @@ from logging import info
 from pathlib import Path
 
 from alexlib.files import Directory
-from master_proj.setup import auth, cnxn
+from master_proj.setup import cnxn
 
 datadir = Path.home() / "repos/master_proj/data"
 d = Directory.from_path(datadir)
