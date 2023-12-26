@@ -18,7 +18,7 @@ select
 ,row_number() over (partition by a.course_id
                                 ,a.student_id
                     order by a.n_clicks)        bot_student_activity_by_clicks
-into first30.activities_by_frequency
+into agg.activities_by_frequency
 
 from (
 select

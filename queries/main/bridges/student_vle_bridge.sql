@@ -1,7 +1,9 @@
-drop table if exists main.student_vle_bridge cascade;
+drop table if exists main.student_vle_bridge;
+
 select
      site_id
     ,si.id              student_id
+    ,si.course_id
     ,m.id               module_id
     ,p.id               presentation_id
     ,date
@@ -13,4 +15,5 @@ join main.presentations p on p.presentation_code=s.code_presentation
 join main.student_info si on si.orig_student_id=s.student_id
                         and si.module_id=m.id
                         and si.presentation_id=p.id
+
 ;
