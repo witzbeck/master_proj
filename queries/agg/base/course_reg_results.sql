@@ -1,3 +1,4 @@
+drop table if exists agg.course_reg_results cascade;
 SELECT
  count(*)                           n_students
 ,s.course_id                        
@@ -28,18 +29,16 @@ SELECT
 ,sum(case when s.has_disability = '1' then 1 else 0 end)              n_disabled
 ,sum(case when s.has_disability = '1' then 1.000000000 else 0.000000000 end)
     / count(*)                      disability_ratio
-,sum(vibo.is_0_10_percent)  n_imd_0_10
-,sum(vibo.is_10_20)         n_imd_10_20
-,sum(vibo.is_20_30_percent) n_imd_20_30
-,sum(vibo.is_30_40_percent) n_imd_30_40
-,sum(vibo.is_40_50_percent) n_imd_40_50
-,sum(vibo.is_50_60_percent) n_imd_50_60
-,sum(vibo.is_60_70_percent) n_imd_60_70
-,sum(vibo.is_70_80_percent) n_imd_70_80
-,sum(vibo.is_80_90_percent) n_imd_80_90
-,sum(vibo.is_90_100_percent)n_imd_90100
-
-
+,sum(vibo.imd_band_00_10)  n_imd_00_10
+,sum(vibo.imd_band_10_20)  n_imd_10_20
+,sum(vibo.imd_band_20_30)  n_imd_20_30
+,sum(vibo.imd_band_30_40)  n_imd_30_40
+,sum(vibo.imd_band_40_50)  n_imd_40_50
+,sum(vibo.imd_band_50_60)  n_imd_50_60
+,sum(vibo.imd_band_60_70)  n_imd_60_70
+,sum(vibo.imd_band_70_80)  n_imd_70_80
+,sum(vibo.imd_band_80_90)  n_imd_80_90
+,sum(vibo.imd_band_90_100) n_imd_90_100
 
 
 into agg.course_reg_results

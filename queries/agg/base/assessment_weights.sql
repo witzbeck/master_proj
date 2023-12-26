@@ -1,3 +1,4 @@
+drop table if exists agg.assessment_weights cascade;
 select
  vca.module_id
 ,vca.presentation_id
@@ -10,7 +11,7 @@ select
 ,sum(vca.assessment_weight * vca.assessment_date)   sum_weight_date_product
 into agg.assessment_weights
 from main.v_course_assessments vca
-join main.v_courses c on c.module_id=vca.module_id
+join main.course_info c on c.module_id=vca.module_id
                     and c.presentation_id=vca.presentation_id          
 group by
  vca.module_id

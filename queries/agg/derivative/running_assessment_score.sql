@@ -1,3 +1,4 @@
+drop table if exists agg.running_assessment_score;
 select *
 ,cum_score_weight_prod / cum_weight running_score
 
@@ -9,7 +10,6 @@ select
 ,s.course_id
 ,s.assessment_id
 ,s.assessment_type_id
-,s.assessment_type
 ,sum(s.score) over (partition by s.course_id, s.student_id
                      order by s.date_due) cum_score
 ,sum(s.weight) over (partition by s.course_id, s.student_id
@@ -19,7 +19,7 @@ select
 ,s.weight
 ,s.is_banked
 ,s.date_due
-from agg.assessment_staging s
+from main.v_assessment_staging s
 
 where s.is_weighted = 1
 ) s

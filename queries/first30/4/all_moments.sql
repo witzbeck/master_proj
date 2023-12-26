@@ -1,4 +1,4 @@
-drop table first30.all_moments;
+drop table if exists first30.all_moments;
 
 select
  mit1.student_id

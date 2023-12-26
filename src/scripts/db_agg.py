@@ -1,3 +1,4 @@
+from itertools import chain
 from logging import warning
 
 from tqdm import tqdm
@@ -14,19 +15,21 @@ dirs = [
     "views",
 ]
 cnxn.create_schema(schema)
+files = list(chain.from_iterable([
+    Directory.from_path(main / group).filelist
+    for group in dirs
+]))
+files = [f for f in files if not cnxn.table_exists(schema, f.path.stem)]
 
-for group in tqdm(dirs):
-    lst = Directory.from_path(main / group).filelist
-    for f in tqdm(lst):
-        if not cnxn.table_exists(schema, f.path.stem):
-            try:
-                cnxn.execute(f)
-            except UndefinedTable:
-                warning(f"{f} does not exist")
-            except DuplicateTable:
-                warning(f"{f} already exists")
-            except UnicodeDecodeError as e:
-                warning(f"{e} for {f}")
-            except Exception as e:
-                print(f, "\n", e)
-                raise Exception
+for f in tqdm(files):
+    print("\n", f.path, "\n")
+    try:
+        cnxn.execute(f)
+    # except UndefinedTable:
+    #     warning(f"{f} does not exist")
+    except DuplicateTable:
+        warning(f"{f} already exists")
+    except UnicodeDecodeError as e:
+        warning(f"{e} for {f}")
+    # except Exception as e:
+    #     raise Exception(e)

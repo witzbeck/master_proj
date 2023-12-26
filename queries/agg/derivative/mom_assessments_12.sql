@@ -1,10 +1,12 @@
+drop table if exists agg.mom_assessments_12;
+
 with avg as (
 select
  s.student_id
 ,count(*)                      n
 ,cast(sum(s.days_before_due_submitted) 
     as float) / count(*)       days
-from agg.assessment_staging s
+from main.v_assessment_staging s
 group by 
  student_id
 )
@@ -18,7 +20,7 @@ select
 
 
 into agg.mom_assessments_12
-from agg.assessment_staging s
+from main.v_assessment_staging s
 join avg on avg.student_id=s.student_id
 group by
  avg.student_id

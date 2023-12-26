@@ -1,7 +1,6 @@
-
 select 
 
-s.id student_id 
+ s.id student_id 
 ,g.sum_weight
 ,g.sum_score
 ,g.course_weight
