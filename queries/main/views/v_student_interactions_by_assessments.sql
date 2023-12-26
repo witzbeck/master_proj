@@ -1,13 +1,12 @@
 select
  act.activity_type
-
-,act.id activity_type_id
+,act.id                     activity_type_id
 ,svb.date                   activity_date
 ,ast.assessment_type
-,ast.id assessment_type_id
-,a.date             assessment_date
-,a.date - svb.date  activity_days_before_due
-,a.weight           assessment_weight
+,ast.id                     assessment_type_id
+,a.date                     assessment_date
+,a.date - svb.date          activity_days_before_due
+,a.weight                   assessment_weight
 ,scb.final_result_id
 ,fr.final_result
 ,sab.date_submitted

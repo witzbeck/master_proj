@@ -1,4 +1,4 @@
-drop table first30.all_features;
+drop table if exists first30.all_features;
 select
  ac.student_id
 ,ac.course_id
@@ -116,18 +116,6 @@ select
 ,am.dualpane_skew_clicks
 ,am.dualpane_kurt_clicks
 ,am.dualpane_fp_coeff
---no folder responses --,am.folder_n
---no folder responses --,am.folder_avg_date
---no folder responses --,am.folder_var_date
---no folder responses --,am.folder_stddev_date
---no folder responses --,am.folder_skew_date
---no folder responses --,am.folder_kurt_date
---no folder responses --,am.folder_avg_clicks
---no folder responses --,am.folder_var_clicks
---no folder responses --,am.folder_stddev_clicks
---no folder responses --,am.folder_skew_clicks
---no folder responses --,am.folder_kurt_clicks
---no folder responses --,am.folder_fp_coeff
 ,am.forumng_n
 ,am.forumng_avg_date
 ,am.forumng_var_date
@@ -272,18 +260,6 @@ select
 ,am.quiz_skew_clicks
 ,am.quiz_kurt_clicks
 ,am.quiz_fp_coeff
---no repeatactivity responses --,am.repeatactivity_n
---no repeatactivity responses --,am.repeatactivity_avg_date
---no repeatactivity responses --,am.repeatactivity_var_date
---no repeatactivity responses --,am.repeatactivity_stddev_date
---no repeatactivity responses --,am.repeatactivity_skew_date
---no repeatactivity responses --,am.repeatactivity_kurt_date
---no repeatactivity responses --,am.repeatactivity_avg_clicks
---no repeatactivity responses --,am.repeatactivity_var_clicks
---no repeatactivity responses --,am.repeatactivity_stddev_clicks
---no repeatactivity responses --,am.repeatactivity_skew_clicks
---no repeatactivity responses --,am.repeatactivity_kurt_clicks
---no repeatactivity responses --,am.repeatactivity_fp_coeff
 ,am.resource_n
 ,am.resource_avg_date
 ,am.resource_var_date
