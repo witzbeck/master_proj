@@ -1,23 +1,23 @@
 with clicks as (
 with
-    date_mod0 as (select floor(date / 3) d,
+    date_mod0 as (select floor(activity_date / 3) d,
                          student_id,
                          sum_click 
-                         from agg.student_clicks_per_date 
-                         where date % 3 = 0
-                         and date <= 30),
-    date_mod1 as (select floor(date / 3) d,
+                         from main.v_student_interactions_by_assessments 
+                         where activity_date % 3 = 0
+                         and activity_date <= 30),
+    date_mod1 as (select floor(activity_date / 3) d,
                          student_id,
                          sum_click 
-                         from agg.student_clicks_per_date 
-                         where date % 3 = 1
-                         and date <= 30),
-    date_mod2 as (select floor(date / 3) d,
+                         from main.v_student_interactions_by_assessments 
+                         where activity_date % 3 = 1
+                         and activity_date <= 30),
+    date_mod2 as (select floor(activity_date / 3) d,
                          student_id,
                          sum_click 
-                         from agg.student_clicks_per_date 
-                         where date % 3 = 2
-                         and date <= 30)
+                         from main.v_student_interactions_by_assessments 
+                         where activity_date % 3 = 2
+                         and activity_date <= 30)
 select
  m0.student_id
 ,m0.d
@@ -28,8 +28,8 @@ join date_mod2 m2 on m2.d=m0.d and m2.student_id=m0.student_id
 )
 
 select
- p.student_id
-,sum(p.prod_3_click) / count(*) mean_prod_3_click
+ c.student_id
+,sum(c.prod_3_click) / count(*) mean_prod_3_click
 into agg.mean_prod_consec_days
 from clicks c
 group by student_id
