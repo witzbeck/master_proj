@@ -4,7 +4,5 @@ select
 ,cast(date_submitted as int)    date_submitted
 ,cast(is_banked as bit)         is_banked
 ,cast(score as smallint)        score
-
 into staging."studentAssessment"
 from landing."studentAssessment"
-;

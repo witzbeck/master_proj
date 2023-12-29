@@ -13,5 +13,5 @@ if not cnxn.schema_exists(schema):
     except DuplicateSchema:
         pass
 for f in tqdm(d.filelist):
-    if not cnxn.table_exists(schema, f.path.stem):
-        cnxn.execute(f)
+    cnxn.execute(f"drop table if exists {schema}.{f.path.stem}")
+    cnxn.execute(f)

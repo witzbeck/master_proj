@@ -5,7 +5,5 @@ select
 ,cast(code_presentation as varchar(5)) code_presentation
 ,cast(date as int) date
 ,cast(sum_click as int) sum_click
-
 into staging."studentVle"
 from landing."studentVle"
-;

@@ -3,7 +3,7 @@ with is_5th_perc as (select
 ,p.site_id
 ,case when p.activity_percentile_by_visits < 6 then 1 else 0 end is_5th_perc_visits
 ,case when p.activity_percentile_by_clicks < 6 then 1 else 0 end is_5th_perc_clicks
-from first30.course_activity_percentiles p
+from agg.course_activity_percentiles p
 where (p.activity_percentile_by_clicks < 6 or p.activity_percentile_by_visits < 6))
 select
  f.course_id

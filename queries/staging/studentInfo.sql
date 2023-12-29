@@ -19,4 +19,3 @@ select
 ,cast(final_result as varchar(11)) final_result
 into staging."studentInfo"
 from landing."studentInfo"
-;
