@@ -7,4 +7,3 @@ select
     ,cast(weight as int)                    weight
 into staging.assessments
 from landing.assessments
-;

@@ -1,4 +1,6 @@
+/*
 drop table if exists main.vle_course_bridge cascade;
+*/
 select 
      site_id
     ,c.id course_id

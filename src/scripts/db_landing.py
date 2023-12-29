@@ -13,5 +13,9 @@ try:
 except ValueError:
     info("database already exists")
 cnxn.create_schema(schema)
-for f in tqdm(d.csv_filelist):
-    cnxn.file_to_db(f, schema, f.path.stem)
+for file in tqdm(d.csv_filelist):
+    cnxn.file_to_db(
+        file,
+        schema,
+        file.path.stem,
+    )
