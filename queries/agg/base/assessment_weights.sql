@@ -1,4 +1,3 @@
-drop table if exists agg.assessment_weights cascade;
 select
  vca.module_id
 ,vca.presentation_id

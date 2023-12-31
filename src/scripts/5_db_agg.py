@@ -2,19 +2,21 @@ from itertools import chain
 from logging import warning
 
 from tqdm import tqdm
-from psycopg.errors import DuplicateTable, UndefinedTable
+from psycopg.errors import DuplicateTable
 
 from alexlib.files import Directory
 from src.setup import cnxn, queries
 
 schema = "agg"
+# cnxn.drop_all_schema_tables(schema)
 main = queries / schema
 dirs = [
     "base",
-    "derivative",
-    "views",
+    "derivative1",
+    "derivative2",
+    "views1",
+    "views2",
 ]
-cnxn.create_schema(schema)
 files = list(chain.from_iterable([
     Directory.from_path(main / group).filelist
     for group in dirs

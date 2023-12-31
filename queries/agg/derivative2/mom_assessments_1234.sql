@@ -1,4 +1,3 @@
-drop table if exists agg.mom_assessments_1234;
 with ass as (
 select
  s.student_id

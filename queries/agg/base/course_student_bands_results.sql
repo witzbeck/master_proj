@@ -1,4 +1,3 @@
-drop table if exists agg.course_student_bands_results cascade;
 SELECT
  s.course_id
 ,s.final_result_id

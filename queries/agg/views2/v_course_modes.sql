@@ -27,7 +27,7 @@ select
 ,e.highest_ed_bot_2
 ,e.highest_ed_bot_3
 from main.course_info c
-left join agg.course_modes_result_age_band a on c.id=a.course_id
-left join agg.course_modes_result_imd_band i on c.id=i.course_id and i.final_result_id=a.final_result_id
-left join agg.course_modes_result_region r on c.id=r.course_id and r.final_result_id=a.final_result_id
-left join agg.course_modes_result_highest_ed e on c.id=e.course_id and e.final_result_id=a.final_result_id
+left join agg.v_course_modes_age_band a on c.id=a.course_id
+left join agg.v_course_modes_imd_band i on c.id=i.course_id and i.final_result_id=a.final_result_id
+left join agg.v_course_modes_region r on c.id=r.course_id and r.final_result_id=a.final_result_id
+left join agg.v_course_modes_highest_ed e on c.id=e.course_id and e.final_result_id=a.final_result_id
