@@ -10,7 +10,7 @@ from (
 select
  m.module_code
 ,p.presentation_code
-,sr.student_id
+,sr.id student_id
 ,sr.date_registration
 ,sr.date_unregistration
 ,count(*) n_records
@@ -20,14 +20,14 @@ select
 ,sum(case 
     when sr.date_unregistration is not null 
     then 1 else 0 end)      n_unregistrations
-from main.student_registration sr
+from main.student_info sr
 join main.modules m on m.id=sr.module_id
 join main.presentations p on p.id=sr.presentation_id
 
 group by 
  module_code
 ,presentation_code
-,sr.student_id
+,sr.id
 ,sr.date_registration
 ,sr.date_unregistration
 ) a

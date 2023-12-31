@@ -1,4 +1,3 @@
---drop view if exists main.v_assessment_staging;
 create view main.v_assessment_staging as
 select
      b.student_id

@@ -23,4 +23,3 @@ select
 ,case when activity_type = 'url' then 1 else 0 end as is_url
 ,activity_type
 from main.activity_types
-;

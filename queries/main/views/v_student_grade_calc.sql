@@ -22,12 +22,12 @@ select
     end) / count(*)                                                 avg_days_submitted_early
 
 from main.student_info si 
-join main.student_course_bridge scb on si.student_id=scb.student_id
-join main.student_assessment_bridge sab on sab.student_id=si.student_id
-join main.assessments a on a.assessment_id=sab.assessment_id
+join main.student_vle_bridge scb on si.id=scb.student_id
+join main.student_assessment_bridge sab on sab.student_id=si.id
+join main.assessment_info a on a.assessment_id=sab.assessment_id
                             and a.module_id=scb.module_id
                             and a.presentation_id=scb.presentation_id
-join main.final_result f on f.id=scb.final_result_id
+join main.final_result f on f.id=si.final_result_id
 join main.assessment_types t on t.id=a.assessment_type_id
 where a.weight > 0
 
