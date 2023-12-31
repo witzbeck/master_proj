@@ -1,4 +1,3 @@
-drop view if exists main.v_course_assessments;
 create view main.v_course_assessments as
 select
  a.assessment_id

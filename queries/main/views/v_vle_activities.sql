@@ -1,4 +1,3 @@
-drop view if exists main.v_vle_activities;
 create view main.v_vle_activities as
 SELECT 
  vcb.site_id

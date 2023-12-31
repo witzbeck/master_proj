@@ -23,7 +23,7 @@ select
 ,c.level
 from main.student_info si
 join main.final_result f on f.id=si.final_result_id
-join main.regions r on r.id=si.region_id
+join main.region r on r.id=si.region_id
 join main.highest_education h on h.id=si.highest_education_id
 join main.imd_band i on i.id=si.imd_band_id
 join main.age_band a on a.id=si.age_band_id

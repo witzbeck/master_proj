@@ -1,6 +1,3 @@
-/*
-drop table if exists main.student_vle_bridge;
-*/
 select
      site_id
     ,si.id              student_id

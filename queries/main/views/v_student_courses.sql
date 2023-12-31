@@ -1,4 +1,3 @@
-DROP VIEW if exists main.v_student_courses;
 CREATE VIEW main.v_student_courses as
 select
 
@@ -34,4 +33,4 @@ join main.final_result f on f.id=si.final_result_id
 join main.age_band a on a.id=si.age_band_id
 join main.imd_band ib on ib.id=si.imd_band_id
 join main.highest_education he on he.id=si.highest_education_id
-join main.regions r on r.id=si.region_id
+join main.region r on r.id=si.region_id
