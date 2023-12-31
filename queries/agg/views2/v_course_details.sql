@@ -22,37 +22,37 @@ select
 ,cr.gender_ratio
 ,cr.n_disabled
 ,cr.disability_ratio
-,csb.n_in_east_anglian_region
-,csb.n_in_east_midlands_region
-,csb.n_in_ireland
-,csb.n_in_london_region
-,csb.n_in_north_region
-,csb.n_in_north_western_region
-,csb.n_in_scotland
-,csb.n_in_south_east_region
-,csb.n_in_south_region
-,csb.n_in_south_west_region
-,csb.n_in_wales
-,csb.n_in_west_midlands_region
-,csb.n_in_yorkshire_region
-,csb.n_age_0_35
-,csb.n_age_35_55
-,csb.n_age_55_up
-,csb.n_a_level_or_eq
-,csb.n_he_quals
-,csb.n_lower_than_a_level
-,csb.n_no_formal_quals
-,csb.n_post_grad_quals
-,csb.n_imd_0_10
-,csb.n_imd_10_20
-,csb.n_imd_20_30
-,csb.n_imd_30_40
-,csb.n_imd_40_50
-,csb.n_imd_50_60
-,csb.n_imd_60_70
-,csb.n_imd_70_80
-,csb.n_imd_80_90
-,csb.n_imd_90_100
+,cmr.n_in_east_anglian_region
+,cmr.n_in_east_midlands_region
+,cmr.n_in_ireland
+,cmr.n_in_london_region
+,cmr.n_in_north_region
+,cmr.n_in_north_western_region
+,cmr.n_in_scotland
+,cmr.n_in_south_east_region
+,cmr.n_in_south_region
+,cmr.n_in_south_west_region
+,cmr.n_in_wales
+,cmr.n_in_west_midlands_region
+,cmr.n_in_yorkshire_region
+,cma.n_age_0_35
+,cma.n_age_35_55
+,cma.n_age_55_up
+,cmh.n_a_level_or_eq
+,cmh.n_he_quals
+,cmh.n_lower_than_a_level
+,cmh.n_no_formal_quals
+,cmh.n_post_grad_quals
+,cmi.n_imd_0_10
+,cmi.n_imd_10_20
+,cmi.n_imd_20_30
+,cmi.n_imd_30_40
+,cmi.n_imd_40_50
+,cmi.n_imd_50_60
+,cmi.n_imd_60_70
+,cmi.n_imd_70_80
+,cmi.n_imd_80_90
+,cmi.n_imd_90_100
 ,cm.age_band_top_1
 ,cm.age_band_top_2
 ,cm.age_band_top_3
@@ -79,9 +79,12 @@ select
 ,cm.highest_ed_bot_3
 
 from agg.course_info c
-join agg.course_reg cr on cr.course_id=c.course_id
-join agg.course_modes cm on cm.course_id=c.course_id
-join agg.course_student_bands csb on csb.course_id=c.course_id 
+join agg.course_reg_results cr on cr.course_id=c.course_id
+join agg.v_course_modes cm on cm.course_id=c.course_id
+join agg.v_course_modes_age_band cma on cma.course_id=c.course_id 
+join agg.v_course_modes_highest_ed cmh on cmh.course_id=c.course_id 
+join agg.v_course_modes_imd_band cmi on cmi.course_id=c.course_id 
+join agg.v_course_modes_region cmr on cmr.course_id=c.course_id 
 join (select
  s.course_id
 ,sum(vfro.is_distinction)   n_distinction

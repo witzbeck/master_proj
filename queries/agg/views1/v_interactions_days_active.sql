@@ -22,5 +22,5 @@ select
 ,sum(vis.sum_click * vis.is_sharedsubpage) n_clicks_sharedsubpage
 ,sum(vis.sum_click * vis.is_subpage) n_clicks_subpage
 ,sum(vis.sum_click * vis.is_url) n_clicks_url
-from agg.vle_interactions_staging vis
+from agg.interaction_types_staging vis
 group by student_id

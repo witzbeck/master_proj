@@ -1,4 +1,3 @@
-drop table if exists agg.course_reg_results cascade;
 SELECT
  count(*)                           n_students
 ,s.course_id                        

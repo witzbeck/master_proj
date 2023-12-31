@@ -14,7 +14,7 @@ select
 ,count(distinct vis.date) n_days
 ,row_number() over (partition by student_id 
                     order by count(distinct vis.date) desc) top_order
-from agg.vle_interactions_staging vis
+from agg.interaction_types_staging vis
 where activity_type_id not in (7,4) -- not homepage, folder
 group by vis.student_id, site_id
 ) r
