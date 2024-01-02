@@ -18,7 +18,7 @@ from sklearn.metrics import roc_curve, roc_auc_score
 from alexlib.db import Connection
 from alexlib.df import filter_df, get_distinct_col_vals
 from alexlib.core import chkenv
-from alexlib.iters import keys, get_comb_gen, get_idx_val, link
+from alexlib.iters import get_comb_gen, get_idx_val, link
 from alexlib.maths import combine_domains, get_list_difs, get_rect_area
 from setup import config
 
@@ -126,23 +126,27 @@ class Abroca:
         self.set_new_tprs()
         self.set_abroca()
 
-    def __init__(self,
-                 split_col: str,
-                 curve_dict: dict
-                 ):
+    @property
+    def keys(self) -> list[str]:
+        return list(self.curves.keys())
+
+    def __init__(
+        self,
+        split_col: str,
+        curve_dict: dict
+    ) -> None:
         self.split_col = split_col
-        self.keys = keys(curve_dict)
         self.roc1 = curve_dict[self.keys[0]]
         self.roc2 = curve_dict[self.keys[-1]]
         self.steps()
 
     @staticmethod
-    def get_slice_label(split_col: str, key: str):
+    def get_slice_label(split_col: str, key: str) -> str:
         val = key[5:]
         return f"{split_col} = {val}"
 
     @staticmethod
-    def get_auc_str(auc: float, round_int: int = 4):
+    def get_auc_str(auc: float, round_int: int = 4) -> str:
         return str(round(auc, round_int))
 
     def get_plot_label(self, key_idx: int, auc: float):
@@ -151,7 +155,7 @@ class Abroca:
         auc_str = Abroca.get_auc_str(auc)
         return f"{slice_label} | auc = {auc_str}"
 
-    def plot(self, ax=None):
+    def plot(self, ax=None) -> None:
         x = self.domain
         y1 = self.new_tpr1
         y2 = self.new_tpr2
@@ -268,22 +272,21 @@ class RocCurve:
         y_prob = self.get_y_slice(X_test, self.y_prob)
         return RocCurve(y_true, y_prob, X_test)
 
-    def get_roc_objs(self,
-                     X_slices: dict,
-                     ):
-        curves = {}
-        _keys = keys(X_slices)
-        for key in _keys:
-            X_test = X_slices[key]
-            curves[key] = self.get_roc_obj(X_test)
-        return curves
+    def get_roc_objs(
+        self,
+        X_slices: dict,
+    ) -> dict:
+        return {
+            k: self.get_roc_obj(v)
+            for k, v in X_slices.items()
+        }
 
-    def get_abroca(self, split_col: str):
+    def get_abroca(self, split_col: str) -> Abroca:
         X_slices = self.get_X_slices(split_col)
         self.curves = self.get_roc_objs(X_slices)
         return Abroca(split_col, self.curves)
 
-    def get_abrocas(self, split_cols: list):
+    def get_abrocas(self, split_cols: list) -> list[float]:
         return [self.get_abroca(x) for x in split_cols]
 
 
@@ -393,8 +396,8 @@ class ModelResult:
 class Results:
     schema: str = field(default=chkenv("LOG_SCHEMA"))
     table: str = field(default="v_all_runs_results")
-    rope: float = field(default=chkenv("EVAL_ROPE", type=float))
-    runs: int = field(default=chkenv("CV_NREPEATS", type=int))
+    rope: float = field(default=chkenv("EVAL_ROPE", astype=float))
+    runs: int = field(default=chkenv("CV_NREPEATS", astype=int))
     lim: int = field(default=None)
     obj_list: list = field(default_factory=list)
 
@@ -402,7 +405,7 @@ class Results:
     def alpha_eval(p: float,
                    i: int,
                    j: int,
-                   alpha: float = chkenv("ALPHA", type=float),
+                   alpha: float = chkenv("ALPHA", astype=float),
                    ):
         if p > alpha:
             return MID
@@ -410,10 +413,11 @@ class Results:
             return LEFT if i < j else RIGHT
 
     @staticmethod
-    def rope_eval(outcome: tuple,
-                  flexible: bool = chkenv("ROPE_FLEXIBLE", type=bool),
-                  upbound: float = chkenv("ROPE_UPBOUND", type=float),
-                  ) -> float:
+    def rope_eval(
+        outcome: tuple,
+        flexible: bool = chkenv("ROPE_FLEXIBLE", astype=bool),
+        upbound: float = chkenv("ROPE_UPBOUND", astype=float),
+    ) -> float:
         pleft, prope, pright = outcome
         absdif = abs(pleft - pright)
 

@@ -10,7 +10,6 @@ from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import GridSearchCV, RepeatedStratifiedKFold
 
 from alexlib.core import chkenv
-from alexlib.iters import keys
 from src.analysis import RocCurve
 from src.features import Features
 from src.logger import Logger
@@ -123,8 +122,10 @@ class ModelEngine:
 
     def get_all_params_log(self) -> dict:
         all_params = {}
-        cv_keys = keys(self.gridsearch.cv_results_)
-        p_keys = [x for x in cv_keys if x[:6] == "param_"]
+        p_keys = [
+            x for x in self.gridsearch.cv_results_.keys()
+            if x[:6] == "param_"
+        ]
         for key in p_keys:
             all_params[key] = self.gridsearch.cv_results_[key]
         std_params = self.params.get_std_clf_params()
@@ -164,8 +165,10 @@ class ModelEngine:
         results_log["false_pos"] = self.conf_matrix[0][1]
         results_log["false_neg"] = self.conf_matrix[1][0]
         results_log["true_neg"] = self.conf_matrix[1][1]
-        cv_keys = keys(self.gridsearch.cv_results_)
-        nonp_keys = [x for x in cv_keys if x[:5] not in ["param", "split"]]
+        nonp_keys = [
+            x for x in self.gridsearch.cv_results_.keys()
+            if x[:5] not in ["param", "split"]
+        ]
         for key in nonp_keys:
             results_log[key] = self.gridsearch.cv_results_[key][0]
         return results_log

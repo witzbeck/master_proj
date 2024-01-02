@@ -96,52 +96,76 @@ class Features:
         self.keep_cols = list(set(self.get_keep_cols()))
         return [x for x in self.keep_cols if x not in self.drop_cols]
 
+    @property
+    def to_predict_col(self) -> str:
+        return chkenv("PREDICT_COL")
+
+    @property
+    def context(self) -> str:
+        return chkenv("CONTEXT")
+
+    @property
+    def use_all(self) -> bool:
+        return chkenv("USE_ALL", astype=bool),
+
+    @property
+    def use_academic(self) -> bool:
+        return chkenv("USE_ACADEMIC", astype=bool),
+
+    @property
+    def use_demographic(self) -> bool:
+        return chkenv("USE_DEMOGRAPHIC", astype=bool),
+
+    @property
+    def use_engagement(self) -> bool:
+        return chkenv("USE_ENGAGEMENT", astype=bool),
+
+    @property
+    def use_moments(self) -> bool:
+        return chkenv("USE_MOMENTS", astype=bool),
+
+    @property
+    def use_stud_info(self) -> bool:
+        return chkenv("USE_STUDENT_INFO", astype=bool),
+
+    @property
+    def use_ids(self) -> bool:
+        return chkenv("USE_IDS", astype=bool),
+
+    @property
+    def use_text(self) -> bool:
+        return chkenv("USE_TEXT", astype=bool),
+
+    @property
+    def use_by_activity(self) -> bool:
+        return chkenv("USE_BY_ACTIVITY", astype=bool),
+
     def __init__(self,
-                 to_predict_col: str = chkenv("PREDICT_COL"),
-                 context: str = chkenv("CONTEXT"),
                  schema: str = "eval",  # features view cur only on eval
                  table: str = "v_features",
                  field_col: str = "column_name",
-                 use_all: bool = chkenv("USE_ALL", type=bool),
-                 use_academic: bool = chkenv("USE_ACADEMIC", type=bool),
-                 use_demographic: bool = chkenv("USE_DEMOGRAPHIC", type=bool),
-                 use_engagement: bool = chkenv("USE_ENGAGEMENT", type=bool),
-                 use_moments: bool = chkenv("USE_MOMENTS", type=bool),
-                 use_stud_info: bool = chkenv("USE_STUDENT_INFO", type=bool),
-                 use_ids: bool = chkenv("USE_IDS", type=bool),
-                 use_text: bool = chkenv("USE_TEXT", type=bool),
-                 use_by_activity: bool = chkenv("USE_BY_ACTIVITY", type=bool),
-                 to_exclude: list = [],
                  to_include: list = [],
+                 to_exclude: list = [],
                  ):
         self.field_col = field_col
-        self.tbl = ProjectTable(context, schema, table)
+        self.tbl = ProjectTable(self.context, schema, table)
         self.all = self.get_col_names(self.tbl.df)
         self.demographic = self.get_col_cat("is_demographics", 1)
         self.academic = self.get_col_cat("is_academic", 1)
         self.engagement = self.get_col_cat("is_engagement", 1)
-        self.to_predict_col = to_predict_col
-        self.use_academic = use_academic
-        self.use_demographic = use_demographic
-        self.use_engagement = use_engagement
-        if use_all:
+        if self.use_all:
             self.name = "all"
             self.use_academic = True
             self.use_demographic = True
             self.use_engagement = True
-        elif use_academic:
+        elif self.use_academic:
             self.name = "academ"
-        elif use_demographic:
+        elif self.use_demographic:
             self.name = "demog"
-        elif use_engagement:
+        elif self.use_engagement:
             self.name = "engage"
         else:
             self.name = ""
-        self.use_moments = use_moments
-        self.use_student_info = use_stud_info
-        self.use_ids = use_ids
-        self.use_text = use_text
-        self.use_by_activity = use_by_activity
         self.to_exclude = to_exclude
         self.to_include = to_include
         self.set_cols()

@@ -8,8 +8,8 @@ from pandas import Series
 from seaborn import histplot
 
 from alexlib.db import Table, Column
-from alexlib.maths import get_props, pyth
-from setup import dbh
+from alexlib.maths import get_props, euclidean_distance as pyth
+from setup import cnxn
 
 
 class ProjectColumn(Column):
@@ -137,7 +137,7 @@ class ProjectColumn(Column):
 class ProjectTable(Table):
     def __post_init__(self):
         if self.df is None:
-            self.df = dbh.get_table(
+            self.df = cnxn.get_table(
                 self.schema,
                 self.table,
                 nrows=self.nrows,
