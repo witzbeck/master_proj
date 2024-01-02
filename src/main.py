@@ -9,7 +9,7 @@ from alexlib.iters import list_gen
 from engine import ModelEngine
 from params import Params, model_types
 from features import Features
-from setup import dbh, random_state as rand
+from setup import cnxn, random_state
 
 
 split_cols = ["is_stem", "is_female", "has_disability"]
@@ -29,29 +29,19 @@ feat_list = list(feat_dict.values())
 
 
 def rand_feat():
-    return [choice(feat_list)] if rand else feat_list
+    return [choice(feat_list)] if random_state else feat_list
 
 
-def drop_tab_pattern(pattern: str,
-                     schema: str = schema,
-                     dbh: Connection = dbh,
-                     cascade: bool = True,
-                     ):
-    tabs = dbh.get_all_schema_tables(schema)
-    droptabs = [x for x in tabs if pattern in x]
-    for tab in droptabs:
-        dbh.drop_table(schema, tab, cascade=cascade)
-
-
-def run_all_models(schema: str = schema,
-                   reset_schema: bool = reset_schema,
-                   dbh: Connection = dbh
-                   ):
+def run_all_models(
+    schema: str = schema,
+    reset_schema: bool = reset_schema,
+    cnxn: Connection = cnxn
+) -> bool:
     if reset_schema:
-        drop_tab_pattern("results")
-        drop_tab_pattern("param")
-        dbh.trunc_schema(schema)
-    model_gen = list_gen(model_types, rand=rand, inf=inf)
+        cnxn.drop_table_pattern("results")
+        cnxn.drop_table_pattern("param")
+        cnxn.truncate_schema(schema)
+    model_gen = list_gen(model_types, rand=random_state, inf=inf)
     while True:
         try:
             model = next(model_gen)
