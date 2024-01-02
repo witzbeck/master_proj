@@ -1,12 +1,10 @@
-# standard library imports
-from tqdm import tqdm
 from random import choice
 
-# third party imports
+from tqdm import tqdm
 
 # local imports
 from alexlib.db import Connection
-from alexlib.config import chkenv
+from alexlib.core import chkenv
 from alexlib.iters import list_gen
 from engine import ModelEngine
 from params import Params, model_types

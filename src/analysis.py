@@ -1,12 +1,10 @@
-# standard library imports
 from dataclasses import dataclass, field
 from datetime import datetime
 
-# third party imports
 from tqdm import tqdm
 from baycomp import two_on_multiple
-import numpy as np
 from numpy import zeros, array, nan, isnan
+from numpy import bool_, float_, int_
 from matplotlib.colors import ListedColormap, BoundaryNorm
 from matplotlib.pyplot import subplots, title, legend
 from matplotlib.pyplot import tick_params, xlabel, ylabel
@@ -14,14 +12,12 @@ from pandas import DataFrame, Series
 from seaborn import heatmap
 from scipy.stats import friedmanchisquare
 from scikit_posthocs import posthoc_nemenyi_friedman
-
-# eval and postprocessing
 from sklearn.metrics import roc_curve, roc_auc_score
 
 # local imports
 from alexlib.db import Connection
 from alexlib.df import filter_df, get_distinct_col_vals
-from alexlib.config import chkenv
+from alexlib.core import chkenv
 from alexlib.iters import keys, get_comb_gen, get_idx_val, link
 from alexlib.maths import combine_domains, get_list_difs, get_rect_area
 from setup import config
@@ -305,24 +301,24 @@ def get_num(_str: str):
     return ret
 
 
-def try_array_float_list(_array: array,
+def try_array_float_list(array_: array,
                          key: str,
                          _type: str = "float",
                          ):
     if key == "n_jobs":
-        return [int(x) for x in _array]
+        return [int(x) for x in array_]
     elif key == "warm_start":
-        return [bool(x) for x in _array]
-    dtype = _array.dtype
-    if dtype in [np.bool_, np.float_, np.int_]:
-        return _array.tolist()
+        return [bool(x) for x in array_]
+    dtype = array_.dtype
+    if max([isinstance(dtype, t) for t in [bool_, float_, int_]]):
+        return array_.tolist()
     try:
-        return [get_num(x) for x in _array]
+        return [get_num(x) for x in array_]
     except ValueError:
-        return _array.tolist()
+        return array_.tolist()
 
 
-def format_clf_params(series: Series):
+def format_clf_params(series: Series) -> dict[str: list]:
     keys = [x for x in series.columns if x[-3:] != "_id"]
     vals = [series[key].values for key in keys]
     rng = range(len(keys))
@@ -365,11 +361,8 @@ class ModelResult:
         self.name = self.get_name()
         self.splits_test_roc_auc = array(self.splits_test_roc_auc).ravel()
 
-    def sort_cols(df: DataFrame):
-        if type(df) == dict:
-            cols = list(df.keys())
-        else:
-            cols = list(df.columns)
+    def sort_cols(df: DataFrame) -> tuple[list, list]:
+        cols = list(df.keys()) if isinstance(df, dict) else list(df.columns)
         split_cols = [col for col in cols if "split" in col]
         other_cols = [col for col in cols if col not in split_cols]
         return split_cols, other_cols
