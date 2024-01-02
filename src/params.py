@@ -1,12 +1,11 @@
 # standard library imports
 from dataclasses import dataclass, field
+from typing import Any
 
-# third party imports
 from scipy.stats import expon, uniform
 
-# local imports
-from alexlib.config import chkenv
-from alexlib.iters import keys, vals
+from alexlib.core import chkenv
+from alexlib.maths import discrete_exp_dist
 from setup import nrows as nr, random_state as rs, jobint, model_types
 
 if __name__ == '__main__':
@@ -14,79 +13,82 @@ if __name__ == '__main__':
     config
 
 
-def discrete_exp_dist(
-        exp_min: int,
-        exp_max: int,
-        exp_int: int = 10,
-        exp_inc: int = 1,
-        numerator: int = 1
-) -> list[float]:
-    exp_max += 1
-    rng = range(exp_min, exp_max, exp_inc)
-    return [numerator / (exp_int ** i) for i in rng]
+def wrap_dict_vals(dict_: dict) -> dict[str: list]:
+    return {
+        k: [v] if not isinstance(v, list) else v
+        for k, v in dict_.items()
+    }
 
 
-def wrap_dict_vals(_dict: dict):
-    for key in keys(_dict):
-        val = _dict[key]
-        _dict[key] = [val]
-    return _dict
+def unpack_clf_keys(params_dict: dict) -> list[str]:
+    return [x.split("__")[-1] for x in params_dict.keys()]
 
 
-def unpack_clf_keys(params_dict: dict):
-    _keys = keys(params_dict)
-    return [x.split("__")[-1] for x in _keys]
-
-
-def unpack_clf_params(params_dict: dict):
+def unpack_clf_params(params_dict: dict) -> dict[str: Any]:
     new_keys = unpack_clf_keys(params_dict)
-    _vals = vals(params_dict)
-    _range = range(len(new_keys))
-    return {new_keys[i]: _vals[i] for i in _range}
+    vals = list(params_dict.values())
+    return {new_keys[i]: vals[i] for i in range(len(new_keys))}
 
 
-def lengthen_params_log(params_log: dict):
-    _keys = keys(params_log)
-    _vals = vals(params_log)
-    r = range(len(keys))
+def lengthen_params_log(params_log: dict) -> dict:
+    keys = list(params_log.keys())
     log = []
-    for i in r:
-        val = _vals[i]
-        if val is None:
-            log.append([val])
-        elif (valt := type(val)) in [str, float, int, bool]:
-            log.append([val])
-        elif valt in [list, tuple]:
-            log.append(list(val))
+    for v in params_log.values():
+        if v is None:
+            log.append([v])
+        elif max([isinstance(v, t) for t in [str, float, int, bool]]):
+            log.append([v])
+        elif isinstance(v, list):
+            log.append(v)
+        elif isinstance(v, tuple):
+            log.append(list(v))
         else:
-            log.append(val.data.tolist())
+            log.append(v.data.tolist())
     plen = max([len(x) for x in log])
-    return {_keys[i]: log[i] * plen if len(log[i]) == 1 else log[i] for i in r}
+    return {
+        keys[i]: log[i] * plen if len(log[i]) == 1 else log[i]
+        for i in range(len(params_log))
+    }
 
 
-def overwrite_std_params(clf_params: dict,
-                         std_params: dict,
-                         all: bool = True
-                         ):
+def overwrite_std_params(
+    clf_params: dict,
+    std_params: dict,
+    all: bool = True
+) -> dict:
     sp = std_params
     np = unpack_clf_params(clf_params)
-    _ks = keys(std_params)
-    new_keys = keys(np)
-    out_params = {key: np[key] if key in new_keys else sp[key] for key in _ks}
-    if all:
-        return lengthen_params_log(out_params)
-    else:
-        return out_params
+    new_keys = list(np.keys())
+    out_params = {
+        key: np[key] if key in new_keys else sp[key]
+        for key in std_params.keys()
+    }
+    return lengthen_params_log(out_params) if all else out_params
 
 
 @dataclass
 class Params:
-    model_type: str = chkenv("MODEL_TYPE")
-    predict_col: int = chkenv("PREDICT_COL")
-    nrows: int = nr
-    test_size: float = chkenv("TEST_SIZE", type=float)
-    random_state: int = rs
     params: dict = field(default_factory=dict)
+
+    @property
+    def model_type(self) -> str:
+        return chkenv("MODEL_TYPE")
+
+    @property
+    def predict_col(self) -> str:
+        return chkenv("PREDICT_COL")
+
+    @property
+    def nrows(self) -> int:
+        return nr
+
+    @property
+    def test_size(self) -> float:
+        return chkenv("TEST_SIZE", type=float)
+
+    @property
+    def random_state(self) -> int:
+        return rs
 
     def set_rand_param_dict(self):
 
@@ -416,11 +418,23 @@ class Params:
             raise ValueError(self.model_type)
         return clf
 
+    @property
+    def pre_dispatch(self) -> int:
+        return chkenv("PRE_DISPATCH", type=int)
+
+    @property
+    def n_iter(self) -> int:
+        return chkenv("SEARCH_ITER", type=int)
+
+    @property
+    def rand(self) -> bool:
+        return chkenv("SEARCH_RANDOM", type=bool)
+
+    @property
+    def refit(self) -> str:
+        return chkenv("CV_REFIT").lower()
+
     def __post_init__(self):
-        self.pre_dispatch = chkenv("PRE_DISPATCH", type=int)
-        self.n_iter = chkenv("SEARCH_ITER", type=int)
-        self.rand = chkenv("SEARCH_RANDOM", type=bool)
-        self.refit = chkenv("CV_REFIT").lower()
         self.clf = self.set_model_type()
         self.model_types = model_types
 

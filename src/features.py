@@ -1,13 +1,9 @@
-# standard library imports
-
-# third party imports
 from pandas import DataFrame
 
-# local imports
-from alexlib.config import chkenv
+from alexlib.core import chkenv
 from alexlib.df import filter_df
 from alexlib.iters import rm_pattern, link
-from db_helpers import ProjectTable
+from src.db_helpers import ProjectTable
 
 if __name__ == '__main__':
     from setup import config

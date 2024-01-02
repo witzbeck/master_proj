@@ -135,7 +135,6 @@ class ProjectColumn(Column):
 
 @dataclass
 class ProjectTable(Table):
-
     def __post_init__(self):
         if self.df is None:
             self.df = dbh.get_table(
