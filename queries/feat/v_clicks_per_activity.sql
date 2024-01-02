@@ -1,3 +1,4 @@
+create view feat.v_clicks_per_activity as
 select
  vis.student_id
 ,vis.course_id

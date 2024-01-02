@@ -1,7 +1,6 @@
 create view agg.v_course_modes_age_band as
 select 
-
-course_id
+ course_id
 ,final_result_id
 ,max((select age_band_id where age_band_top = 1)) age_band_top_1
 ,max((select age_band_id where age_band_top = 2)) age_band_top_2

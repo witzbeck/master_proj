@@ -1,4 +1,3 @@
-drop table if exists main.student_info cascade;
 select distinct
      row_number()over() id
     ,s.student_id       orig_student_id

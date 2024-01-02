@@ -27,11 +27,7 @@ for f in tqdm(files):
     print("\n", f.path, "\n")
     try:
         cnxn.execute(f)
-    # except UndefinedTable:
-    #     warning(f"{f} does not exist")
     except DuplicateTable:
         warning(f"{f} already exists")
     except UnicodeDecodeError as e:
         warning(f"{e} for {f}")
-    # except Exception as e:
-    #     raise Exception(e)

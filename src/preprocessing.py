@@ -1,57 +1,71 @@
-# standard library imports
+from dataclasses import dataclass, field
 
-# third party imports
 from numpy import ravel, ascontiguousarray
 from pandas import DataFrame, Series
-
-# preprocessing
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer, KNNImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
-
-# eval and postprocessing
 from sklearn.model_selection import train_test_split
 
-# local imports
 from alexlib.df import filter_df
-from alexlib.config import chkenv
-from db_helpers import ProjectTable
-from features import Features
-from setup import nrows as nr, random_state as rs
+from alexlib.core import chkenv
+from src.db_helpers import ProjectTable
+from src.features import Features
 
 
+@dataclass
 class DataPrep:
+    feat: Features = field()
+    schema: str = field(default="first30")
+    table: str = field(default="all_features")
+    df_filter: tuple = field(default=None)
+
+    @property
+    def context(self) -> str:
+        return chkenv("CONTEXT")
+
+    @property
+    def nrows(self) -> int:
+        return chkenv("NROWS", type=int)
+
+    @property
+    def test_size(self) -> float:
+        return chkenv("TEST_SIZE", type=float)
+
+    @property
+    def random_state(self) -> int:
+        return chkenv("RANDOM_STATE", type=int)
+
+    @property
+    def simple_num_impute(self) -> bool:
+        return chkenv("SIMPLE_NUM_IMPUTE", type=bool)
+
+    def __post_init__(self) -> None:
+        self.main_steps()
+
     cat_trans = Pipeline(
         [
             ("cat_imputer", SimpleImputer(strategy="constant", fill_value=0)),
-            ("onehot", OneHotEncoder(handle_unknown="ignore"))
+            ("onehot", OneHotEncoder(handle_unknown="ignore")),
         ]
     )
     knn_num_trans = Pipeline(
-        [
-            ("knn_num_imputer", KNNImputer()),
-            ("scaler", StandardScaler())
-        ]
+        [("knn_num_imputer", KNNImputer()), ("scaler", StandardScaler())]
     )
     simp_num_trans = Pipeline(
         [
             ("num_imputer", SimpleImputer(strategy="constant", fill_value=0)),
-            ("scaler", StandardScaler())
+            ("scaler", StandardScaler()),
         ]
     )
     bool_trans = Pipeline(
-        [
-            ("bool_imputer", SimpleImputer(strategy="constant", fill_value=0))
-        ]
+        [("bool_imputer", SimpleImputer(strategy="constant", fill_value=0))]
     )
 
     def get_data(self) -> DataFrame:
         self.data = ProjectTable(
-            chkenv("CONTEXT"),
-            self.schema,
-            self.table,
-            nrows=self.nrows
+            self.context, self.schema, self.table, nrows=self.nrows
         )
         return self.data.df
 
@@ -78,26 +92,20 @@ class DataPrep:
             [
                 ("categorical", DataPrep.cat_trans, self.categorical_cols),
                 ("numeric", num_trans, self.numeric_cols),
-                ("boolean", DataPrep.bool_trans, self.boolean_cols)
+                ("boolean", DataPrep.bool_trans, self.boolean_cols),
             ],
-            remainder='drop'
+            remainder="drop",
         )
         return prep
 
-    def set_test_sets(self,
-                      make_c_cont: bool = False,
-                      shuffle: bool = False
-                      ):
-        if shuffle:
-            rand_state = None
-        else:
-            rand_state = self.random_state
-
+    def set_test_sets(
+        self,
+        make_c_cont: bool = False,
+        shuffle: bool = False
+    ) -> None:
+        rand_state = None if shuffle else self.random_state
         X_train, X_test, y_train, y_test = train_test_split(
-            self.X,
-            self.y,
-            test_size=self.test_size,
-            random_state=rand_state
+            self.X, self.y, test_size=self.test_size, random_state=rand_state
         )
 
         if make_c_cont:
@@ -119,37 +127,15 @@ class DataPrep:
         self.preprocessor = self.set_preprocessor()
         self.set_test_sets()
 
-    def __init__(self,
-                 feat: Features,  # Features
-                 context: str = chkenv("CONTEXT"),
-                 schema: str = "first30",
-                 table: str = "all_features",
-                 nrows: int = nr,
-                 test_size: float = chkenv("TEST_SIZE", type=float),
-                 random_state: int = rs,
-                 simpnum: bool = chkenv("SIMPLE_NUM_IMPUTE", type=bool),
-                 df_filter: tuple = None,
-                 ):
-        self.feat = feat
-        self.context = context
-        self.schema = schema
-        self.table = table
-        self.nrows = nrows
-        self.test_size = test_size
-        self.random_state = random_state
-        self.simple_num_impute = simpnum
-        self.df_filter = df_filter
-        self.main_steps()
-
     def __repr__(self):
         self.nrows = len(self.data.df)
         return f"nrows={self.nrows}, schema={self.schema}, table={self.table}"
 
-    def get_save_attr(self):
+    def get_save_attr(self) -> dict[str:int]:
         bools = len(self.boolean_cols)
         cats = len(self.categorical_cols)
         nums = len(self.numeric_cols)
-        _dict = {
+        return {
             "nrows": self.nrows,
             "ncols": bools + cats + nums,
             "n_bool_cols": bools,
@@ -160,14 +146,9 @@ class DataPrep:
             "source_schema": self.schema,
             "source_table": self.table,
         }
-        return _dict
 
     def desc_col(self, *args, **kwargs):
         self.data.desc_col(*args, **kwargs)
 
     def desc_predict_col(self):
         self.desc_col(self.feat.to_predict_col)
-
-
-if __name__ == "__main__":
-    print(DataPrep(feat=Features()))

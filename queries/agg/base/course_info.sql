@@ -1,4 +1,3 @@
-drop table if exists agg.course_info cascade;
 select
  vc.id course_id
 ,vc.module_id

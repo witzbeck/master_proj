@@ -19,8 +19,7 @@ select
 ,min(s.days_before_due_submitted)           min_days_before_due_submitted
 ,max(s.days_before_due_submitted)           max_days_before_due_submitted
 into first30.grades
-from first30.assessments s
-
+from agg.assessment_staging s
 join (
     select distinct
      count(distinct assessment_id) dist
@@ -30,4 +29,5 @@ join (
     where date <= 30
     group by course_id
 ) n on n.course_id=s.course_id
+where s.date_due <= 30
 group by student_id, n.dist, course_weight

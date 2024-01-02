@@ -1,29 +1,38 @@
-drop table if exists first30.all_moments;
-
 select
  mit1.student_id
-,mit1.n n_interactions
-,mit1.avg_n_activity_types
-,mit1.var_n_activity_types
-,mit1.stddev_n_activity_types
-,mit1.skew_n_activity_types
-,mit1.kurt_n_activity_types
-,mit1.avg_n_activities
-,mit1.var_n_activities
-,mit1.stddev_n_activities
-,mit1.skew_n_activities
-,mit1.kurt_n_activities
-,coalesce(mit1.avg_date   ,0)           avg_interaction_date
-,coalesce(mit1.var_date   ,0)           var_interaction_date
-,coalesce(mit1.stddev_date,0)           stddev_interaction_date
-,coalesce(mit1.skew_date  ,0)           skew_interaction_date
-,coalesce(mit1.kurt_date  ,0)           kurt_interaction_date
-,coalesce(mit1.avg_clicks,0)            avg_interactions_clicks
-,coalesce(mit1.var_clicks,0)            var_interactions_clicks
-,coalesce(mit1.stddev_clicks,0)         stddev_interactions_clicks
-,coalesce(mit1.skew_clicks,0)           skew_interactions_clicks
-,coalesce(mit1.kurt_clicks,0)           kurt_interactions_clicks
-,coalesce(mit1.fp_coeff,0)              interaction_fp_coeff
+,mit1.n_total_clicks n_interactions
+,mit1.n_days
+,mit1.n_activities
+,mit1.avg_activities_per_day
+,mit1.var_activities_per_day
+,mit1.stddev_activities_per_day
+,mit1.skew_activities
+,mit1.kurt_activities
+,mit1.n_activity_types
+,mit1.avg_activity_types_per_day
+,mit1.var_activity_types_per_day
+,mit1.stddev_activity_types_per_day
+,mit1.skew_activity_types
+,mit1.kurt_activity_types
+,mit1.n_total_clicks
+,mit1.avg_clicks_per_day
+,mit1.var_clicks_per_day
+,mit1.stddev_clicks_per_day
+,skew_clicks_per_day
+,kurt_clicks_per_day
+,mit1.n_total_visits
+,mit1.avg_clicks_per_visit
+,mit1.var_clicks_per_visit
+,mit1.stddev_clicks_per_visit
+,mit1.skew_clicks_per_visit
+,mit1.kurt_clicks_per_visit
+,mit1.avg_visits_per_day
+,mit1.var_visits_per_day
+,mit1.stddev_visits_per_day
+,mit1.skew_date_visits_per_day
+,mit1.kurt_date_visits_per_day
+,mit1.fp_coeff_clicks
+,mit1.fp_coeff_visits
 ,coalesce(ma1.n          ,0)    n_assessments
 ,coalesce(ma1.avg_days   ,0)    avg_days_before_due_submitted
 ,coalesce(ma1.var_days   ,0)    var_days_before_due_submitted
@@ -272,6 +281,6 @@ select
 ,coalesce(mipt1p.url_kurt_clicks ,0) url_kurt_clicks
 ,coalesce(mipt1p.url_fp_coeff ,0) url_fp_coeff
 into first30.all_moments
-from first30.mom_interactions_total_1234 mit1
+from first30.mom_interactions_1234 mit1
 left join first30.mom_assessments_1234 ma1 on ma1.student_id=mit1.student_id
 left join first30.mom_interactions_per_type_1234_pivot mipt1p on mipt1p.student_id=mit1.student_id

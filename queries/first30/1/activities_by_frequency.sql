@@ -18,7 +18,7 @@ select
 ,row_number() over (partition by a.course_id
                                 ,a.student_id
                     order by a.n_clicks)        bot_student_activity_by_clicks
-into agg.activities_by_frequency
+into first30.activities_by_frequency
 
 from (
 select
@@ -29,7 +29,7 @@ select
 ,vis.activity_type
 ,sum(vis.sum_click) n_clicks
 ,count(*) n_visits
-from agg.vle_interactions_staging vis
+from first30.interaction_types_staging vis
 where date <= 30
 group by  
  vis.course_id

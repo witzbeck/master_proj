@@ -25,9 +25,9 @@ select
 ,a.n_times_accessed_sharedsubpage
 ,a.n_times_accessed_subpage
 ,a.n_times_accessed_url
-from agg.v_student_activity_revists r
+from agg.v_student_activity_revisits r
 join agg.v_interactions_times_accessed_activity a on a.student_id=r.student_id
-
+;
 select
  m.student_id
 ,m.course_id
