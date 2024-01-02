@@ -1,4 +1,4 @@
-create view feat.minmax_scaled_student_info as 
+create view feat.v_minmax_scaled_student_info as 
 with courses as (
     select
      max(id) - min(id) course_id_range

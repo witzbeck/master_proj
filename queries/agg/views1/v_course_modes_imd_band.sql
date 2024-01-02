@@ -1,7 +1,6 @@
 create view agg.v_course_modes_imd_band as
-select 
-
-course_id
+select
+ course_id
 ,final_result_id
 ,max((select imd_band_id where imd_top = 1)) imd_top_1
 ,max((select imd_band_id where imd_top = 2)) imd_top_2

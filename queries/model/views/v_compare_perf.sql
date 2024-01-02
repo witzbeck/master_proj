@@ -11,7 +11,6 @@ select
 ,b.mean_fit_time
 ,b.mean_accuracy
 
-
 from (
 select
 sqrt(order_by_mean_fit_time) * sqrt(order_by_mean_roc_auc) comb_order

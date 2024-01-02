@@ -1,4 +1,3 @@
-drop table agg.assessment_staging cascade;
 select distinct
  s.id student_id
 ,b.student_id orig_student_id

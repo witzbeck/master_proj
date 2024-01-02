@@ -1,5 +1,3 @@
-select * from eval.v_features;
-/*
 create view eval.v_features as 
 select
  v.column_name
@@ -39,5 +37,3 @@ where case
     when left(column_name, 5) in ('unreg','coeff','fp_co') then 1
     when right(column_name, 5) in ('fp_co','coeff','e_dif') then 1
     else 0 end = 0
-;
-*/

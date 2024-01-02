@@ -1,4 +1,4 @@
---create view first30.all_classes_ratios as
+create view first30.v_all_classes_ratios as
 select
 course_id
 ,is_stem
@@ -19,8 +19,3 @@ group by
  ac.course_id
 ,ac.is_stem
 ) a
-
-
-order by 
-is_stem, course_id
-

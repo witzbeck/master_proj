@@ -34,7 +34,7 @@ select
     else 1 end                                  fp_coeff
 
 into first30.mom_interactions_per_type_1234
-from agg.vle_interactions_staging v
+from agg.interaction_types_staging v
 join act a on a.student_id=v.student_id and a.activity_type_id=v.activity_type_id
 where v.date <= 30
 

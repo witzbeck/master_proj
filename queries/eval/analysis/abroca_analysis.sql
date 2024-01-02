@@ -1,13 +1,13 @@
 select * from (
 select
  row_number() over (partition by 
-                             v.model_type
+                              v.model_type
                              ,a.course_id
                              --,a.run_id
                              --,a.iter_id   
                                 
                     order by 
-                             v.model_type
+                              v.model_type
                              ,a.course_id
                              --,a.run_id
                              --,a.iter_id   

@@ -1,5 +1,4 @@
-create view eval2.v_all_runs_results as 
---drop view eval.v_all_runs_results cascade;
+create view eval.v_all_runs_results as 
 
 select
  r.model_type

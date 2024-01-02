@@ -1,4 +1,4 @@
-create view agg.v_student_activity_revists as
+create view agg.v_student_activity_revisits as
 select
  student_id
 ,max(r.n_days)              n_max_revists
