@@ -23,19 +23,26 @@ ipykernel = "*"
 
 [tool.sqlfluff]
 dialect = "postgress"
-
-[tool.sqlfluff.rules]
-indent_unit = "space"
 max_line_length = 120
-comma_style = "leading"
+
+[tool.sqlfluff.capitalization]
+capitalization_policy = "lower"
 
 [tool.sqlfluff.indentation]
-use_vertical_hanging_indent = true
+indent_unit = "space"
+use_vertical_hanging_indent = "True"
+
+[tool.sqlfluff.layout.type.commas]
+line_position = "leading"
+
+[tool.sqlfluff.layout.long_lines]
+ignore_comment_clauses = "True"
+ignore_comment_lines = "True"
 
 [tool.sqlfluff.layout]
-align_comments = true
-align_aliases = true
-align_joins = true
+align_comments = "True"
+align_aliases = "True"
+align_joins = "True"
 
 [build-system]
 requires = ["poetry-core"]
