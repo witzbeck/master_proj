@@ -22,7 +22,7 @@ coverage = "*"
 ipykernel = "*"
 
 [tool.sqlfluff]
-dialect = "postgress"
+dialect = "postgres"
 max_line_length = 120
 
 [tool.sqlfluff.capitalization]
@@ -31,18 +31,14 @@ capitalization_policy = "lower"
 [tool.sqlfluff.indentation]
 indent_unit = "space"
 use_vertical_hanging_indent = "True"
+allow_implicit_indents = "True"
 
 [tool.sqlfluff.layout.type.commas]
 line_position = "leading"
 
-[tool.sqlfluff.layout.long_lines]
-ignore_comment_clauses = "True"
-ignore_comment_lines = "True"
-
-[tool.sqlfluff.layout]
-align_comments = "True"
-align_aliases = "True"
-align_joins = "True"
+[tool.sqlfluff.layout.type.alias_expression]
+spacing_before = "align"
+align_scope = "file"
 
 [build-system]
 requires = ["poetry-core"]
