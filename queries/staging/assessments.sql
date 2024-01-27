@@ -1,4 +1,4 @@
-select 
+ select 
      cast(id_assessment as int)             assessment_id
     ,cast(code_module as varchar(3))        code_module
     ,cast(code_presentation as varchar(5))  code_presentation        
