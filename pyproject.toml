@@ -6,7 +6,7 @@ authors = ["Alex Beckwith <57322567+witzbeck@users.noreply.github.com>"]
 packages = [{include = "src"}]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.12"
 scikit-learn = "*"
 tqdm = "*"
 baycomp = "*"
@@ -15,30 +15,45 @@ scikit-posthocs = "*"
 alexlib = {path = "../alexlib"}
 psycopg-binary = "^3.1.16"
 
+[tool.poetry.group.test.dependencies]
+pytest = "*"
+pytest-cov = "^4.1.0"
+
 [tool.poetry.group.dev.dependencies]
 alexlib = {path = "../alexlib", develop = true}
-pytest = "*"
 coverage = "*"
 ipykernel = "*"
 
-[tool.sqlfluff]
+[tool.sqlfluff.core]
+verbose = 2
 dialect = "postgres"
+sql_file_exts = ".sql"
 max_line_length = 120
+processes = 0
+rules = "core"
 
-[tool.sqlfluff.capitalization]
-capitalization_policy = "lower"
+[tool.sqlfluff.layout.type.comma]
+line_position = "leading"
+spacing_before = "touch"
 
 [tool.sqlfluff.indentation]
 indent_unit = "space"
-use_vertical_hanging_indent = "True"
-allow_implicit_indents = "True"
-
-[tool.sqlfluff.layout.type.commas]
-line_position = "leading"
+indented_then = false
+indented_joins = true
+trailing_comments = "after"
 
 [tool.sqlfluff.layout.type.alias_expression]
 spacing_before = "align"
 align_scope = "file"
+
+[tool.sqlfluff.capitalisation]
+capitalisation_policy = "lower"
+
+[tool.sqlfluff.rules.aliasing.table]
+aliasing = "implicit"
+
+[tool.sqlfluff.rules.aliasing.column]
+aliasing = "implicit"
 
 [build-system]
 requires = ["poetry-core"]
