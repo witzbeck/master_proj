@@ -1,0 +1,90 @@
+name: Python project workflow
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.12', '3.11']
+
+    steps:
+    # ---------------------------------------------
+    # Checkout repository
+    # ---------------------------------------------
+    - uses: actions/checkout@v4
+      name: Checkout repository
+      with:
+        fetch-depth: 0
+    
+    # ---------------------------------------------
+    # Set up Python
+    # ---------------------------------------------
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    # ---------------------------------------------
+    # install poetry
+    # ---------------------------------------------
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+        installer-parallel: true
+    
+    # ---------------------------------------------
+    # load cached poetry dependencies if available
+    # ---------------------------------------------
+    - name: Load cached virtualenv
+      uses: actions/cache@v4
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-poetry-
+    
+    #----------------------------------------------
+    # install dependencies if cache does not exist
+    #----------------------------------------------
+    - name: Install dependencies
+      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+      run: poetry install --with test --no-interaction --no-root
+    
+    #----------------------------------------------
+    # install your root project, if required
+    #----------------------------------------------
+    - name: Install project
+      run: poetry install --with test --no-interaction
+    
+    #----------------------------------------------
+    # run test suite
+    #----------------------------------------------
+    - name: Run tests
+      run: |
+        poetry run pytest --cov=master_proj --cov-report=xml -n auto
+        poetry run sqlfluff fix --force --config ./pyproject.toml
+        poetry run sqlfluff lint --config ./pyproject.toml
+
+  build_pdf:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: set up Tex Live
+      uses: xu-cheng/latex-action@v3
+      with:
+        working-directory: paper
+        root_file: paper.tex
+    - name: upload pdf
+      uses: actions/upload-artifact@v3
+      with:
+        name: PDF
+        path: paper/paper.pdf
+    
