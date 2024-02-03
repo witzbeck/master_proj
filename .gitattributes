@@ -1,0 +1,4 @@
+*.csv filter=lfs diff=lfs merge=lfs -text
+*.png filter=lfs diff=lfs merge=lfs -binary
+*.eps filter=lfs diff=lfs merge=lfs -binary
+*.svg filter=lfs diff=lfs merge=lfs -binary
