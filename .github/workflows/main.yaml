@@ -70,8 +70,8 @@ jobs:
     - name: Run tests
       run: |
         poetry run pytest --cov=master_proj --cov-report=xml -n auto
-        poetry run sqlfluff fix --force --config ./pyproject.toml
-        poetry run sqlfluff lint --config ./pyproject.toml
+        poetry run sqlfluff fix --force --config pyproject.toml
+        poetry run sqlfluff lint --config pyproject.toml
 
   build_pdf:
     runs-on: ubuntu-latest
