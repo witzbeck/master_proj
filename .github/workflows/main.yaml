@@ -80,7 +80,11 @@ jobs:
     - name: set up Tex Live
       uses: xu-cheng/latex-action@v3
       with:
-        root_file: paper.tex
+        root_file: 
+          paper.tex
+        extra_system_packages: 
+          inkscape
+
         working_directory: paper
     - name: upload pdf
       uses: actions/upload-artifact@v3
