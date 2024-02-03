@@ -16,6 +16,8 @@ alexlib = {git = "http://github.com/witzbeck/alexlib.git", branch = "master"}
 sqlfluff = "^2.3"
 pytest = "^8.0"
 pytest-cov = "^4.1"
+pytest-mock = "^3.12"
+pytest-xdist = "^3.5"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29"
