@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "master-proj"
-version = "1.0.0"
+version = "1.0.1"
 description = "code associated w ms stats capstone"
 authors = ["Alex Beckwith <57322567+witzbeck@users.noreply.github.com>"]
 packages = [{include = "src"}]
@@ -24,7 +24,7 @@ ipykernel = "^6.29"
 tqdm = "^4.66"
 
 [tool.sqlfluff.core]
-verbose = 2
+verbose = 0
 dialect = "postgres"
 sql_file_exts = ".sql"
 max_line_length = 120
