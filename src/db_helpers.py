@@ -13,8 +13,11 @@ from setup import db_mgr as cnxn
 
 
 class ProjectColumn(Column):
+    """A class to describe a column in a database table. Inherits from the Column class in the alexlib.db.objects module."""
+
     @property
-    def is_id(self):
+    def is_id(self) -> bool:
+        """Returns True if the column name ends with '_id', else False."""
         return False if self.col_name[-3:] != "_id" else True
 
     def auto_xtick_angle(
@@ -27,7 +30,8 @@ class ProjectColumn(Column):
         range_mult: int = 2,
         text_min: int = 30,
         text_mult: int = 2,
-    ):
+    ) -> int:
+        """Returns the angle to rotate the x-axis labels in a histogram plot based on the number of unique values in the column, the length of the text in the unique values, the range of the frequency values, and the length of the series."""
         uni = list(self.series.unique())
         self.ndist = len(uni)
         if self.ndist < ndist_min:
@@ -69,6 +73,7 @@ class ProjectColumn(Column):
         col_name: str,
         series: Series,
     ) -> None:
+        """Initializes the ProjectColumn object. Inherits from the Column class in the alexlib.db.objects module."""
         self.schema = schema
         self.table = table
         self.col_name = col_name
@@ -81,7 +86,8 @@ class ProjectColumn(Column):
         show_series_desc: bool = False,
         show_hist: bool = False,
         **kwargs,
-    ):
+    ) -> tuple:
+        """Describes the column in the database table. Returns a tuple containing the figure and axis of the histogram plot."""
         try:
             to_pyth = [
                 self.len_prod,
@@ -131,19 +137,24 @@ class ProjectColumn(Column):
 
 @dataclass
 class ProjectTable(Table):
-    def __post_init__(self):
+    """A class to describe a database table. Inherits from the Table class in the alexlib.db.objects module."""
+
+    def __post_init__(self) -> None:
+        """Initializes the ProjectTable object. Inherits from the Table class in the alexlib.db.objects module."""
         if self.df is None:
             self.df = cnxn.get_table(
                 self.schema,
-                self.table,
+                self.name,
                 nrows=self.nrows,
             )
 
-    def desc_col(self, col: str, **kwargs):
+    def desc_col(self, col: str, **kwargs) -> None:
+        """Describes a column in the database table. Returns a tuple containing the figure and axis of the histogram plot."""
         col = self.cols[col]
         col.desc(**kwargs)
 
-    def desc_all_cols(self):
+    def desc_all_cols(self) -> None:
+        """Describes all columns in the database table."""
         for i, col in enumerate(self.col_names):
             print(f"({i+1}/{self.ncols})")
             self.desc_col(col, show_hist=False)
