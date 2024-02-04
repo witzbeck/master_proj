@@ -80,7 +80,7 @@ jobs:
       with:
         working_directory: paper
         root_file: paper.tex
-        args: -f -interaction=nonstopmode
+        args: -f
         post_compile: make cleanup
 
     - name: upload pdf
