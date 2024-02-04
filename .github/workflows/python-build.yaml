@@ -52,6 +52,20 @@ jobs:
         virtualenvs-in-project: true
         installer-parallel: true
     
+    # ---------------------------------------------
+    # cache poetry dependencies
+    # ---------------------------------------------
+    - name: Cache poetry dependencies
+      id: cached-poetry-dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          **/poetry.lock
+          **/pyproject.toml
+        key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-poetry-
+
     #----------------------------------------------
     # check if if poetry.lock matches dependencies
     #----------------------------------------------
@@ -66,7 +80,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: .venv
-        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+        key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
         restore-keys: |
           ${{ runner.os }}-poetry-
     
@@ -88,4 +102,23 @@ jobs:
     #----------------------------------------------
     - name: Run tests
       run: |
-        poetry run pytest --cov=src --cov-report=xml -n auto
+        poetry run pytest --cov=master_proj --cov-report=xml -n auto
+        poetry run sqlfluff fix --force --config pyproject.toml
+        poetry run sqlfluff lint --config pyproject.toml
+
+  build_pdf:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: set up Tex Live
+      uses: xu-cheng/latex-action@v3
+      with:
+        working_directory: paper
+        root_file: paper.tex
+
+    - name: upload pdf
+      uses: actions/upload-artifact@v3
+      with:
+        name: PDF
+        path: paper/paper.pdf
+    
