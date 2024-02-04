@@ -80,7 +80,8 @@ jobs:
       with:
         working_directory: paper
         root_file: paper.tex
-        args: -pdf -f -interaction=nonstopmode
+        args: latexmk -pdf paper.tex
+        post_compile: latexmk -c
 
     - name: upload pdf
       uses: actions/upload-artifact@v3
