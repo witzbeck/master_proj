@@ -78,11 +78,14 @@ jobs:
     - name: set up Tex Live
       uses: xu-cheng/latex-action@v3
       with:
-        working-directory: paper
+        working_directory: paper
         root_file: paper.tex
+        args: -f
+        post_compile: make cleanup
+
     - name: upload pdf
       uses: actions/upload-artifact@v3
       with:
         name: PDF
-        path: paper/paper.pdf
+        path: 'paper/paper.pdf'
     
