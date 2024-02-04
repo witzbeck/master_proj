@@ -61,3 +61,11 @@ repos:
     hooks:
       - id: bandit
         args: ['-s', 'B311,B404,B603,B608']
+
+  - repo: local
+    hooks:
+      - id: latex-build
+        name: Build LaTeX
+        entry: cd paper && 
+        language: system
+        
