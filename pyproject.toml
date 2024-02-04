@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "master-proj"
-version = "1.0.0"
+version = "1.0.2"
 description = "code associated w ms stats capstone"
 authors = ["Alex Beckwith <57322567+witzbeck@users.noreply.github.com>"]
 packages = [{include = "src"}]
@@ -17,6 +17,8 @@ alexlib = {path = "../alexlib", develop = true}
 sqlfluff = "^2.3"
 pytest = "^8.0"
 pytest-cov = "^4.1"
+pytest-mock = "^3.12"
+pytest-xdist = "^3.5"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29"
@@ -32,7 +34,7 @@ addopts = [
 testpaths = ["tests"]
 
 [tool.sqlfluff.core]
-verbose = 2
+verbose = 0
 dialect = "postgres"
 sql_file_exts = ".sql"
 max_line_length = 120
