@@ -7,10 +7,11 @@ packages = [{include = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-baycomp = "1.0"
+baycomp = "^1.0"
 seaborn = "^0.13"
 scikit-posthocs = "*"
-alexlib = {git = "http://github.com/witzbeck/alexlib.git", branch = "master"}
+# alexlib = {git = "http://github.com/witzbeck/alexlib.git", branch = "master"}
+alexlib = {path = "../alexlib", develop = true}
 
 [tool.poetry.group.test.dependencies]
 sqlfluff = "^2.3"
@@ -20,6 +21,15 @@ pytest-cov = "^4.1"
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29"
 tqdm = "^4.66"
+
+[tool.pytest.ini_options]
+addopts = [
+    "--cov=src", 
+    "--cov-report=term-missing", 
+    "--cov-fail-under=0", 
+    "--cov-branch"
+]
+testpaths = ["tests"]
 
 [tool.sqlfluff.core]
 verbose = 2
