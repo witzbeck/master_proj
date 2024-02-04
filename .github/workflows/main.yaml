@@ -80,11 +80,12 @@ jobs:
       with:
         working_directory: paper
         root_file: paper.tex
+        args: -f -interaction=nonstopmode
         post_compile: make cleanup
 
     - name: upload pdf
       uses: actions/upload-artifact@v3
       with:
         name: PDF
-        path: paper/paper.pdf
+        path: 'paper/paper.pdf'
     
