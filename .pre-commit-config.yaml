@@ -61,3 +61,29 @@ repos:
     hooks:
       - id: bandit
         args: ['-s', 'B311,B404,B603,B608']
+
+  - repo: local
+    hooks:
+#       - id: latex-pdf-preclean
+#         name: Preclean LaTeX PDF files
+#         description: This hook preclean the LaTeX PDF and any remaining build files
+#         entry: sh -c 'cd paper && make preclean'
+#         language: system
+#         files: '(\.(tex|bib|cls|sty|toc)|([Mm]akefile|latexmkrc)$)'
+#         pass_filenames: false
+#       - id: latex-pdf-make
+#         name: Build LaTeX PDF file
+#         description: This hook builds the LaTeX PDF file
+#         entry: sh -c 'cd paper && latexmk -pdf -silent paper.tex'
+#         language: system
+#         files: '(\.(tex|bib|cls|sty|toc)|([Mm]akefile|latexmkrc)$)'
+#         pass_filenames: false
+      - id: latex-pdf-cleanup
+        name: Cleanup LaTeX intermediate file
+        description: This hook cleans up the LaTeX build files but leaves the pdf
+        entry: sh -c 'cd paper && make cleanup'
+        language: system
+        files: '(\.(tex|bib|cls|sty|toc)|([Mm]akefile|latexmkrc)$)'
+        pass_filenames: false
+        always_run: true
+ 

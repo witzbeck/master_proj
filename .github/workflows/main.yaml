@@ -80,8 +80,7 @@ jobs:
       with:
         working_directory: paper
         root_file: paper.tex
-        args: -pdf paper.tex
-        post_compile: latexmk -c
+        post_compile: make cleanup
 
     - name: upload pdf
       uses: actions/upload-artifact@v3
