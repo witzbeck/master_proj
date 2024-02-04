@@ -1,7 +1,8 @@
 \documentclass{article}
 
 \usepackage{graphicx}
-\graphicspath{ {../figures/} }
+\usepackage{hyperref}
+\graphicspath{ {../figures} }
 
 \title{An Exploration of Analysis Methods on Predictive Models of Student Success}
 \author{Alex Beckwith\\\\University of New Hampshire}
@@ -43,7 +44,7 @@
         When creating a predictive model to solve a problem, many different formulations and algorithms are typically tested.
         Datasets can be vast and complex, so the "see what sticks" strategy is often a good first step.
 
-        Selecting the approriate model to deploy should involve the consideration of many factors.
+        Selecting the appropriate model to deploy should involve the consideration of many factors.
         Predictive performance is important, but simply picking the model with the highest mean accuracy is not a valid strategy.
         Statistical evaluation enables confident decisionmaking, which frees the researcher to address other considerations.
 
@@ -95,7 +96,7 @@
             Blended sources of learning data would benefit from additional research \cite{educate2019,early2021}.
 
         \subsubsection{Featuresets}
-            The most common featuresets for predicting student outcomes are are academic, demographic, and behavioral \cite{engage2014,eval2018,early2019,assign2021esteban,compare2015}.
+            The most common featuresets for predicting student outcomes are academic, demographic, and behavioral \cite{engage2014,eval2018,early2019,assign2021esteban,compare2015}.
             Academic includes information about assessments and assignments \cite{assign2021esteban}.
             Behavioral data is often the logs from student interactions with the Virtual Learning Environment (VLE) \cite{early2019,assign2021esteban}.
             Some research also includes biometric and visual data, such as a student's heartbeat and facial expression as they work through a problem \cite{assign2021chango}.
@@ -111,8 +112,8 @@
                 
     \subsection{Model Evaluation Methods}
         \subsubsection{Naive Averaging}
-            Naive averaging is the evaluation tactic by which models are evaluated by ranking by the average of the target metric between runs an that alone. 
-            This strategy is both common and problemtatic because it doesn't take into account the magnitude and variability of differences in performance \cite{eval2018}.
+            Naive averaging is the evaluation tactic by which models are evaluated by ranking by the average of the target metric between runs and that alone. 
+            This strategy is both common and problematic because it doesn't take into account the magnitude and variability of differences in performance \cite{eval2018}.
 
         \subsubsection{Frequentist}
             Null-hypothesis significance testing (NHST) is a common tool for differentiating the results of experiments.
@@ -173,7 +174,7 @@
 
                 How does this relate to fairness?
                 A model that produces equivalent prediction probabilities for the subgroups of the split dataset equally would have ABROCA = 0. 
-                Producing the same prediction probabilities wouldproduce the same ROC curves, so there would be no area to sum.
+                Producing the same prediction probabilities would produce the same ROC curves, so there would be no area to sum.
                 Hypothesis - Higher ABROCA associated with lower predictive fairness
                 \cite{eval2019} found significant differences in fairness when testing different models on a large collection of Massively Open Online Course (MOOC) datasets.
                 \begin{enumerate}
@@ -217,7 +218,7 @@
             A trio of tables describe the courses. 
             There's a table containing the distinct module and presentation codes and a table each for the assessments and Virtual Learning Environment (VLE) activities for each course.
             The three remaining tables bridge the student demographic table with each of the course tables. 
-            One table contains the inforamiton about course registration.
+            One table contains the information about course registration.
             One summarizes students' interactions with individual VLE activities on a daily timescale.
             One contains records on students' assessment completion.
 
@@ -282,7 +283,7 @@
                 and database operations enabled me to wrangle millions of rows efficiently.
       
             \subsubsection{Flat Files to Main}
-                The first step in utilizing the database was injesting the data.
+                The first step in utilizing the database was ingesting the data.
                 I used the Python package pandas to load the Comma-Separated Values (CSV) files into a schema called [landing].
                 I then created a schema called [staging] and used SQL to correct and optimize the datatypes of the landing tables.       
                 I created a schema called [main] to hold an alternative structure of the data.
@@ -321,7 +322,7 @@
                 Here's an example of a feature in the VLE activity category that I created when following intuition:
                 \begin{figure}
                     \centering
-                    \includegraphics[width=1\textwidth]{n_days_active}
+                    \includegraphics[width=1\linewidth]{n_days_active}
                     \caption{The number of distinct days that students interacted with the VLE in the first 30 days}
                     \label{fig:n_days_active}
                 \end{figure}
@@ -329,7 +330,7 @@
                 Here's an example of a feature in the VLE activity category that I built based on on of the expert-created fields in this paper \cite{automl2021}:
                 \begin{figure}
                     \centering
-                    \includegraphics[width=1\textwidth]{n_total_clicks_by_top_5th_clicks}
+                    \includegraphics[width=1\linewidth]{n_total_clicks_by_top_5th_clicks}
                     \caption{The total number of clicks on activities ranked in the top 5th percentile of activities as measured by student clicks}
                     \label{fig:n_total_clicks_by_top_5th_clicks}
                 \end{figure}
@@ -337,9 +338,9 @@
         
         \subsection{Algorithms and Hyperparameters}
             Hyperparameters are the input parameters for the operation of a machine learning model.
-            All of the algortihms and parameter selection components I used are part the Python package scikit-learn \cite{sklearn}
+            All of the algorithms and parameter selection components I used are part the Python package scikit-learn \cite{sklearn}
             \subsubsection{Hyperparameter Selection}
-                I utlized two different strategies for parameter selection: GridSearch and RandomSearch.
+                I utilized two different strategies for parameter selection: GridSearch and RandomSearch.
                 GridSearch is a brute force strategy where one can specify collections of parameter selections and the cross-validating object will walk through them all. 
                 RandomSearch is similar to GridSearch in the way that parameters are mapped out, but selects random combinations from the available ranges.
                 Interestingly, one can even set scipy \cite{scipy} random variables as distributions for this cross-validation strategy to pick from during testing. 
@@ -348,10 +349,10 @@
                 I then used the results from runs to restrict the parameter ranges to those yielding better results.
                 Better results in this case refers to higher average ROC AUC while also running in a reasonable timespan. 
                 If models were taking longer than 30 minutes to run, I moved the limits of the parameter selection ranges to avoid that when possible.
-                The optimization algorithms used to train these models can sometimes not converge to a local (ideally global) minimum, meaning that the predictions will not be the ebst, which is why restricting the paramter ranges is necessary.
+                The optimization algorithms used to train these models can sometimes not converge to a local (ideally global) minimum, meaning that the predictions will not be the best, which is why restricting the parameter ranges is necessary.
 
-                Once the paramter ranges were sufficiently restricted, I ran my model-generating pipeline using the RandomSearch strategy.
-                This can be advantegous because certain combinations of parameter values will never be tried on a reasonable timescale while using a brute force strategy.
+                Once the parameter ranges were sufficiently restricted, I ran my model-generating pipeline using the RandomSearch strategy.
+                This can be advantageous because certain combinations of parameter values will never be tried on a reasonable timescale while using a brute force strategy.
 
             \subsubsection{Algorithms}
                 Here is a list of the classification algorithms used in this project along with abbreviations that will appear in later figures. 
@@ -375,7 +376,7 @@
             A class I called ModelEngine orchestrated the process from generation to the logging of results.
 
             \subsubsection{Data Preprocessing}
-                In the data preprocessing pipeline, features were transformed in order to improve their compatability with making predictions.
+                In the data preprocessing pipeline, features were transformed in order to improve their compatibility with making predictions.
                 Categorical data was encoded using the "one hot" strategy where each value was pivoted into a Boolean feature.    
                 All Boolean features were made numeric.
                 Once all features are numeric, the pipeline standardizes each field so that the mean is zero and the variance is one.
@@ -387,7 +388,7 @@
                 Any fields with zero-variance are excluded in order to increase computational efficiency.
                 With no variance, a field won't be predictive of any result, and will instead just add overhead.
                 Another strategy implemented to increase efficiency is Principle Component Analysis (PCA) using a Maximum-Likelihood Estimator (MLE) strategy.
-                Similar to the variance threshold, PCA works by reducing model dimensionality in orer to reduce model training time, though through a more complex process. 
+                Similar to the variance threshold, PCA works by reducing model dimensionality in order to reduce model training time, though through a more complex process. 
             
             \subsubsection{Model Training}
                 Each model was crossvalidated using a repeated stratified k folds algorithm.
@@ -411,7 +412,7 @@
     \subsection{Null Hypothesis Significance Testing}
         For the frequentist model comparison, I used non-parametric tests to evaluate model differences.
         I wanted to make as few assumptions as possible about the distribution of the underlying data.
-        Additionally, since cross-validation was used, we shouldn't use a ttest \cite{why2009, eval2018}.
+        Additionally, since cross-validation was used, we shouldn't use a t-test \cite{why2009, eval2018}.
         
         A Friedman test \cite{scipy, eval2018} to check for global differences returned a p-value of less than 10e-6, so I turned to the Nemenyi signed rank test \cite{scipy, eval2018} to look at pairwise differences.
         The results can be seen on the below figure, which illustrate one of the major pitfalls of utilizing frequentist methods for model evaluation.
@@ -432,7 +433,7 @@
         
         The same top 100 results are shown, but with only two models in the uppermost ROPE, an Extra Tree and a Random Forest model.
         Even looking at the top two approximately-equivalent regions, the top six of seven are tree-based ensemble methods, similar to research.
-        Surprisingly there ain't an Ada Boostingup there.
+        Surprisingly there ain't an Ada Boosting model up there.
 
         \begin{figure}
             \centering
@@ -455,7 +456,7 @@
             \label{fig:abroca_logreg_271_0_etree_358_0_}
         \end{figure}
 
-        The top four models happened to be different model types, so I retrained and evaluated the ABROCA for each model on each distict course's data.
+        The top four models happened to be different model types, so I retrained and evaluated the ABROCA for each model on using the data mined from each distinct course.
         The points on each chart represent an individual model's ABROCA score for an individual course, differentiate by color for each course domain. 
         The top two plots show two quadratic regressions that seem to indicate a strong correlation between ABROCA and both the course disabled ratio and course female ratio.
         The bottom two plots appear to show a rather weak correlation between the models' predictive performance and ABROCA.
@@ -474,12 +475,12 @@
         The models which performed the best were those that used the entire set of features, not just a subset.
         
     \subsection{Best Evaluation Method}
-        Similar to expectations, we found that Bayesian evaluation methods produced the most conclusive answer to the "which model is better question" and suffers from the fewest assumptions or invalidations.
+        Similar to expectations, I found that Bayesian evaluation methods produced the most conclusive answer to the "which model is better question" and suffers from the fewest assumptions or invalidations.
 
         
     \subsection{Fairness vs Performance}
-        We did not see a strong relationship between model predictive performance (as measured by ROC AUC) and ABROCA.
-        There did appear to be a strong relationhip between demographic ratio and ABROCA.
+        I did not see a strong relationship between model predictive performance (as measured by ROC AUC) and ABROCA.
+        There did appear to be a strong relationship between demographic ratio and ABROCA.
         This result seems to indicate the ABROCA may be a useful metric in the evaluation of model fairness.
         In addition, this usefulness does not appear to come at the cost of predictive performance.
 
@@ -490,8 +491,8 @@
         
         A future researcher might evaluate the ABROCA statistic on additional datasets and different categorical splits.
         An attempt could be made to integrate it into the model selection process.
-        One might explore if a higher-dimension expression of the calculation holds water (get it, volume).
-        More of the mathetmatical properties of ABROCA could be explored.
+        One might explore if a higher-dimension expression of the calculation holds water.
+        More of the mathematical properties of ABROCA could be explored.
 
 
 
