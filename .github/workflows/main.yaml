@@ -80,7 +80,7 @@ jobs:
       with:
         working_directory: paper
         root_file: paper.tex
-        args: latexmk -pdf paper.tex
+        args: -pdf paper.tex
         post_compile: latexmk -c
 
     - name: upload pdf
