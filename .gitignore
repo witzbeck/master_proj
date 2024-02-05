@@ -6,6 +6,9 @@
 *.key
 *.lock
 *.code-workspace
+*.log
+*.log.*
+*test_cases.md
 /secrets
 secrets.*
 
