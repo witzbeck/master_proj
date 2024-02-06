@@ -1,4 +1,4 @@
-name: Python project workflow
+name: Master's Project Workflow
 
 on:
   push:
@@ -75,15 +75,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+    #----------------------------------------------
+    # set up Tex Live
+    #----------------------------------------------
     - name: set up Tex Live
       uses: xu-cheng/latex-action@v3
       with:
         working_directory: paper
         root_file: paper.tex
         continue_on_error: true
-        packages: hyperref
+        extra_system_packages: hyperref
         post_compile: make cleanup
-
+    #----------------------------------------------
+    # uploads the pdf as an artifact
+    #----------------------------------------------
     - name: upload pdf
       uses: actions/upload-artifact@v3
       with:
