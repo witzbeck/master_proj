@@ -84,7 +84,6 @@ jobs:
         working_directory: paper
         root_file: paper.tex
         continue_on_error: true
-        extra_system_packages: hyperref
         post_compile: make cleanup
     #----------------------------------------------
     # uploads the pdf as an artifact
