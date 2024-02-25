@@ -6,25 +6,24 @@ from scipy.stats import expon, uniform
 
 from alexlib.core import chkenv
 from alexlib.maths import discrete_exp_dist
-from setup import nrows as nr, random_state as rs, jobint, model_types
+from constants import MODEL_TYPES
+from setup import nrows as nr, random_state as rs, jobint
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from setup import config
+
     config
 
 
-def wrap_dict_vals(dict_: dict) -> dict[str: list]:
-    return {
-        k: [v] if not isinstance(v, list) else v
-        for k, v in dict_.items()
-    }
+def wrap_dict_vals(dict_: dict) -> dict[str:list]:
+    return {k: [v] if not isinstance(v, list) else v for k, v in dict_.items()}
 
 
 def unpack_clf_keys(params_dict: dict) -> list[str]:
     return [x.split("__")[-1] for x in params_dict.keys()]
 
 
-def unpack_clf_params(params_dict: dict) -> dict[str: Any]:
+def unpack_clf_params(params_dict: dict) -> dict[str:Any]:
     new_keys = unpack_clf_keys(params_dict)
     vals = list(params_dict.values())
     return {new_keys[i]: vals[i] for i in range(len(new_keys))}
@@ -51,17 +50,12 @@ def lengthen_params_log(params_log: dict) -> dict:
     }
 
 
-def overwrite_std_params(
-    clf_params: dict,
-    std_params: dict,
-    all: bool = True
-) -> dict:
+def overwrite_std_params(clf_params: dict, std_params: dict, all: bool = True) -> dict:
     sp = std_params
     np = unpack_clf_params(clf_params)
     new_keys = list(np.keys())
     out_params = {
-        key: np[key] if key in new_keys else sp[key]
-        for key in std_params.keys()
+        key: np[key] if key in new_keys else sp[key] for key in std_params.keys()
     }
     return lengthen_params_log(out_params) if all else out_params
 
@@ -91,18 +85,12 @@ class Params:
         return rs
 
     def set_rand_param_dict(self):
-
         # slight better performance noticed without warm start
         _bool = [True, False]
         if self.model_type == "logreg":
             params = [
                 {
-                    "clf__solver": [
-                        "lbfgs",
-                        "sag",
-                        "newton-cg",
-                        "newton-cholesky"
-                    ],
+                    "clf__solver": ["lbfgs", "sag", "newton-cg", "newton-cholesky"],
                     "clf__penalty": [None, "l2"],
                     "clf__C": expon(scale=0.1),
                     "clf__warm_start": [False],
@@ -250,24 +238,14 @@ class Params:
         if self.model_type == "logreg":
             params = [
                 {
-                    "clf__solver": [
-                        "lbfgs",
-                        "newton-cg",
-                        "sag",
-                        "newton-cholesky"
-                    ],
+                    "clf__solver": ["lbfgs", "newton-cg", "sag", "newton-cholesky"],
                     "clf__penalty": ["l2"],
                     "clf__C": discrete_exp_dist(-2, 2),
                     "clf__random_state": [self.random_state],
                     "clf__n_jobs": [jobint],
                 },
                 {
-                    "clf__solver": [
-                        "lbfgs",
-                        "newton-cg",
-                        "sag",
-                        "newton-cholesky"
-                    ],
+                    "clf__solver": ["lbfgs", "newton-cg", "sag", "newton-cholesky"],
                     "clf__penalty": [None],
                     "clf__random_state": [self.random_state],
                     "clf__n_jobs": [jobint],
@@ -380,39 +358,51 @@ class Params:
     def set_model_type(self):
         if self.model_type == "logreg":
             from sklearn.linear_model import LogisticRegression
+
             clf = LogisticRegression
         elif self.model_type == "svc":
             from sklearn.svm import SVC
+
             clf = SVC
         elif self.model_type == "compnb":
             from sklearn.naive_bayes import ComplementNB
+
             clf = ComplementNB
         elif self.model_type == "knn":
             from sklearn.neighbors import KNeighborsClassifier
+
             clf = KNeighborsClassifier
         elif self.model_type == "dtree":
             from sklearn.tree import DecisionTreeClassifier
+
             clf = DecisionTreeClassifier
         elif self.model_type == "etree":
             from sklearn.ensemble import ExtraTreesClassifier
+
             clf = ExtraTreesClassifier
         elif self.model_type == "rforest":
             from sklearn.ensemble import RandomForestClassifier
+
             clf = RandomForestClassifier
         elif self.model_type == "ada_boost":
             from sklearn.ensemble import AdaBoostClassifier
+
             clf = AdaBoostClassifier
         elif self.model_type == "mlp":
             from sklearn.neural_network import MLPClassifier
+
             clf = MLPClassifier
         elif self.model_type == "xg_boost":
             from sklearn.ensemble import GradientBoostingClassifier
+
             clf = GradientBoostingClassifier
         elif self.model_type == "hxg_boost":
             from sklearn.ensemble import HistGradientBoostingClassifier
+
             clf = HistGradientBoostingClassifier
         elif self.model_type == "gauss":
             from sklearn.gaussian_process import GaussianProcessClassifier
+
             clf = GaussianProcessClassifier
         else:
             raise ValueError(self.model_type)
@@ -436,24 +426,27 @@ class Params:
 
     def __post_init__(self):
         self.clf = self.set_model_type()
-        self.model_types = model_types
-
+        self.model_types = MODEL_TYPES
         if self.rand:
             from sklearn.model_selection import RandomizedSearchCV
+
             self.searchcv = RandomizedSearchCV
         else:
             from sklearn.model_selection import GridSearchCV
+
             self.searchcv = GridSearchCV
 
         if len(self.params) > 0:
             self._dict = self.params
         elif self.rand:
             from sklearn.model_selection import ParameterSampler
+
             self._dict = self.set_rand_param_dict()
             self.sampler = ParameterSampler(self._dict, n_iter=self.n_iter)
             self._list = list(self.sampler)
         else:
             from sklearn.model_selection import ParameterGrid
+
             self._dict = self.set_grid_param_dict()
             self.grid = ParameterGrid(self._dict)
             self._list = list(self.grid)
@@ -471,6 +464,6 @@ class Params:
                 nrows=self.nrows,
                 test_size=self.test_size,
                 random_state=self.random_state,
-                params=_params
+                params=_params,
             )
             yield pobj

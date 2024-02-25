@@ -7,26 +7,31 @@ from matplotlib.pyplot import xticks, subplots
 from pandas import Series
 from seaborn import histplot
 
-from alexlib.db import Table, Column
+from alexlib.db.objects import Table, Column
 from alexlib.maths import get_props, euclidean_distance as pyth
-from setup import cnxn
+from setup import db_mgr as cnxn
 
 
 class ProjectColumn(Column):
+    """A class to describe a column in a database table. Inherits from the Column class in the alexlib.db.objects module."""
+
     @property
-    def is_id(self):
+    def is_id(self) -> bool:
+        """Returns True if the column name ends with '_id', else False."""
         return False if self.col_name[-3:] != "_id" else True
 
-    def auto_xtick_angle(self,
-                         ndist_min: int = 5,
-                         ndist_mult: int = 2,
-                         len_min: int = 50,
-                         len_mult: int = 2,
-                         range_min: int = 100,
-                         range_mult: int = 2,
-                         text_min: int = 30,
-                         text_mult: int = 2
-                         ):
+    def auto_xtick_angle(
+        self,
+        ndist_min: int = 5,
+        ndist_mult: int = 2,
+        len_min: int = 50,
+        len_mult: int = 2,
+        range_min: int = 100,
+        range_mult: int = 2,
+        text_min: int = 30,
+        text_mult: int = 2,
+    ) -> int:
+        """Returns the angle to rotate the x-axis labels in a histogram plot based on the number of unique values in the column, the length of the text in the unique values, the range of the frequency values, and the length of the series."""
         uni = list(self.series.unique())
         self.ndist = len(uni)
         if self.ndist < ndist_min:
@@ -54,42 +59,41 @@ class ProjectColumn(Column):
             _range = 0
         self.logrange_prod = range_mult * _range
 
-        to_pyth = [
-            self.len_prod,
-            self.ndist_prod,
-            self.logrange_prod,
-            self.text_prod
-        ]
+        to_pyth = [self.len_prod, self.ndist_prod, self.logrange_prod, self.text_prod]
         angle = int(pyth(to_pyth))
         if angle > 45:
             return 45
         else:
             return angle
 
-    def __init__(self,
-                 schema: str,
-                 table: str,
-                 col_name: str,
-                 series: Series,
-                 ) -> None:
+    def __init__(
+        self,
+        schema: str,
+        table: str,
+        col_name: str,
+        series: Series,
+    ) -> None:
+        """Initializes the ProjectColumn object. Inherits from the Column class in the alexlib.db.objects module."""
         self.schema = schema
         self.table = table
         self.col_name = col_name
         self.series = series
 
-    def desc(self,
-             show_props: bool = False,
-             show_nulls: bool = False,
-             show_series_desc: bool = False,
-             show_hist: bool = False,
-             **kwargs
-             ):
+    def desc(
+        self,
+        show_props: bool = False,
+        show_nulls: bool = False,
+        show_series_desc: bool = False,
+        show_hist: bool = False,
+        **kwargs,
+    ) -> tuple:
+        """Describes the column in the database table. Returns a tuple containing the figure and axis of the histogram plot."""
         try:
             to_pyth = [
                 self.len_prod,
                 self.ndist_prod,
                 self.logrange_prod,
-                self.text_prod
+                self.text_prod,
             ]
         except AttributeError:
             pass
@@ -109,7 +113,7 @@ class ProjectColumn(Column):
             print(f"Null count: {self.n_nulls}")
         if show_series_desc:
             print(self.series.describe(), "\n")
-        if (show_hist and not self.is_id and ndist <= 31):
+        if show_hist and not self.is_id and ndist <= 31:
             try:
                 print([round(x, 4) for x in to_pyth])
             except AttributeError:
@@ -120,34 +124,37 @@ class ProjectColumn(Column):
         else:
             self.xtick_angle = 0
         if show_hist:
-            fig, ax = subplots(nrows=1,
-                               ncols=1,
-                               figsize=(5, 4),
-                               dpi=200,
-                               )
-            histplot(self.series,
-                     ax=ax,
-                     **kwargs
-                     )
+            fig, ax = subplots(
+                nrows=1,
+                ncols=1,
+                figsize=(5, 4),
+                dpi=200,
+            )
+            histplot(self.series, ax=ax, **kwargs)
             xticks(rotation=self.xtick_angle)
             return fig, ax
 
 
 @dataclass
 class ProjectTable(Table):
-    def __post_init__(self):
+    """A class to describe a database table. Inherits from the Table class in the alexlib.db.objects module."""
+
+    def __post_init__(self) -> None:
+        """Initializes the ProjectTable object. Inherits from the Table class in the alexlib.db.objects module."""
         if self.df is None:
             self.df = cnxn.get_table(
                 self.schema,
-                self.table,
+                self.name,
                 nrows=self.nrows,
             )
 
-    def desc_col(self, col: str, **kwargs):
+    def desc_col(self, col: str, **kwargs) -> None:
+        """Describes a column in the database table. Returns a tuple containing the figure and axis of the histogram plot."""
         col = self.cols[col]
         col.desc(**kwargs)
 
-    def desc_all_cols(self):
+    def desc_all_cols(self) -> None:
+        """Describes all columns in the database table."""
         for i, col in enumerate(self.col_names):
             print(f"({i+1}/{self.ncols})")
             self.desc_col(col, show_hist=False)

@@ -1,3 +1,4 @@
+"""A module for analyzing the results of a model run."""
 from dataclasses import dataclass, field
 from datetime import datetime
 
@@ -14,82 +15,40 @@ from scipy.stats import friedmanchisquare
 from scikit_posthocs import posthoc_nemenyi_friedman
 from sklearn.metrics import roc_curve, roc_auc_score
 
-# local imports
-from alexlib.db import Connection
+from alexlib.db.managers import PostgresManager
 from alexlib.df import filter_df, get_distinct_col_vals
 from alexlib.core import chkenv
 from alexlib.iters import get_comb_gen, get_idx_val, link
 from alexlib.maths import combine_domains, get_list_difs, get_rect_area
-from setup import config
+from setup import config, db_mgr
+from constants import WINDOWPANE_PLOT_PARAMS, MID, LEFT, RIGHT, OUT, ROPE
 
-__range__ = range(-1, 3)
-# values
-LEFT, ROPE, RIGHT, OUT = __range__
-MID = ROPE
-
-# colors
-BLUE = (68 / 255, 155 / 255, 214 / 255, 1.)
-LIGHTGRAY = (.925, .925, .925, 1.)
-WHITE = LIGHTGRAY
-ORANGE = (222 / 255, 142 / 255, 8 / 255, 1.)
-GRAY = (.5, .5, .5, 1.)
-
-# decisions
-XGREATER = "X > Y"
-XLESS = "X < Y"
-NODECISION = "No Decision"
-XROPE = "ROPE"
-
-window_params = {
-    "bayes": {
-        "rgb": {
-            LEFT: BLUE,
-            ROPE: GRAY,
-            RIGHT: ORANGE,
-            OUT: WHITE,
-        },
-        "vals": {
-            LEFT: XGREATER,
-            ROPE: XROPE,
-            RIGHT: XLESS,
-            OUT: NODECISION,
-        },
-    },
-    "freq": {
-        "rgb": {
-            LEFT: BLUE,
-            MID: WHITE,
-            RIGHT: ORANGE,
-        },
-        "vals": {
-            LEFT: XGREATER,
-            MID: NODECISION,
-            RIGHT: XLESS,
-        },
-    },
-}
 
 if __name__ == "__main__":
     config
-    dbh = Connection.from_context("LOCAL")
+    dbh = db_mgr.cnxn_mgr
 
 
 class Abroca:
-    def extend_tpr(self,
-                   old_x: list,
-                   old_y: list,
-                   ):
+    """A class for calculating the area between two ROC curves."""
+
+    def extend_tpr(
+        self,
+        old_x: list,
+        old_y: list,
+    ) -> list:
+        """Extend the TPR to the new domain."""
         new_y = []
         idx_counter = 0
         for i in range(self.dlen):
             x = self.domain[i]
             if i < 2:
                 new_y.append(0)
-            elif (x in old_x and idx_counter == 0):
+            elif x in old_x and idx_counter == 0:
                 val = get_idx_val(idx_counter, x, old_x, old_y)
                 new_y.append(val)
                 idx_counter += 1
-            elif (x in old_x and idx_counter > 0):
+            elif x in old_x and idx_counter > 0:
                 val = get_idx_val(idx_counter, x, old_x, old_y)
                 new_y.append(val)
                 idx_counter = 0
@@ -97,44 +56,48 @@ class Abroca:
                 new_y.append(new_y[-1])
         return array(new_y)
 
-    def get_new_tpr(self, roc):
+    def get_new_tpr(self, roc) -> list:
+        """Get the new TPR for the new domain."""
         x = list(roc.fpr)
         y = list(roc.tpr)
         return self.extend_tpr(x, y)
 
-    def set_new_tprs(self):
+    def set_new_tprs(self) -> None:
+        """Set the new TPRs for the new domain."""
         self.new_tpr1 = self.get_new_tpr(self.roc1)
         self.new_tpr2 = self.get_new_tpr(self.roc2)
 
-    def set_domain(self):
+    def set_domain(self) -> None:
+        """Set the domain for the new TPRs."""
         self.domain = combine_domains(self.roc1.fpr, self.roc2.fpr)
         self.ddifs = get_list_difs(self.domain)
         self.dlen = len(self.domain)
 
-    def get_abroca(self):
+    def get_abroca(self) -> float:
+        """Get the ABROCA."""
         y1 = self.new_tpr1
         y2 = self.new_tpr2
         yrange = range(len(y1))
         heights = [y1[i] - y2[i] for i in yrange][1:]
         return get_rect_area(heights, self.ddifs)
 
-    def set_abroca(self):
+    def set_abroca(self) -> None:
+        """Set the ABROCA."""
         self.abroca = self.get_abroca()
 
-    def steps(self):
+    def steps(self) -> None:
+        """Run the steps for the class."""
         self.set_domain()
         self.set_new_tprs()
         self.set_abroca()
 
     @property
     def keys(self) -> list[str]:
+        """Get the keys for the curves."""
         return list(self.curves.keys())
 
-    def __init__(
-        self,
-        split_col: str,
-        curve_dict: dict
-    ) -> None:
+    def __init__(self, split_col: str, curve_dict: dict) -> None:
+        """Initialize the class."""
         self.split_col = split_col
         self.roc1 = curve_dict[self.keys[0]]
         self.roc2 = curve_dict[self.keys[-1]]
@@ -142,20 +105,24 @@ class Abroca:
 
     @staticmethod
     def get_slice_label(split_col: str, key: str) -> str:
+        """Get the slice label for the ABROCA plot."""
         val = key[5:]
         return f"{split_col} = {val}"
 
     @staticmethod
     def get_auc_str(auc: float, round_int: int = 4) -> str:
+        """Get the AUC string."""
         return str(round(auc, round_int))
 
     def get_plot_label(self, key_idx: int, auc: float):
+        """Get the plot label for the ABROCA plot."""
         key = self.keys[key_idx]
         slice_label = Abroca.get_slice_label(self.split_col, key)
         auc_str = Abroca.get_auc_str(auc)
         return f"{slice_label} | auc = {auc_str}"
 
     def plot(self, ax=None) -> None:
+        """Plot the ABROCA."""
         x = self.domain
         y1 = self.new_tpr1
         y2 = self.new_tpr2
@@ -166,22 +133,10 @@ class Abroca:
         ax.plot(x, y2, label=self.get_plot_label(-1, self.roc2.auc))
         ax.plot([], [], color="C0", alpha=0.3, label=abr_label)
         ax.fill_between(
-            x,
-            y1,
-            y2,
-            where=(y1 > y2),
-            color="C0",
-            interpolate=True,
-            alpha=0.3
+            x, y1, y2, where=(y1 > y2), color="C0", interpolate=True, alpha=0.3
         )
         ax.fill_between(
-            x,
-            y1,
-            y2,
-            where=(y1 < y2),
-            color="C0",
-            interpolate=True,
-            alpha=0.3
+            x, y1, y2, where=(y1 < y2), color="C0", interpolate=True, alpha=0.3
         )
         if ax is None:
             xlabel("False Positive Rate")
@@ -192,48 +147,61 @@ class Abroca:
 
 
 class RocCurve:
-    def get_rates(self):
+    """A class for calculating the ROC curve."""
+
+    def get_rates(self) -> tuple[list, list]:
+        """Get the rates for the ROC curve."""
         fpr, tpr, _ = roc_curve(self.y_true, self.y_prob)
         return fpr, tpr
 
-    def set_rates(self):
+    def set_rates(self) -> None:
+        """Set the rates for the ROC curve."""
         self.fpr, self.tpr = self.get_rates()
 
-    def get_auc(self):
+    def get_auc(self) -> float:
+        """Get the AUC for the ROC curve."""
         return roc_auc_score(self.y_true, self.y_prob)
 
-    def set_auc(self):
+    def set_auc(self) -> None:
+        """Set the AUC for the ROC curve."""
         self.auc = self.get_auc()
 
-    def steps(self):
+    def steps(self) -> None:
+        """Run the steps for the class."""
         self.set_rates()
         self.set_auc()
 
-    def __init__(self,
-                 y_true: list,
-                 y_prob: list,
-                 X_test: float,
-                 ):
+    def __init__(
+        self,
+        y_true: list,
+        y_prob: list,
+        X_test: float,
+    ) -> None:
+        """Initialize the class."""
         self.y_true = y_true
         self.y_prob = y_prob
         self.X_test = X_test
         self.steps()
 
     @staticmethod
-    def _mk_legend_text(auc: float,
-                        round_dec: int = 2,
-                        ):
-        val = round(auc, 2)
+    def _mk_legend_text(
+        auc: float,
+        roundto: int = 2,
+    ) -> str:
+        """Make the legend text for the ROC curve."""
+        val = round(auc, roundto)
         return f"AUC = {str(val)}"
 
     @staticmethod
-    def _plot(fpr: list,
-              tpr: list,
-              auc: float,
-              ax=None,
-              _title: str = None,
-              fill_auc: bool = False,
-              ):
+    def _plot(
+        fpr: list,
+        tpr: list,
+        auc: float,
+        ax=None,
+        _title: str = None,
+        fill_auc: bool = False,
+    ) -> None:
+        """Plot the ROC curve."""
         if ax is None:
             _, ax = subplots(nrows=1, ncols=1, figsize=(12, 9))
         label = RocCurve._mk_legend_text(auc)
@@ -243,31 +211,34 @@ class RocCurve:
         if fill_auc:
             ax.fill_between(fpr, tpr, color="C0", interpolate=True, alpha=0.3)
 
-    def plot(self, **kwargs):
+    def plot(self, **kwargs) -> None:
+        """Plot the ROC curve."""
         fpr = self.fpr
         tpr = self.tpr
         auc = self.auc
         RocCurve._plot(fpr, tpr, auc, **kwargs)
 
-    def get_X_slices(self,
-                     slice_col: str,
-                     ):
+    def get_X_slices(
+        self,
+        slice_col: str,
+    ) -> dict:
+        """Get the slices for the ROC curve."""
         X_test = self.X_test
         vals = get_distinct_col_vals(X_test, slice_col)
         sc = slice_col
         fdf = filter_df
         return {f"slice{str(x)}": fdf(X_test, sc, x) for x in vals}
 
-    def get_y_slice(self,
-                    X_slice: dict,
-                    y_series: Series
-                    ):
+    def get_y_slice(self, X_slice: dict, y_series: Series) -> Series:
+        """Get the Y slice for the ROC curve."""
         idx_list = list(X_slice.index)
         return y_series.loc[idx_list]
 
-    def get_roc_obj(self,
-                    X_test: list,
-                    ):
+    def get_roc_obj(
+        self,
+        X_test: list,
+    ) -> "RocCurve":
+        """Get the ROC object for the ROC curve."""
         y_true = self.get_y_slice(X_test, self.y_true)
         y_prob = self.get_y_slice(X_test, self.y_prob)
         return RocCurve(y_true, y_prob, X_test)
@@ -276,21 +247,22 @@ class RocCurve:
         self,
         X_slices: dict,
     ) -> dict:
-        return {
-            k: self.get_roc_obj(v)
-            for k, v in X_slices.items()
-        }
+        """Get the ROC objects for the ROC curve."""
+        return {k: self.get_roc_obj(v) for k, v in X_slices.items()}
 
     def get_abroca(self, split_col: str) -> Abroca:
+        """Get the ABROCA for the ROC curve."""
         X_slices = self.get_X_slices(split_col)
         self.curves = self.get_roc_objs(X_slices)
         return Abroca(split_col, self.curves)
 
     def get_abrocas(self, split_cols: list) -> list[float]:
+        """Get the ABROCAs for the ROC curve."""
         return [self.get_abroca(x) for x in split_cols]
 
 
-def get_num(_str: str):
+def get_num(_str: str) -> float | int | str | None:
+    """Get the number from the string."""
     if _str is None:
         return _str
     elif _str.isnumeric():
@@ -304,10 +276,12 @@ def get_num(_str: str):
     return ret
 
 
-def try_array_float_list(array_: array,
-                         key: str,
-                         _type: str = "float",
-                         ):
+def try_array_float_list(
+    array_: array,
+    key: str,
+    _type: str = "float",
+) -> list:
+    """Try to convert the array to a list."""
     if key == "n_jobs":
         return [int(x) for x in array_]
     elif key == "warm_start":
@@ -321,7 +295,8 @@ def try_array_float_list(array_: array,
         return array_.tolist()
 
 
-def format_clf_params(series: Series) -> dict[str: list]:
+def format_clf_params(series: Series) -> dict[str:list]:
+    """Format the classifier parameters."""
     keys = [x for x in series.columns if x[-3:] != "_id"]
     vals = [series[key].values for key in keys]
     rng = range(len(keys))
@@ -331,15 +306,17 @@ def format_clf_params(series: Series) -> dict[str: list]:
 
 @dataclass
 class ModelResult:
+    """A class for the model results."""
+
     model_type: str = field(default="")
     run_id: int = field(default=0)
     iter_id: int = field(default=0)
-    mean_fit_time: float = field(default=0.)
-    std_fit_time: float = field(default=0.)
-    mean_score_time: float = field(default=0.)
-    std_score_time: float = field(default=0.)
-    mean_test_roc_auc: float = field(default=0.)
-    std_test_roc_auc: float = field(default=0.)
+    mean_fit_time: float = field(default=0.0)
+    std_fit_time: float = field(default=0.0)
+    mean_score_time: float = field(default=0.0)
+    std_score_time: float = field(default=0.0)
+    mean_test_roc_auc: float = field(default=0.0)
+    std_test_roc_auc: float = field(default=0.0)
     rank_test_roc_auc: int = field(default=0)
     timestamp: datetime = field(default=datetime.now())
     inc_aca: bool = field(default=False)
@@ -351,6 +328,7 @@ class ModelResult:
     params: list = field(default_factory=list)
 
     def get_name(self) -> str:
+        """Get the name for the model result."""
         m = self.model_type
         r = str(self.run_id)
         i = str(self.iter_id)
@@ -358,19 +336,23 @@ class ModelResult:
         return "_".join([m, r, i, n])
 
     def __repr__(self) -> str:
+        """Get the representation for the model result."""
         return self.name
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
+        """Run the post init steps for the class."""
         self.name = self.get_name()
         self.splits_test_roc_auc = array(self.splits_test_roc_auc).ravel()
 
     def sort_cols(df: DataFrame) -> tuple[list, list]:
+        """Sort the columns for the dataframe."""
         cols = list(df.keys()) if isinstance(df, dict) else list(df.columns)
         split_cols = [col for col in cols if "split" in col]
         other_cols = [col for col in cols if col not in split_cols]
         return split_cols, other_cols
 
-    def from_engine(engine):
+    def from_engine(engine) -> "ModelResult":
+        """Get the model result from the engine."""
         series = engine.get_all_results_log()
         split_cols, other_cols = ModelResult.sort_cols(series)
         split_vals = [series[col] for col in split_cols]
@@ -378,7 +360,8 @@ class ModelResult:
         kwargs["splits_test_roc_auc"] = split_vals
         return ModelResult(**kwargs)
 
-    def get_params(self, dbh: Connection):
+    def get_params(self, dbh: PostgresManager) -> dict[str:list]:
+        """Get the parameters for the model result."""
         sql = f"""
         select *
         from {chkenv("LOG_SCHEMA")}.params_{self.model_type}
@@ -388,12 +371,15 @@ class ModelResult:
         series = dbh.run_pd_query(sql)
         return format_clf_params(series)
 
-    def set_params(self, dbh: Connection):
+    def set_params(self, dbh: PostgresManager) -> None:
+        """Set the parameters for the model result."""
         self.params = self.get_params(dbh)
 
 
 @dataclass
 class Results:
+    """A class for the model results."""
+
     schema: str = field(default=chkenv("LOG_SCHEMA"))
     table: str = field(default="v_all_runs_results")
     rope: float = field(default=chkenv("EVAL_ROPE", astype=float))
@@ -402,11 +388,13 @@ class Results:
     obj_list: list = field(default_factory=list)
 
     @staticmethod
-    def alpha_eval(p: float,
-                   i: int,
-                   j: int,
-                   alpha: float = chkenv("ALPHA", astype=float),
-                   ):
+    def alpha_eval(
+        p: float,
+        i: int,
+        j: int,
+        alpha: float = chkenv("ALPHA", astype=float),
+    ) -> int:
+        """Evaluate the alpha."""
         if p > alpha:
             return MID
         else:
@@ -418,65 +406,76 @@ class Results:
         flexible: bool = chkenv("ROPE_FLEXIBLE", astype=bool),
         upbound: float = chkenv("ROPE_UPBOUND", astype=float),
     ) -> float:
+        """Evaluate the ROPE."""
         pleft, prope, pright = outcome
         absdif = abs(pleft - pright)
 
         if prope >= upbound:
-            return ROPE
+            ret = ROPE
         elif pright >= upbound:
-            return RIGHT
+            ret = RIGHT
         elif pleft >= upbound:
-            return LEFT
+            ret = LEFT
         elif absdif <= 1 - upbound:
-            return ROPE
-        elif (pleft > (prope + pright) and flexible):
-            return LEFT
-        elif (pright > (prope + pleft) and flexible):
-            return RIGHT
-        elif (prope > (pright + pleft) and flexible):
-            return ROPE
+            ret = ROPE
+        elif pleft > (prope + pright) and flexible:
+            ret = LEFT
+        elif pright > (prope + pleft) and flexible:
+            ret = RIGHT
+        elif prope > (pright + pleft) and flexible:
+            ret = ROPE
         else:
-            return OUT
+            ret = OUT
+        return ret
 
-    def get_splits(self):
+    def get_splits(self) -> list:
+        """Get the splits for the model results."""
         return [x.splits_test_roc_auc for x in self.obj_list]
 
-    def get_splits_array(self):
+    def get_splits_array(self) -> array:
+        """Get the splits array for the model results."""
         splits = self.get_splits()
         return array(splits).T
 
-    def do_friedman(self):
+    def do_friedman(self) -> tuple:
+        """Do the Friedman test for the model results."""
         splits = self.get_splits()
         return friedmanchisquare(splits)
 
-    def do_nemenyi(self):
+    def do_nemenyi(self) -> array:
+        """Do the Nemenyi test for the model results."""
         splits_array = self.get_splits_array()
         return posthoc_nemenyi_friedman(splits_array)
 
-    def iter_df(self):
+    def iter_df(self) -> Series:
+        """Iterate through the dataframe."""
         _range = range(len(self.df))
         for i in _range:
             yield self.df.iloc[i, :]
 
-    def sort_cols(self):
+    def sort_cols(self) -> None:
+        """Sort the columns for the dataframe."""
         self.cols = list(self.df.columns)
         sc = self.split_cols
         self.split_cols = [col for col in self.cols if "split" in col]
         self.other_cols = [col for col in self.cols if col not in sc]
 
-    def get_res_obj(self, series: Series):
+    def get_res_obj(self, series: Series) -> ModelResult:
+        """Get the result object for the dataframe."""
         split_vals = [series[col] for col in self.split_cols]
         kwargs = {col: series[col] for col in self.other_cols}
         kwargs["splits_test_roc_auc"] = split_vals
         return ModelResult(**kwargs)
 
-    def get_res_objs(self):
+    def get_res_objs(self) -> None:
+        """Get the result objects for the dataframe."""
         self.iseries = self.iter_df()
         self.obj_list = [self.get_res_obj(s) for s in self.iseries]
         self.obj_dict = {str(obj): obj for obj in self.obj_list}
         self.sort_cols()
 
     def get_results(self) -> DataFrame:
+        """Get the results for the model."""
         s = self.schema
         t = self.table
         if self.lim is None:
@@ -484,17 +483,16 @@ class Results:
         else:
             return self.dbh.get_table(s, t, nrows=self.lim)
 
-    def get_index_grid(self,
-                       nanvar: str = None,
-                       asarray: bool = True
-                       ):
+    def get_index_grid(self, nanvar: str = None, asarray: bool = True) -> list:
+        """Get the index grid for the model results."""
         rng = self._range
         index = [[i if i != j else nanvar for i in self._range] for j in rng]
         if asarray:
             return array(index)
         return index
 
-    def init_steps(self):
+    def init_steps(self) -> None:
+        """Run the init steps for the class."""
         if len(self.obj_list) == 0:
             self.df = self.get_results()
             self.sort_cols()
@@ -506,69 +504,68 @@ class Results:
         self.index = self.get_comp_index()
         self.index_grid = self.get_index_grid()
 
-    def __len__(self):
+    def __len__(self) -> int:
+        """Get the length of the model results."""
         return len(self.obj_list)
 
-    def __post_init__(self):
-        self.dbh = Connection.from_context("LOCAL")
+    def __post_init__(self) -> None:
+        """Run the post init steps for the class."""
         self.init_steps()
 
-    def get_comp_index(self):
+    def get_comp_index(self) -> list:
+        """Get the comparison index for the model results."""
         lists = [[(i, j) for i in self._range] for j in self._range]
         _list = link(lists)
         return _list
 
-    def get_comp_grid(self, bayes: bool):
+    def get_comp_grid(self, bayes: bool) -> array:
+        """Get the comparison grid for the model results."""
         z = zeros((self._len, self._len))
         for i in self._range:
             z[i][i] = OUT if bayes else MID
         return z
 
-    def bayes_comp_2_objs(self,
-                          obj1: ModelResult,
-                          obj2: ModelResult,
-                          runs: int = None,
-                          plot: bool = False,
-                          names: tuple = None,
-                          ) -> tuple | list:
+    def bayes_comp_2_objs(
+        self,
+        obj1: ModelResult,
+        obj2: ModelResult,
+        runs: int = None,
+        plot: bool = False,
+        names: tuple = None,
+    ) -> tuple | list:
+        """Compare two objects for the model results."""
         if runs is None:
             runs = 1
         obj1_vals = obj1.splits_test_roc_auc
         obj2_vals = obj2.splits_test_roc_auc
-        if (plot and names is None):
+        if plot and names is None:
             names = (str(obj1), str(obj2))
         return two_on_multiple(
-            obj1_vals,
-            obj2_vals,
-            rope=self.rope,
-            runs=runs,
-            plot=plot,
-            names=names
+            obj1_vals, obj2_vals, rope=self.rope, runs=runs, plot=plot, names=names
         )
 
-    def comp_2_idx(self,
-                   idx1: int,
-                   idx2: int,
-                   bayes: bool,
-                   plot: bool = False,
-                   runs: int = None,
-                   names: bool = None,
-                   nemenyi_grid: array = None,
-                   ) -> tuple:
+    def comp_2_idx(
+        self,
+        idx1: int,
+        idx2: int,
+        bayes: bool,
+        plot: bool = False,
+        runs: int = None,
+        names: bool = None,
+        nemenyi_grid: array = None,
+    ) -> tuple:
+        """Compare two indices for the model results."""
         if bayes:
             obj1 = self.obj_list[idx1]
             obj2 = self.obj_list[idx2]
             runs = 1 if runs is None else runs
-            comp = self.bayes_comp_2_objs(obj1,
-                                          obj2,
-                                          plot=plot,
-                                          names=names
-                                          )
+            comp = self.bayes_comp_2_objs(obj1, obj2, plot=plot, names=names)
             return comp if not plot else comp[0]
         else:
             return nemenyi_grid[idx1][idx2]
 
-    def get_mask_grid(self):
+    def get_mask_grid(self) -> array:
+        """Get the mask grid for the model results."""
         mask_grid = self.get_comp_grid()
         for pair in self.index:
             i, j = pair[0], pair[-1]
@@ -578,12 +575,10 @@ class Results:
                 mask_grid[i][j] = 0
         return mask_grid
 
-    def gen_eval_steps(self,
-                       bayes: bool,
-                       grid: array,
-                       use_matsym: bool,
-                       nemenyi_grid: array = None
-                       ) -> DataFrame:
+    def gen_eval_steps(
+        self, bayes: bool, grid: array, use_matsym: bool, nemenyi_grid: array = None
+    ) -> DataFrame:
+        """Generate the evaluation steps for the model results."""
         if not bayes:
             nemenyi_grid = self.do_nemenyi()
         if use_matsym:
@@ -593,50 +588,48 @@ class Results:
 
         for pair in idx:
             i, j = pair
-            comp = self.comp_2_idx(i,
-                                   j,
-                                   bayes,
-                                   plot=False,
-                                   nemenyi_grid=nemenyi_grid,
-                                   )
+            comp = self.comp_2_idx(
+                i,
+                j,
+                bayes,
+                plot=False,
+                nemenyi_grid=nemenyi_grid,
+            )
             if bayes:
                 eval = Results.rope_eval(comp)
             else:
                 eval = Results.alpha_eval(comp, i, j)
             grid[i][j] = eval
-            if (use_matsym and eval == LEFT):
+            if use_matsym and eval == LEFT:
                 grid[j][i] = RIGHT
-            elif (use_matsym and eval == RIGHT):
+            elif use_matsym and eval == RIGHT:
                 grid[j][i] = LEFT
             elif use_matsym:
                 grid[j][i] = eval
         return DataFrame(grid.T, index=self.obj_names)
 
-    def eval_all(self,
-                 bayes: bool,
-                 use_matsym: bool = True):
+    def eval_all(self, bayes: bool, use_matsym: bool = True) -> DataFrame:
+        """Evaluate all the results for the model."""
         self.grid = self.get_comp_grid(bayes)
         return self.gen_eval_steps(bayes, self.grid, use_matsym)
 
     @staticmethod
-    def get_window_params(bayes: bool,
-                          params: dict = window_params
-                          ):
-        if bayes:
-            return params["bayes"]
-        else:
-            return params["freq"]
+    def get_window_params(bayes: bool, params: dict = WINDOWPANE_PLOT_PARAMS) -> dict:
+        """return the windowpane plot parameters for either bayes or freq"""
+        return params["bayes"] if bayes else params["freq"]
 
-    def plot_windowpane(self,
-                        bayes: bool = True,
-                        df: DataFrame = None,
-                        use_matsym: bool = True,
-                        figsize: tuple = None,
-                        annot: str = None,  # vals, index, none
-                        labelsize: int = 3,
-                        dpi: int = 800,
-                        annot_fontsize: str = "x-small"
-                        ):
+    def plot_windowpane(
+        self,
+        bayes: bool = True,
+        df: DataFrame = None,
+        use_matsym: bool = True,
+        figsize: tuple = None,
+        annot: str = None,  # vals, index, none
+        labelsize: int = 3,
+        dpi: int = 800,
+        annot_fontsize: str = "x-small",
+    ) -> tuple:
+        """Plot the windowpane for the model results."""
         rng = self._range
         if df is None:
             df = self.eval_all(bayes, use_matsym)
@@ -672,34 +665,39 @@ class Results:
         else:
             raise ValueError("invalid input for annot")
         ax.tick_params(axis="both", labelsize=labelsize, pad=0)
-        ax = heatmap(df,
-                     ax=ax,
-                     cmap=cmap,
-                     norm=norm,
-                     xticklabels=False,
-                     cbar_kws={"shrink": 0.15},
-                     annot=annot,
-                     annot_kws={
-                         "fontsize": annot_fontsize,
-                         "color": "black",
-                     },
-                     linewidths=0.5,
-                     )
+        ax = heatmap(
+            df,
+            ax=ax,
+            cmap=cmap,
+            norm=norm,
+            xticklabels=False,
+            cbar_kws={"shrink": 0.15},
+            annot=annot,
+            annot_kws={
+                "fontsize": annot_fontsize,
+                "color": "black",
+            },
+            linewidths=0.5,
+        )
         for text in ax.texts:
-            if (text.get_text() in [str(OUT), None, nan, "None"]):
+            if text.get_text() in [str(OUT), None, nan, "None"]:
                 text.set_text("")
         cbar = ax.collections[0].colorbar
         r = cbar.vmax - cbar.vmin
         cbar.set_ticks([cbar.vmin + r / n * (0.5 + i) for i in range(n)])
         cbar.set_ticklabels(list(cbar_vals.values()))
-        tick_params(left=False,)
+        tick_params(
+            left=False,
+        )
         return fig, ax
 
-    def get_top_cluster(self,
-                        _len: bool = False,
-                        _obj_list: bool = False,
-                        _res_obj: bool = True,
-                        ):
+    def get_top_cluster(
+        self,
+        _len: bool = False,
+        _obj_list: bool = False,
+        _res_obj: bool = True,
+    ) -> list["Results"] | "Results":
+        """Get the top cluster for the model results."""
         grid = self.grid
         top_row = grid[0][1:]
         top_val = top_row[0]
@@ -709,7 +707,7 @@ class Results:
             ival = top_row[i]
             if i == 1:
                 i += 1
-            elif (ival == top_val or (isnan(ival) and isnan(top_row[i - 1]))):
+            elif ival == top_val or (isnan(ival) and isnan(top_row[i - 1])):
                 i += 1
             elif _len:
                 return i
@@ -720,22 +718,26 @@ class Results:
             else:
                 return top_row[:i]
 
-    def get_top_cluster_gen(self):
+    def get_top_cluster_gen(self) -> list:
+        """Get the top cluster generator for the model results."""
         cluster_len = self.get_top_cluster(_len=True)
         cluster_range = range(cluster_len)
         return get_comb_gen(cluster_range, 2)
 
-    def get_cluster_comp_gen(self, plot: bool = False):
+    def get_cluster_comp_gen(self, plot: bool = False) -> list:
+        """Get the cluster comparison generator for the model results."""
         for pair in self.get_top_cluster_gen():
             yield self.comp_2_idx(*pair, plot=plot)
 
     @staticmethod
-    def from_engines(engine_list: list, **kwargs):
+    def from_engines(engine_list: list, **kwargs) -> "Results":
+        """Get the results from the engines."""
         obj_list = [ModelResult.from_engine(engine) for engine in engine_list]
         return Results(obj_list=obj_list, **kwargs)
 
 
-def comp_rope_vals():
+def comp_rope_vals() -> None:
+    """Compare the ROPE values."""
     rope_comp_id = 0
     ropes = [i / 10000 for i in range(5, 101, 5)]
     for rope in tqdm(ropes):
@@ -743,7 +745,7 @@ def comp_rope_vals():
             records = []
             res = Results(rope=rope, runs=runs, lim=150)
             if rope_comp_id == 0:
-                res.dbh.trunc_table(chkenv("LOG_SCHEMA"), "rope_comp")
+                db_mgr.truncate_table(chkenv("LOG_SCHEMA"), "rope_comp")
                 if_exists = "append"
                 ncomp = (len(res.obj_list) ** 2) / 2
                 print(f"n comparisons = {ncomp}")
@@ -777,7 +779,7 @@ def comp_rope_vals():
                         "pleft": comp[0],
                         "prope": comp[1],
                         "pright": comp[2],
-                        "eval": eval
+                        "eval": eval,
                     }
                     records.append(rec)
             rope_comp_id += 1
@@ -788,5 +790,5 @@ def comp_rope_vals():
                 schema=chkenv("LOG_SCHEMA"),
                 if_exists=if_exists,
                 index=True,
-                method="multi"
+                method="multi",
             )
