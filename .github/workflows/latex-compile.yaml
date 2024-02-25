@@ -12,6 +12,9 @@ on:
       - '.github/workflows/latex-compile.yaml'
       - 'paper/**'
 
+permissions:
+  contents: write
+
 jobs:
   build_pdf:
     runs-on: ubuntu-latest
