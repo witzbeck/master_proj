@@ -1,10 +1,22 @@
-name: Master's Project Workflow
+name: Master's Project Python Build Workflow
 
 on:
   push:
     branches: [ master ]
+    paths:
+      - '.github/workflows/python-build.yaml'
+      - 'src/**'
+      - 'tests/**'
+      - 'pyproject.toml'
+      - 'poetry.lock'
   pull_request:
     branches: [ master ]
+    paths:
+      - '.github/workflows/python-build.yaml'
+      - 'src/**'
+      - 'tests/**'
+      - 'pyproject.toml'
+      - 'poetry.lock'
 
 jobs:
   build:
@@ -70,27 +82,3 @@ jobs:
     - name: Run tests
       run: |
         poetry run pytest --cov=src --cov-report=xml -n auto
-
-  build_pdf:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    #----------------------------------------------
-    # set up Tex Live
-    #----------------------------------------------
-    - name: set up Tex Live
-      uses: xu-cheng/latex-action@v3
-      with:
-        working_directory: paper
-        root_file: paper.tex
-        continue_on_error: true
-        post_compile: make cleanup
-    #----------------------------------------------
-    # uploads the pdf as an artifact
-    #----------------------------------------------
-    - name: upload pdf
-      uses: actions/upload-artifact@v3
-      with:
-        name: PDF
-        path: 'paper/paper.pdf'
-    

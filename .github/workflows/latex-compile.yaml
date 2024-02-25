@@ -1,0 +1,63 @@
+name: Master's Project LaTeX PDF Compile Workflow
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - '.github/workflows/latex-compile.yaml'
+      - 'paper/**'
+  pull_request:
+    branches: [ master ]
+    paths:
+      - '.github/workflows/latex-compile.yaml'
+      - 'paper/**'
+
+jobs:
+  build_pdf:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    #----------------------------------------------
+    # set up Tex Live
+    #----------------------------------------------
+    - name: set up Tex Live
+      uses: xu-cheng/latex-action@v3
+      with:
+        working_directory: paper
+        root_file: paper.tex
+        continue_on_error: true
+        post_compile: make cleanup
+    #----------------------------------------------
+    # uploads the pdf as an artifact
+    #----------------------------------------------
+    - name: upload pdf
+      uses: actions/upload-artifact@v3
+      with:
+        name: PDF
+        path: 'paper/paper.pdf'
+
+  release:
+    needs: build_pdf
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+  
+      - name: Download PDF
+        uses: actions/download-artifact@v3
+        with:
+          name: PDF
+          path: paper
+      
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: "The latest compiled PDF of the paper."
+          draft: false
+          prerelease: false
+          assets: paper/paper.pdf
+    
