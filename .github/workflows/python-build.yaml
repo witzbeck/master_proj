@@ -1,4 +1,4 @@
-name: Master's Project Python Build Workflow
+name: Master's Project | Build & Test Python
 
 on:
   push:
