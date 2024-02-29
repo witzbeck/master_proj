@@ -1,0 +1,102 @@
+name: Master's Project | Compile LaTeX PDF
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - '.github/workflows/latex-compile.yaml'
+      - 'paper/**'
+  pull_request:
+    branches: [ master ]
+    paths:
+      - '.github/workflows/latex-compile.yaml'
+      - 'paper/**'
+
+permissions:
+  contents: write
+
+jobs:
+  build_pdf:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    #----------------------------------------------
+    # cache step for PDF
+    #----------------------------------------------
+    - uses: actions/cache@v2
+      id: cache-pdf
+      with:
+        path: paper/paper.pdf
+        key: ${{ runner.os }}-pdf-${{ hashFiles('paper/**') }}
+        restore-keys: |
+          ${{ runner.os }}-pdf-
+    
+    #----------------------------------------------
+    # set up Tex Live
+    #----------------------------------------------
+    - name: set up Tex Live
+      if: steps.cache-pdf.outputs.cache-hit != 'true'
+      uses: xu-cheng/latex-action@v3
+      with:
+        working_directory: paper
+        root_file: paper.tex
+        continue_on_error: true
+        post_compile: make cleanup
+    #----------------------------------------------
+    # uploads the pdf as an artifact
+    #----------------------------------------------
+    - name: upload pdf
+      if: steps.cache-pdf.outputs.cache-hit != 'true'
+      uses: actions/upload-artifact@v3
+      with:
+        name: PDF
+        path: 'paper/paper.pdf'
+
+  release:
+    needs: build_pdf
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+  
+      - name: Download PDF
+        uses: actions/download-artifact@v3
+        with:
+          name: PDF
+          path: paper
+
+      # ---------------------------------------------
+      # install poetry
+      # ---------------------------------------------
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+      - name: Get Semantic Version With Poetry
+        id: get_version
+        run: echo ::set-output name=version::$(poetry version | cut -d' ' -f2)
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.get_version.outputs.version }}
+          release_name: Release ${{ steps.get_version.outputs.version }}
+          body: "The latest compiled PDF of the paper."
+          draft: false
+          prerelease: false
+    
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./paper/paper.pdf
+          asset_name: paper.pdf
+          asset_content_type: application/pdf
