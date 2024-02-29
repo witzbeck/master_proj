@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "master-proj"
-version = "1.0.2"
+version = "1.1.0"
 description = "code associated w ms stats capstone"
 authors = ["Alex Beckwith <57322567+witzbeck@users.noreply.github.com>"]
 packages = [{include = "src"}]
