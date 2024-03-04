@@ -1,0 +1,2 @@
+#.sqlfluffignore
+mom_*.sql
