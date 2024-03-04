@@ -1,10 +1,39 @@
+from dataclasses import dataclass
+from pathlib import Path
 from sqlalchemy import Column, Float, Integer, String, SmallInteger
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import Session
 
+from src.constants import DATA_PATH
+
+SCHEMA = "landing"
 Base = declarative_base()
 
 
-class Vle(Base):
+@dataclass(slots=True)
+class LandingTable:
+    __tablename__: str
+    __schema__: str = SCHEMA
+
+    def __str__(self) -> str:
+        return f"{self.__schema__}.{self.__tablename__}"
+
+    @property
+    def csv_path(self) -> Path:
+        return DATA_PATH / f"{self.__tablename__}.csv"
+
+    @property
+    def copy_csv_str(self) -> str:
+        return f"COPY {str(self)} FROM '{self.csv_path}' DELIMITER ',' CSV HEADER"
+
+    @classmethod
+    def seed_table(cls, session: Session) -> None:
+        session.execute(cls.copy_csv_str)
+        session.commit()
+
+
+@dataclass(slots=True)
+class Vle(Base, LandingTable):
     __tablename__ = "vle"
     site_id = Column(Integer)
     code_module = Column(String(45))
@@ -14,7 +43,8 @@ class Vle(Base):
     week_to = Column(SmallInteger)
 
 
-class StudentVle(Base):
+@dataclass(slots=True)
+class StudentVle(Base, LandingTable):
     __tablename__ = "studentVle"
     site_id = Column(Integer)
     student_id = Column(Integer)
@@ -24,7 +54,8 @@ class StudentVle(Base):
     sum_click = Column(Integer)
 
 
-class StudentRegistration(Base):
+@dataclass(slots=True)
+class StudentRegistration(Base, LandingTable):
     __tablename__ = "studentRegistration"
     code_module = Column(String(45))
     code_presentation = Column(String(45))
@@ -33,7 +64,8 @@ class StudentRegistration(Base):
     date_unregistration = Column(Integer)
 
 
-class StudentInfo(Base):
+@dataclass(slots=True)
+class StudentInfo(Base, LandingTable):
     __tablename__ = "studentInfo"
     student_id = Column(Integer)
     code_module = Column(String(45))
@@ -49,7 +81,7 @@ class StudentInfo(Base):
     final_result = Column(String(45))
 
 
-class StudentAssessment(Base):
+class StudentAssessment(Base, LandingTable):
     __tablename__ = "studentAssessment"
     student_id = Column(Integer)
     assessment_id = Column(Integer)
@@ -58,7 +90,7 @@ class StudentAssessment(Base):
     score = Column(Float)
 
 
-class Courses(Base):
+class Courses(Base, LandingTable):
     __tablename__ = "courses"
     code_module = Column(String(45))
     code_presentation = Column(String(45))
@@ -91,7 +123,7 @@ class Courses(Base):
         return ret
 
 
-class Assessments(Base):
+class Assessments(Base, LandingTable):
     __tablename__ = "assessments"
     id_assessment = Column(Integer)
     code_module = Column(String(45))
