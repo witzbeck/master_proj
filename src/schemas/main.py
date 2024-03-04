@@ -10,7 +10,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.declarative import declarative_base
 
-from schemas.landing import Courses, StudentInfo, Vle
+from schemas.landing import Courses, StudentAssessment, StudentInfo, StudentVle, Vle
 
 Base = declarative_base()
 
@@ -34,11 +34,16 @@ class Presentation(Base):
 
     @classmethod
     def seed_table(cls, session: Session):
-        all_presentations = session.query(Courses.code_presentation).distinct().all()
-        session.add_all(
+        all_courses = session.query(Courses).all()
+        session.bulk_save_objects(
             [
-                cls(presentation_code=presentation[0], start_month="February")
-                for presentation in all_presentations
+                cls(
+                    presentation_code=course.code_presentation,
+                    start_year=course.start_year,
+                    start_month=course.start_month,
+                    start_date=course.start_date,
+                )
+                for course in all_courses
             ]
         )
         session.commit()
@@ -56,9 +61,17 @@ class Module(Base):
 
     @classmethod
     def seed_table(cls, session: Session):
-        all_modules = session.query(Courses.code_module).distinct().all()
-        session.add_all([cls(module_code=module[0]) for module in all_modules])
-        session.commit()
+        all_courses = session.query(Courses).all()
+        session.bulk_save_objects(
+            [
+                cls(
+                    module_code=course.code_module,
+                    domain=course.domain,
+                    level=course.level,
+                )
+                for course in all_courses
+            ]
+        )
 
 
 class Course(Base):
@@ -67,12 +80,41 @@ class Course(Base):
     module_id = Column(Integer, ForeignKey("module.id"), nullable=False)
     presentation_id = Column(Integer, ForeignKey("presentation.id"), nullable=False)
     course_length = Column(Integer, nullable=False)
+    __table_args__ = (
+        UniqueConstraint("module_id", "presentation_id", name="unique_course"),
+    )
+
+    @classmethod
+    def from_course(cls, course: Courses, session: Session):
+        return cls(
+            module_id=session.query(Module.id)
+            .filter(Module.module_code == course.code_module)
+            .first()[0],
+            presentation_id=session.query(Presentation.id)
+            .filter(
+                (Presentation.presentation_code == course.code_presentation)
+                & (Presentation.start_year == course.start_year)
+                & (Presentation.start_month == course.start_month)
+                & (Presentation.start_date == course.start_date)
+            )
+            .first()[0],
+            course_length=course.module_presentation_length,
+        )
+
+    @classmethod
+    def seed_table(cls, session: Session):
+        all_courses = session.query(Courses).all()
+        session.bulk_save_objects(
+            [cls.from_course(course, session) for course in all_courses]
+        )
+        session.commit()
 
 
 class ImdBand(Base):
     __tablename__ = "imd_band"
     id = Column(Integer, primary_key=True, autoincrement=True)
     imd_band = Column(String(7), nullable=False)
+    __table_args__ = (UniqueConstraint("imd_band", name="unique_imd_band"),)
 
     @classmethod
     def seed_table(cls, session: Session):
@@ -89,6 +131,7 @@ class AgeBand(Base):
     __tablename__ = "age_band"
     id = Column(Integer, primary_key=True, autoincrement=True)
     age_band = Column(String(7), nullable=False)
+    __table_args__ = (UniqueConstraint("age_band", name="unique_age_band"),)
 
     @classmethod
     def seed_table(cls, session: Session):
@@ -105,6 +148,7 @@ class Region(Base):
     __tablename__ = "region"
     id = Column(Integer, primary_key=True, autoincrement=True)
     region = Column(String(20), nullable=False)
+    __table_args__ = (UniqueConstraint("region", name="unique_region"),)
 
     @classmethod
     def seed_table(cls, session: Session):
@@ -121,6 +165,7 @@ class HighestEducation(Base):
     __tablename__ = "highest_education"
     id = Column(Integer, primary_key=True, autoincrement=True)
     highest_education = Column(String(27), nullable=False)
+    __table_args__ = (UniqueConstraint("highest_education", name="unique_education"),)
 
     @classmethod
     def seed_table(cls, session: Session):
@@ -141,6 +186,7 @@ class FinalResult(Base):
     __tablename__ = "final_result"
     id = Column(Integer, primary_key=True, autoincrement=True)
     final_result = Column(String(11), nullable=False)
+    __table_args__ = (UniqueConstraint("final_result", name="unique_final_result"),)
 
     @classmethod
     def seed_table(cls, session: Session):
@@ -190,6 +236,17 @@ class AssessmentType(Base):
     __tablename__ = "assessment_type"
     id = Column(Integer, primary_key=True, autoincrement=True)
     assessment_type = Column(String(4), nullable=False)
+    __table_args__ = (
+        UniqueConstraint("assessment_type", name="unique_assessment_type"),
+    )
+
+    @classmethod
+    def seed_table(cls, session: Session):
+        all_assessment_types = session.query(Vle.activity_type).distinct().all()
+        session.add_all(
+            [cls(assessment_type=activity[0]) for activity in all_assessment_types]
+        )
+        session.commit()
 
 
 class Assessment(Base):
@@ -201,12 +258,40 @@ class Assessment(Base):
     )
     date = Column(Integer, nullable=False)
     weight = Column(Float, nullable=False)
+    __table_args__ = (
+        UniqueConstraint(
+            "course_id", "assessment_type_id", "date", name="unique_assessment"
+        ),
+    )
+
+    @classmethod
+    def from_vle_course_bridge(cls, vle_course_bridge: Vle, session: Session):
+        return cls(
+            course_id=vle_course_bridge.course_id,
+            assessment_type_id=session.query(AssessmentType.id)
+            .filter(AssessmentType.assessment_type == vle_course_bridge.activity_type)
+            .first()[0],
+            date=vle_course_bridge.week_from,
+            weight=0.0,
+        )
+
+    @classmethod
+    def seed_table(cls, session: Session):
+        all_vle_course_bridges = session.query(VleCourseBridge).all()
+        session.bulk_save_objects(
+            [
+                cls.from_vle_course_bridge(vle_course_bridge, session)
+                for vle_course_bridge in all_vle_course_bridges
+            ]
+        )
+        session.commit()
 
 
 class ActivityType(Base):
     __tablename__ = "activity_type"
     id = Column(Integer, primary_key=True, autoincrement=True)
     activity_type = Column(String(14), nullable=False)
+    __table_args__ = (UniqueConstraint("activity_type", name="unique_activity_type"),)
 
     @classmethod
     def seed_table(cls, session: Session):
@@ -225,6 +310,49 @@ class VleCourseBridge(Base):
     activity_type_id = Column(Integer, ForeignKey("activity_type.id"), nullable=False)
     week_from = Column(Integer)
     week_to = Column(Integer)
+    __table_args__ = (
+        UniqueConstraint(
+            "site_id", "course_id", "activity_type_id", name="unique_vle_course"
+        ),
+    )
+
+    @classmethod
+    def from_vle(cls, vle: Vle, session: Session):
+        return cls(
+            site_id=vle.id_site,
+            course_id=session.query(Course.id)
+            .filter(
+                (
+                    Course.module_id
+                    == session.query(Module.id)
+                    .filter(Module.module_code == vle.code_module)
+                    .first()[0]
+                )
+                & (
+                    Course.presentation_id
+                    == session.query(Presentation.id)
+                    .filter(
+                        (Presentation.presentation_code == vle.code_presentation)
+                        & (Presentation.start_year == vle.start_year)
+                        & (Presentation.start_month == vle.start_month)
+                        & (Presentation.start_date == vle.start_date)
+                    )
+                    .first()[0]
+                )
+            )
+            .first()[0],
+            activity_type_id=session.query(ActivityType.id)
+            .filter(ActivityType.activity_type == vle.activity_type)
+            .first()[0],
+            week_from=vle.week_from,
+            week_to=vle.week_to,
+        )
+
+    @classmethod
+    def seed_table(cls, session: Session):
+        all_vles = session.query(Vle).all()
+        session.bulk_save_objects([cls.from_vle(vle, session) for vle in all_vles])
+        session.commit()
 
 
 class StudentVleBridge(Base):
@@ -236,6 +364,34 @@ class StudentVleBridge(Base):
     date = Column(Integer, nullable=False)
     sum_click = Column(Integer, nullable=False)
 
+    @classmethod
+    def from_student_vle(cls, student_vle: StudentVle, session: Session):
+        return cls(
+            site_id=session.query(VleCourseBridge.id)
+            .filter(
+                (VleCourseBridge.site_id == student_vle.site_id)
+                & (VleCourseBridge.course_id == student_vle.course_id)
+            )
+            .first()[0],
+            student_id=session.query(Student.id)
+            .filter(Student.course_student_id == student_vle.student_id)
+            .first()[0],
+            course_id=student_vle.course_id,
+            date=student_vle.date,
+            sum_click=student_vle.sum_click,
+        )
+
+    @classmethod
+    def seed_table(cls, session: Session):
+        all_student_vles = session.query(StudentVle).all()
+        session.bulk_save_objects(
+            [
+                cls.from_student_vle(student_vle, session)
+                for student_vle in all_student_vles
+            ]
+        )
+        session.commit()
+
 
 class StudentAssessmentBridge(Base):
     __tablename__ = "student_assessment_bridge"
@@ -245,3 +401,24 @@ class StudentAssessmentBridge(Base):
     date_submitted = Column(Integer)
     is_banked = Column(Integer)
     score = Column(Float)
+
+    @classmethod
+    def from_student_assessment(
+        cls, student_assessment: StudentAssessment, session: Session
+    ):
+        return cls(
+            student_id=session.query(Student.id)
+            .filter(Student.course_student_id == student_assessment.student_id)
+            .first()[0],
+            assessment_id=session.query(Assessment.id),
+        )
+
+    @classmethod
+    def seed_table(cls, session: Session):
+        all_student_assessments = session.query(StudentAssessment).all()
+        session.bulk_save_objects(
+            [
+                cls.from_student_assessment(student_assessment, session)
+                for student_assessment in all_student_assessments
+            ]
+        )
