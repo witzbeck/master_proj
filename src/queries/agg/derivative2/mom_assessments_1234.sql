@@ -18,7 +18,6 @@ select
 ,case 
     when a.n > 2 then (|/(a.n * (a.n - 1)))/(a.n - 2) 
     else 1 end                                  fp_coeff
-into agg.mom_assessments_1234
 from main.v_assessment_staging s
 join ass a on a.student_id=s.student_id
 

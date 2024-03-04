@@ -37,22 +37,21 @@ select
 ,avg.n_activities
 ,avg.avg_activities_per_day
 ,sum(avg.avg_activities_per_day - avg.n_activities)^2 / avg.n_days             var_activities_per_day
-,|/(sum(avg.avg_activities_per_day - avg.n_activities)^2 / avg.n_days)         stddev_activities_per_day
+,|/(sum(avg.avg_activities_per_day - avg.n_activities)^2 / avg.n_days)         stddev_activities_per_day -- noqa
 ,avg.n_activity_types
 ,avg.avg_activity_types_per_day
 ,sum(avg.avg_activity_types_per_day - avg.n_activity_types)^2 / avg.n_days             var_activity_types_per_day
-,|/(sum(avg.avg_activity_types_per_day - avg.n_activity_types)^2 / avg.n_days)         stddev_activity_types_per_day
+,|/(sum(avg.avg_activity_types_per_day - avg.n_activity_types)^2 / avg.n_days)         stddev_activity_types_per_day -- noqa
 ,avg.avg_clicks_per_day
 ,sum(avg.avg_clicks_per_day - avg.n_total_clicks)^2 / avg.n_days             var_clicks_per_day
-,|/(sum(avg.avg_clicks_per_day - avg.n_total_clicks)^2 / avg.n_days)         stddev_clicks_per_day
+,|/(sum(avg.avg_clicks_per_day - avg.n_total_clicks)^2 / avg.n_days)         stddev_clicks_per_day -- noqa
 ,avg.avg_clicks_per_visit
 ,sum(avg.avg_clicks_per_visit - avg.n_total_visits)^2 / avg.n_total_visits   var_clicks_per_visit
-,|/(sum(avg.avg_clicks_per_visit - avg.n_total_visits)^2 / avg.n_total_visits)   stddev_clicks_per_visit
+,|/(sum(avg.avg_clicks_per_visit - avg.n_total_visits)^2 / avg.n_total_visits)   stddev_clicks_per_visit -- noqa
 ,avg.avg_visits_per_day
 ,sum(avg.avg_visits_per_day - avg.n_days)^2 / avg.n_days        var_visits_per_day
-,|/(sum(avg.avg_visits_per_day - avg.n_days)^2 / avg.n_days)        stddev_visits_per_day
+,|/(sum(avg.avg_visits_per_day - avg.n_days)^2 / avg.n_days)        stddev_visits_per_day -- noqa
 
-into agg.mom_interactions_12
 from avg
 group by
  avg.student_id
