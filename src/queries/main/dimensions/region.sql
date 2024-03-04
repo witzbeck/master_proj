@@ -1,7 +1,7 @@
 drop table if exists main.region;
-CREATE TABLE main.region (
-    id SERIAL PRIMARY KEY,
-    region VARCHAR(20) NOT NULL
+create table main.region (
+    id SERIAL primary key,
+    region VARCHAR(20) not null
 );
 insert into main.region (region)
 select distinct region
