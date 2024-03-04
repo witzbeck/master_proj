@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from sqlalchemy import (
     Column,
     Float,
@@ -12,10 +13,20 @@ from sqlalchemy.ext.declarative import declarative_base
 
 from schemas.landing import Courses, StudentAssessment, StudentInfo, StudentVle, Vle
 
+SCHEMA = "main"
 Base = declarative_base()
 
 
-class Presentation(Base):
+@dataclass(slots=True)
+class MainTable:
+    __tablename__: str
+    __schema__: str = SCHEMA
+
+    def __str__(self) -> str:
+        return f"{self.__schema__}.{self.__tablename__}"
+
+
+class Presentation(Base, MainTable):
     __tablename__ = "presentation"
     id = Column(Integer, primary_key=True, autoincrement=True)
     presentation_code = Column(String(5), nullable=False)
@@ -49,7 +60,7 @@ class Presentation(Base):
         session.commit()
 
 
-class Module(Base):
+class Module(Base, MainTable):
     __tablename__ = "module"
     id = Column(Integer, primary_key=True, autoincrement=True)
     module_code = Column(String(3), nullable=False)
@@ -74,7 +85,7 @@ class Module(Base):
         )
 
 
-class Course(Base):
+class Course(Base, MainTable):
     __tablename__ = "course"
     id = Column(Integer, primary_key=True, autoincrement=True)
     module_id = Column(Integer, ForeignKey("module.id"), nullable=False)
@@ -110,7 +121,7 @@ class Course(Base):
         session.commit()
 
 
-class ImdBand(Base):
+class ImdBand(Base, MainTable):
     __tablename__ = "imd_band"
     id = Column(Integer, primary_key=True, autoincrement=True)
     imd_band = Column(String(7), nullable=False)
@@ -127,7 +138,7 @@ class ImdBand(Base):
         return session.query(cls.id).filter(cls.imd_band == band).first()[0]
 
 
-class AgeBand(Base):
+class AgeBand(Base, MainTable):
     __tablename__ = "age_band"
     id = Column(Integer, primary_key=True, autoincrement=True)
     age_band = Column(String(7), nullable=False)
@@ -144,7 +155,7 @@ class AgeBand(Base):
         return session.query(cls.id).filter(cls.age_band == band).first()[0]
 
 
-class Region(Base):
+class Region(Base, MainTable):
     __tablename__ = "region"
     id = Column(Integer, primary_key=True, autoincrement=True)
     region = Column(String(20), nullable=False)
@@ -161,7 +172,7 @@ class Region(Base):
         return session.query(cls.id).filter(cls.region == region).first()[0]
 
 
-class HighestEducation(Base):
+class HighestEducation(Base, MainTable):
     __tablename__ = "highest_education"
     id = Column(Integer, primary_key=True, autoincrement=True)
     highest_education = Column(String(27), nullable=False)
@@ -182,7 +193,7 @@ class HighestEducation(Base):
         )
 
 
-class FinalResult(Base):
+class FinalResult(Base, MainTable):
     __tablename__ = "final_result"
     id = Column(Integer, primary_key=True, autoincrement=True)
     final_result = Column(String(11), nullable=False)
@@ -199,7 +210,7 @@ class FinalResult(Base):
         return session.query(cls.id).filter(cls.final_result == result).first()[0]
 
 
-class Student(Base):
+class Student(Base, MainTable):
     __tablename__ = "student"
     id = Column(Integer, primary_key=True, autoincrement=True)
     course_student_id = Column(Integer, nullable=False)
@@ -232,7 +243,7 @@ class Student(Base):
         )
 
 
-class AssessmentType(Base):
+class AssessmentType(Base, MainTable):
     __tablename__ = "assessment_type"
     id = Column(Integer, primary_key=True, autoincrement=True)
     assessment_type = Column(String(4), nullable=False)
@@ -249,7 +260,7 @@ class AssessmentType(Base):
         session.commit()
 
 
-class Assessment(Base):
+class Assessment(Base, MainTable):
     __tablename__ = "assessment"
     id = Column(Integer, primary_key=True)
     course_id = Column(Integer, ForeignKey("course.id"), nullable=False)
@@ -287,7 +298,7 @@ class Assessment(Base):
         session.commit()
 
 
-class ActivityType(Base):
+class ActivityType(Base, MainTable):
     __tablename__ = "activity_type"
     id = Column(Integer, primary_key=True, autoincrement=True)
     activity_type = Column(String(14), nullable=False)
@@ -302,7 +313,7 @@ class ActivityType(Base):
         session.commit()
 
 
-class VleCourseBridge(Base):
+class VleCourseBridge(Base, MainTable):
     __tablename__ = "vle_course_bridge"
     id = Column(Integer, primary_key=True, autoincrement=True)
     site_id = Column(Integer, nullable=False)
@@ -319,7 +330,7 @@ class VleCourseBridge(Base):
     @classmethod
     def from_vle(cls, vle: Vle, session: Session):
         return cls(
-            site_id=vle.id_site,
+            site_id=vle.site_id,
             course_id=session.query(Course.id)
             .filter(
                 (
@@ -355,7 +366,7 @@ class VleCourseBridge(Base):
         session.commit()
 
 
-class StudentVleBridge(Base):
+class StudentVleBridge(Base, MainTable):
     __tablename__ = "student_vle_bridge"
     id = Column(Integer, primary_key=True, autoincrement=True)
     site_id = Column(Integer, ForeignKey("vle_course_bridge.site_id"))
@@ -393,7 +404,7 @@ class StudentVleBridge(Base):
         session.commit()
 
 
-class StudentAssessmentBridge(Base):
+class StudentAssessmentBridge(Base, MainTable):
     __tablename__ = "student_assessment_bridge"
     id = Column(Integer, primary_key=True, autoincrement=True)
     student_id = Column(Integer, ForeignKey("student.id"), nullable=False)
