@@ -1,8 +1,9 @@
 version: '3.8'
 services:
-  db:
+  learning_db:
     image: postgres:latest
     container_name: postgres_test
+    restart: always
     env_file: 
       - .env
     volumes:
@@ -14,6 +15,17 @@ services:
       - postgres
       - -c
       - config_file=/etc/postgresql/postgresql.conf
+    networks:
+      learning_net:
+        ipv4_address: 172.22.0.3
 
 volumes:
   test_data:
+    
+networks:
+  learning_net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.22.0.0/16
