@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:latest
+    container_name: postgres_prod
+    env_file: 
+      - .env
+    volumes:
+      - prod_data:/var/lib/postgresql/data
+      - ./postgres-prod.conf:/etc/postgresql/postgresql.conf
+    ports:
+      - "5432:5432"
+    command:
+      - postgres
+      - -c
+      - config_file=/etc/postgresql/postgresql.conf
+
+volumes:
+  prod_data:
