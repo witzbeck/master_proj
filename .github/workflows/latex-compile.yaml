@@ -2,12 +2,12 @@ name: Master's Project | Compile LaTeX PDF
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
     paths:
       - '.github/workflows/latex-compile.yaml'
       - 'paper/**'
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
     paths:
       - '.github/workflows/latex-compile.yaml'
       - 'paper/**'
@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   build_pdf:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, master-proj]
     steps:
     - uses: actions/checkout@v4
 
@@ -55,7 +55,7 @@ jobs:
 
   release:
     needs: build_pdf
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, master-proj]
     steps:
       - uses: actions/checkout@v4
   
