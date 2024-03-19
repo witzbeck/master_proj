@@ -1,8 +1,9 @@
-from alexlib.files import Directory
-from src.setup import cnxn, queries
+from alexlib.files.objects import Directory
+from src.setup import db_mgr
+from src.constants import QUERY_PATH
 
-d = Directory.from_path(queries)
-schemas = [x.name for x in d.dirlist]
-cnxn.create_db()
-for s in schemas:
-    cnxn.create_schema(s)
+if __name__ == "__main__":
+    d = Directory.from_path(QUERY_PATH)
+    schemas = [x.name for x in d.dirlist]
+    for d in d.dirlist:
+        db_mgr.create_schema(d.name)
