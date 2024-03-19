@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   build_pdf:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, master_proj]
     steps:
     - uses: actions/checkout@v4
 
@@ -55,7 +55,7 @@ jobs:
 
   release:
     needs: build_pdf
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, master_proj]
     steps:
       - uses: actions/checkout@v4
   

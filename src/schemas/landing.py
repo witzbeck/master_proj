@@ -1,11 +1,36 @@
+from pathlib import Path
 from sqlalchemy import Column, Integer, String, SmallInteger
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import Session
 
-Base = declarative_base()
+from src.constants import DATA_PATH
+from src.setup import Base
+
+SCHEMA = Path(__file__).stem
 
 
-class Vle(Base):
-    __tablename__ = 'vle'
+class LandingTable(Base):
+    __tablename__: str
+    __table_args__ = {"schema": SCHEMA}
+
+    def __str__(self) -> str:
+        return f"{self.__table_args__['schema']}.{self.__tablename__}"
+
+    @property
+    def csv_path(self) -> Path:
+        return DATA_PATH / f"{self.__tablename__}.csv"
+
+    @property
+    def copy_csv_str(self) -> str:
+        return f"COPY {str(self)} FROM '{self.csv_path}' DELIMITER ',' CSV HEADER"
+
+    @classmethod
+    def seed_table(cls, session: Session) -> None:
+        session.execute(cls.copy_csv_str)
+        session.commit()
+
+
+class Vle(Base, LandingTable):
+    __tablename__ = "vle"
     site_id = Column(Integer)
     code_module = Column(String(3))
     code_presentation = Column(String(5))
@@ -14,8 +39,8 @@ class Vle(Base):
     week_to = Column(SmallInteger)
 
 
-class StudentVle(Base):
-    __tablename__ = 'studentVle'
+class StudentVle(Base, LandingTable):
+    __tablename__ = "studentVle"
     site_id = Column(Integer)
     student_id = Column(Integer)
     code_module = Column(String(3))
@@ -24,17 +49,17 @@ class StudentVle(Base):
     sum_click = Column(Integer)
 
 
-class StudentRegistration(Base):
-    __tablename__ = 'studentRegistration'
-    code_module = Column(String(3))
-    code_presentation = Column(String(5))
+class StudentRegistration(Base, LandingTable):
+    __tablename__ = "studentRegistration"
+    code_module = Column(String(45))
+    code_presentation = Column(String(45))
     student_id = Column(Integer)
     date_registration = Column(Integer)
     date_unregistration = Column(Integer)
 
 
-class StudentInfo(Base):
-    __tablename__ = 'studentInfo'
+class StudentInfo(Base, LandingTable):
+    __tablename__ = "studentInfo"
     student_id = Column(Integer)
     code_module = Column(String(3))
     code_presentation = Column(String(5))
@@ -50,7 +75,7 @@ class StudentInfo(Base):
 
 
 class StudentAssessment(Base):
-    __tablename__ = 'studentAssessment'
+    __tablename__ = "studentAssessment"
     student_id = Column(Integer)
     assessment_id = Column(Integer)
     date_submitted = Column(Integer)
@@ -59,14 +84,14 @@ class StudentAssessment(Base):
 
 
 class Courses(Base):
-    __tablename__ = 'courses'
+    __tablename__ = "courses"
     code_module = Column(String(3))
     code_presentation = Column(String(5))
     module_presentation_length = Column(Integer)
 
 
 class Assessments(Base):
-    __tablename__ = 'assessments'
+    __tablename__ = "assessments"
     id_assessment = Column(Integer)
     code_module = Column(String(3))
     code_presentation = Column(String(5))

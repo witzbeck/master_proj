@@ -1,6 +1,8 @@
 """Setup for the project."""
 from logging import WARNING
 
+from sqlalchemy.orm import declarative_base
+
 from alexlib.auth import Auth
 from alexlib.files.config import DotEnv
 from alexlib.core import chkenv
@@ -15,6 +17,7 @@ config = DotEnv.from_path(
 )
 auth = Auth("local.sudo.learning")
 db_mgr = PostgresManager.from_auth(auth)
+Base = declarative_base()
 
 nrows = chkenv("NROWS", astype=int, need=False)
 random_state = chkenv("RANDOM_STATE", astype=int, need=False)
