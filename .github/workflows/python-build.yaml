@@ -20,7 +20,7 @@ on:
 
 jobs:
   build:
-    runs-on: [self-hosted, linux, master-proj]
+    runs-on: [ubuntu-latest]
     strategy:
       matrix:
         python-version: ['3.12', '3.11']
