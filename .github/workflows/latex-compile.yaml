@@ -76,17 +76,6 @@ jobs:
           virtualenvs-in-project: true
           installer-parallel: true
 
-      - name: Increment patch version
-        run: poetry version patch
-
-      - name: Commit and push the new version
-        run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git add pyproject.toml
-          git commit -m "Bump version"
-          git push
-
       - name: Get Semantic Version With Poetry
         id: get_version
         run: echo ::set-output name=version::$(poetry version | cut -d' ' -f2)
