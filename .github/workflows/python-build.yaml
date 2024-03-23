@@ -2,7 +2,7 @@ name: Master's Project | Build & Test Python
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
     paths:
       - '.github/workflows/python-build.yaml'
       - 'src/**'
@@ -10,7 +10,7 @@ on:
       - 'pyproject.toml'
       - 'poetry.lock'
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
     paths:
       - '.github/workflows/python-build.yaml'
       - 'src/**'
@@ -20,7 +20,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: [ ubuntu-latest ]
     strategy:
       matrix:
         python-version: ['3.12', '3.11']
