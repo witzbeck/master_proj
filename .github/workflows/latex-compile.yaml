@@ -24,7 +24,7 @@ jobs:
     #----------------------------------------------
     # cache step for PDF
     #----------------------------------------------
-    - uses: actions/cache@v2
+    - uses: actions/cache@v4
       id: cache-pdf
       with:
         path: paper/paper.pdf
@@ -56,7 +56,7 @@ jobs:
 
   release:
     needs: build_pdf
-    runs-on: ubuntu-latest
+    runs-on: [ubuntu-latest]
     steps:
       - uses: actions/checkout@v4
   
@@ -78,6 +78,14 @@ jobs:
 
       - name: Increment patch version
         run: poetry version patch
+
+      - name: Commit and push the new version
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add pyproject.toml
+          git commit -m "Bump version"
+          git push
 
       - name: Get Semantic Version With Poetry
         id: get_version
