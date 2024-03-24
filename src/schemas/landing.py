@@ -1,19 +1,24 @@
+from dataclasses import dataclass
 from pathlib import Path
-from sqlalchemy import Column, Integer, String, SmallInteger
+from sqlalchemy import Column, Float, Integer, String, SmallInteger
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
 
 from src.constants import DATA_PATH
-from src.setup import Base
+
+SCHEMA = "landing"
+Base = declarative_base()
 
 SCHEMA = Path(__file__).stem
 
 
-class LandingTable(Base):
+@dataclass(slots=True)
+class LandingTable:
     __tablename__: str
-    __table_args__ = {"schema": SCHEMA}
+    __schema__: str = SCHEMA
 
     def __str__(self) -> str:
-        return f"{self.__table_args__['schema']}.{self.__tablename__}"
+        return f"{self.__schema__}.{self.__tablename__}"
 
     @property
     def csv_path(self) -> Path:
@@ -29,26 +34,29 @@ class LandingTable(Base):
         session.commit()
 
 
+@dataclass(slots=True)
 class Vle(Base, LandingTable):
     __tablename__ = "vle"
     site_id = Column(Integer)
-    code_module = Column(String(3))
-    code_presentation = Column(String(5))
-    activity_type = Column(String(14))
+    code_module = Column(String(45))
+    code_presentation = Column(String(45))
+    activity_type = Column(String(45))
     week_from = Column(SmallInteger)
     week_to = Column(SmallInteger)
 
 
+@dataclass(slots=True)
 class StudentVle(Base, LandingTable):
     __tablename__ = "studentVle"
     site_id = Column(Integer)
     student_id = Column(Integer)
-    code_module = Column(String(3))
-    code_presentation = Column(String(5))
+    code_module = Column(String(45))
+    code_presentation = Column(String(45))
     date = Column(Integer)
     sum_click = Column(Integer)
 
 
+@dataclass(slots=True)
 class StudentRegistration(Base, LandingTable):
     __tablename__ = "studentRegistration"
     code_module = Column(String(45))
@@ -58,43 +66,70 @@ class StudentRegistration(Base, LandingTable):
     date_unregistration = Column(Integer)
 
 
+@dataclass(slots=True)
 class StudentInfo(Base, LandingTable):
     __tablename__ = "studentInfo"
     student_id = Column(Integer)
-    code_module = Column(String(3))
-    code_presentation = Column(String(5))
-    gender = Column(String(1))
-    imd_band = Column(String(7))
-    highest_education = Column(String(27))
-    age_band = Column(String(5))
+    code_module = Column(String(45))
+    code_presentation = Column(String(45))
+    gender = Column(String(3))
+    imd_band = Column(String(16))
+    highest_education = Column(String(45))
+    age_band = Column(String(45))
     num_of_prev_attempts = Column(Integer)
     studied_credits = Column(Integer)
-    region = Column(String(20))
-    disability = Column(String(1))
-    final_result = Column(String(11))
+    region = Column(String(45))
+    disability = Column(String(3))
+    final_result = Column(String(45))
 
 
-class StudentAssessment(Base):
+class StudentAssessment(Base, LandingTable):
     __tablename__ = "studentAssessment"
     student_id = Column(Integer)
     assessment_id = Column(Integer)
     date_submitted = Column(Integer)
-    is_banked = Column(Integer)
-    score = Column(SmallInteger)
+    is_banked = Column(SmallInteger)
+    score = Column(Float)
 
 
-class Courses(Base):
+class Courses(Base, LandingTable):
     __tablename__ = "courses"
-    code_module = Column(String(3))
-    code_presentation = Column(String(5))
+    code_module = Column(String(45))
+    code_presentation = Column(String(45))
     module_presentation_length = Column(Integer)
 
+    @property
+    def start_year(self) -> int:
+        return int(self.code_presentation[:4])
 
-class Assessments(Base):
+    @property
+    def start_month(self) -> str:
+        return "02" if self.code_presentation[-1] == "B" else "10"
+
+    @property
+    def start_date(self) -> str:
+        return f"{self.start_year}-{self.start_month}-01"
+
+    @property
+    def domain(self) -> str:
+        return "Social Science" if self.code_module in ["AAA", "BBB", "GGG"] else "STEM"
+
+    @property
+    def level(self) -> int:
+        if self.code_module == "AAA":
+            ret = 3
+        elif self.code_module == "GGG":
+            ret = 0
+        else:
+            ret = 1
+        return ret
+
+
+class Assessments(Base, LandingTable):
     __tablename__ = "assessments"
     id_assessment = Column(Integer)
-    code_module = Column(String(3))
-    code_presentation = Column(String(5))
-    assessment_type = Column(String(4))
+    code_module = Column(String(45))
+    code_presentation = Column(String(45))
+    assessment_type = Column(String(45))
     date = Column(Integer)
     weight = Column(Integer)
