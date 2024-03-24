@@ -5,6 +5,7 @@ from pathlib import Path
 HOME = Path.home()
 PROJECT_PATH = HOME / "repos/master_proj"
 DATA_PATH = PROJECT_PATH / "data"
+DOCKER_PATH = PROJECT_PATH / "docker"
 QUERY_PATH = PROJECT_PATH / "queries"
 MODEL_TYPES = [
     "hxg_boost",

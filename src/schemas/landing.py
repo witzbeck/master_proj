@@ -131,3 +131,7 @@ class Assessments(Base, LandingTable):
     assessment_type = Column(String(45))
     date = Column(Integer)
     weight = Column(Integer)
+
+
+if __name__ == "__main__":
+    
