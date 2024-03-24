@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from pathlib import Path
 from sqlalchemy import (
     Column,
     Float,
@@ -14,14 +13,14 @@ from sqlalchemy.ext.declarative import declarative_base
 
 from schemas.landing import Courses, StudentAssessment, StudentInfo, StudentVle, Vle
 
-SCHEMA = Path(__file__).stem
+SCHEMA = "main"
 Base = declarative_base()
 
 
 @dataclass(slots=True)
 class MainTable:
     __tablename__: str
-    __table_args__ = {"schema": SCHEMA}
+    __schema__: str = SCHEMA
 
     def __str__(self) -> str:
         return f"{self.__schema__}.{self.__tablename__}"
@@ -42,7 +41,6 @@ class Presentation(Base, MainTable):
             "start_date",
             name="unique_presentation",
         ),
-        {"schema": SCHEMA},
     )
 
     @classmethod
@@ -70,7 +68,6 @@ class Module(Base, MainTable):
     level = Column(SmallInteger, nullable=False)
     __table_args__ = (
         UniqueConstraint("module_code", "domain", "level", name="unique_module"),
-        {"schema": SCHEMA},
     )
 
     @classmethod
@@ -96,7 +93,6 @@ class Course(Base, MainTable):
     course_length = Column(Integer, nullable=False)
     __table_args__ = (
         UniqueConstraint("module_id", "presentation_id", name="unique_course"),
-        {"schema": SCHEMA},
     )
 
     @classmethod
@@ -129,10 +125,7 @@ class ImdBand(Base, MainTable):
     __tablename__ = "imd_band"
     id = Column(Integer, primary_key=True, autoincrement=True)
     imd_band = Column(String(7), nullable=False)
-    __table_args__ = (
-        UniqueConstraint("imd_band", name="unique_imd_band"),
-        {"schema": SCHEMA},
-    )
+    __table_args__ = (UniqueConstraint("imd_band", name="unique_imd_band"),)
 
     @classmethod
     def seed_table(cls, session: Session):
@@ -149,10 +142,7 @@ class AgeBand(Base, MainTable):
     __tablename__ = "age_band"
     id = Column(Integer, primary_key=True, autoincrement=True)
     age_band = Column(String(7), nullable=False)
-    __table_args__ = (
-        UniqueConstraint("age_band", name="unique_age_band"),
-        {"schema": SCHEMA},
-    )
+    __table_args__ = (UniqueConstraint("age_band", name="unique_age_band"),)
 
     @classmethod
     def seed_table(cls, session: Session):
@@ -169,10 +159,7 @@ class Region(Base, MainTable):
     __tablename__ = "region"
     id = Column(Integer, primary_key=True, autoincrement=True)
     region = Column(String(20), nullable=False)
-    __table_args__ = (
-        UniqueConstraint("region", name="unique_region"),
-        {"schema": SCHEMA},
-    )
+    __table_args__ = (UniqueConstraint("region", name="unique_region"),)
 
     @classmethod
     def seed_table(cls, session: Session):
@@ -189,10 +176,7 @@ class HighestEducation(Base, MainTable):
     __tablename__ = "highest_education"
     id = Column(Integer, primary_key=True, autoincrement=True)
     highest_education = Column(String(27), nullable=False)
-    __table_args__ = (
-        UniqueConstraint("highest_education", name="unique_education"),
-        {"schema": SCHEMA},
-    )
+    __table_args__ = (UniqueConstraint("highest_education", name="unique_education"),)
 
     @classmethod
     def seed_table(cls, session: Session):
@@ -213,10 +197,7 @@ class FinalResult(Base, MainTable):
     __tablename__ = "final_result"
     id = Column(Integer, primary_key=True, autoincrement=True)
     final_result = Column(String(11), nullable=False)
-    __table_args__ = (
-        UniqueConstraint("final_result", name="unique_final_result"),
-        {"schema": SCHEMA},
-    )
+    __table_args__ = (UniqueConstraint("final_result", name="unique_final_result"),)
 
     @classmethod
     def seed_table(cls, session: Session):
@@ -247,7 +228,6 @@ class Student(Base, MainTable):
     date_unregistration = Column(Integer)
     studied_credits = Column(Integer)
     num_of_prev_attempts = Column(Integer)
-    __table_args__ = ({"schema": SCHEMA},)
 
     @classmethod
     def from_student_info(cls, student_info: StudentInfo, session: Session):
@@ -269,7 +249,6 @@ class AssessmentType(Base, MainTable):
     assessment_type = Column(String(4), nullable=False)
     __table_args__ = (
         UniqueConstraint("assessment_type", name="unique_assessment_type"),
-        {"schema": SCHEMA},
     )
 
     @classmethod
@@ -294,7 +273,6 @@ class Assessment(Base, MainTable):
         UniqueConstraint(
             "course_id", "assessment_type_id", "date", name="unique_assessment"
         ),
-        {"schema": SCHEMA},
     )
 
     @classmethod
@@ -324,10 +302,7 @@ class ActivityType(Base, MainTable):
     __tablename__ = "activity_type"
     id = Column(Integer, primary_key=True, autoincrement=True)
     activity_type = Column(String(14), nullable=False)
-    __table_args__ = (
-        UniqueConstraint("activity_type", name="unique_activity_type"),
-        {"schema": SCHEMA},
-    )
+    __table_args__ = (UniqueConstraint("activity_type", name="unique_activity_type"),)
 
     @classmethod
     def seed_table(cls, session: Session):
@@ -350,7 +325,6 @@ class VleCourseBridge(Base, MainTable):
         UniqueConstraint(
             "site_id", "course_id", "activity_type_id", name="unique_vle_course"
         ),
-        {"schema": SCHEMA},
     )
 
     @classmethod
@@ -400,7 +374,6 @@ class StudentVleBridge(Base, MainTable):
     course_id = Column(Integer, ForeignKey("course.id"), nullable=False)
     date = Column(Integer, nullable=False)
     sum_click = Column(Integer, nullable=False)
-    __table_args__ = {"schema": SCHEMA}
 
     @classmethod
     def from_student_vle(cls, student_vle: StudentVle, session: Session):
@@ -439,7 +412,6 @@ class StudentAssessmentBridge(Base, MainTable):
     date_submitted = Column(Integer)
     is_banked = Column(Integer)
     score = Column(Float)
-    __table_args__ = {"schema": SCHEMA}
 
     @classmethod
     def from_student_assessment(

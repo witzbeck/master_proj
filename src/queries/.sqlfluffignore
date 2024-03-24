@@ -1,0 +1,4 @@
+#.sqlfluffignore
+mom_*.sql
+
+# ignoring files that calculate moments bc the sqrt operator confuses sqlfluff

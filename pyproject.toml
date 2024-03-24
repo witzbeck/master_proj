@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "master-proj"
-version = "1.1.0"
+version = "1.1.1"
 description = "code associated w ms stats capstone"
 authors = ["Alex Beckwith <57322567+witzbeck@users.noreply.github.com>"]
 packages = [{include = "src"}]
@@ -13,7 +13,7 @@ scikit-posthocs = "*"
 alexlib = {git = "http://github.com/witzbeck/alexlib.git", branch = "dev"}
 
 [tool.poetry.group.test.dependencies]
-sqlfluff = "^2.3"
+sqlfluff = "^3.0"
 pytest = "^8.0"
 pytest-cov = "^4.1"
 pytest-mock = "^3.12"
