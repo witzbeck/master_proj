@@ -52,6 +52,13 @@ jobs:
         virtualenvs-in-project: true
         installer-parallel: true
     
+    #----------------------------------------------
+    # check if if poetry.lock matches dependencies
+    #----------------------------------------------
+    - name: Install dependencies
+      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+      run: poetry check
+    
     # ---------------------------------------------
     # load cached poetry dependencies if available
     # ---------------------------------------------
