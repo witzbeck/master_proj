@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  mlflow:
+    image: ghcr.io/mlflow/mlflow
+    command: mlflow server --backend-store-uri sqlite:///mlflow.db --default-artifact-root /mlflow/artifacts --host 0.0.0.0
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    networks:
+      - mlflow_network
+  app:
+    build:
+      context: app
+      dockerfile: Dockerfile
+      args:
+        - FASTAPI_PORT
+    volumes:
+      - ./app:/app
+      - ./frontend:/frontend
+    ports:
+      - "80:80"
+    env_file:
+      - .env
+    depends_on:
+      - mlflow
+    networks:
+      - mlflow_network
+  frontend:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+    command: ["streamlit", "run", "Home.py", "--server.port", "8501", "--server.address", "0.0.0.0"]
+    volumes:
+      - ./frontend:/frontend
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    depends_on:
+      - app
+      - mlflow
+    networks:
+      - mlflow_network
+
+networks:
+  mlflow_network:
+    driver: bridge
