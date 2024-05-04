@@ -1,2 +1,10 @@
+database/source_data/vle.csv filter=lfs diff=lfs merge=lfs -text
+database/source_data/assessments.csv filter=lfs diff=lfs merge=lfs -text
+database/source_data/courses.csv filter=lfs diff=lfs merge=lfs -text
+database/source_data/oulad_info_schema.csv filter=lfs diff=lfs merge=lfs -text
+database/source_data/studentAssessment.csv filter=lfs diff=lfs merge=lfs -text
+database/source_data/studentInfo.csv filter=lfs diff=lfs merge=lfs -text
+database/source_data/studentRegistration.csv filter=lfs diff=lfs merge=lfs -text
+database/source_data/studentVle.csv filter=lfs diff=lfs merge=lfs -text
 *.pdf filter=lfs diff=lfs merge=lfs -text
 *.csv filter=lfs diff=lfs merge=lfs -text
