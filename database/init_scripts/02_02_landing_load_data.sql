@@ -1,47 +1,53 @@
+-- Start a transaction block
+BEGIN;
+
 -- Set the schema
 SET search_path TO landing;
 
 -- Import data from assessments.csv into assessments
 COPY assessments
-FROM '../source_data/assessments.csv'
+FROM '/source_data/assessments.csv'
 DELIMITER ','
 CSV HEADER;
 
 -- Import data from courses.csv into courses
 COPY courses
-FROM '../source_data/courses.csv'
+FROM '/source_data/courses.csv'
 DELIMITER ','
 CSV HEADER;
 
 -- Import data from studentAssessment.csv into studentAssessment
 COPY studentAssessment
-FROM '../source_data/studentAssessment.csv'
+FROM '/source_data/studentAssessment.csv'
 DELIMITER ','
 CSV HEADER;
 
 -- Import data from studentInfo.csv into studentInfo
 COPY studentInfo
-FROM '../source_data/studentInfo.csv'
+FROM '/source_data/studentInfo.csv'
 DELIMITER ','
 CSV HEADER;
 
 -- Import data from studentRegistration.csv into studentRegistration
 COPY studentRegistration
-FROM '../source_data/studentRegistration.csv'
+FROM '/source_data/studentRegistration.csv'
 DELIMITER ','
 CSV HEADER;
 
 -- Import data from studentVle.csv into studentVle
 COPY studentVle
-FROM '../source_data/studentVle.csv'
+FROM '/source_data/studentVle.csv'
 DELIMITER ','
 CSV HEADER;
 
 -- Import data from vle.csv into vle
 COPY vle
-FROM '../source_data/vle.csv'
+FROM '/source_data/vle.csv'
 DELIMITER ','
 CSV HEADER;
+
+-- Commit the transaction to finalize imports
+COMMIT;
 
 -- Reset the search_path
 RESET search_path;
