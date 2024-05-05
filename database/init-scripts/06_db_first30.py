@@ -19,7 +19,7 @@ for f in tqdm(files):
         cnxn.execute(f)
     except UndefinedTable as e:
         warning(f"{f} does not exist")
-        raise UndefinedTable(e)
+        raise UndefinedTable(e) from e
     except (UnicodeDecodeError, DuplicateTable) as e:
         print(e)
         warning(f"{e} for {f}")

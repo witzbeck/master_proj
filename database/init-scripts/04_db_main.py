@@ -15,10 +15,7 @@ dirs = [
 for group in dirs:
     d = Directory.from_path(main / group)
     print(d.name)
-    lst = [
-        x for x in d.sql_filelist
-        if not cnxn.table_exists(schema, x.path.stem)
-    ]
+    lst = [x for x in d.sql_filelist if not cnxn.table_exists(schema, x.path.stem)]
     for f in tqdm(lst):
         try:
             cnxn.execute(f)

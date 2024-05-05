@@ -5,4 +5,4 @@ FROM postgres:16.2-alpine
 COPY ./database/source_data /source_data
 
 # Copy the database schema to the container
-# COPY ./schema.sql /docker-entrypoint-initdb.d/schema.sql
+COPY ./init-scripts /docker-entrypoint-initdb.d/schema.sql

@@ -17,10 +17,9 @@ dirs = [
     "views1",
     "views2",
 ]
-files = list(chain.from_iterable([
-    Directory.from_path(main / group).filelist
-    for group in dirs
-]))
+files = list(
+    chain.from_iterable([Directory.from_path(main / group).filelist for group in dirs])
+)
 files = [f for f in files if not cnxn.table_exists(schema, f.path.stem)]
 
 for f in tqdm(files):
