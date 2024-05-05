@@ -1,8 +1,3 @@
--- This script creates the necessary databases and schemas for the project
-
-    CREATE DATABASE mlflow;
-    CREATE DATABASE learning;
-    
 -- Connect to the 'learning' database to create schemas; note this part must be run separately after connecting to the 'learning' database
     \c learning;
 

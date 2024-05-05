@@ -7,20 +7,19 @@ select
     , cast(code_module as varchar(3)) module_code
     , cast(code_presentation as varchar(5)) presentation_code
     , cast(assessment_type as varchar(4)) assessment_type
-    , cast(date as int) assessment_date
-    , cast(weight as float) assessment_weight
+    , cast(NULLIF(date, '') as int) assessment_date
+    , cast(NULLIF(weight, '') as float) assessment_weight
 into staging.assessments
 from landing.assessments
 ;
-
 
 select
     cast(id_site as int) site_id
     , cast(code_module as varchar(3)) module_code
     , cast(code_presentation as varchar(5)) presentation_code
     , cast(activity_type as varchar(14)) activity_type
-    , cast(week_from as smallint) week_from
-    , cast(week_to as smallint) week_to
+    , cast(NULLIF(week_from, '') as smallint) week_from
+    , cast(NULLIF(week_to, '') as smallint) week_to
 into staging.vle
 from landing.vle
 ;
@@ -32,17 +31,18 @@ select
     , cast(code_presentation as varchar(5)) presentation_code
     , cast(date as int) date
     , cast(sum_click as int) sum_click
-into staging."studentVle"
-from landing."studentVle"
+into staging.studentVle
+from landing.studentVle
+;
 
 select
     cast(code_module as varchar(3)) module_code
     , cast(code_presentation as varchar(5)) presentation_code
     , cast(id_student as int) student_id
-    , cast(date_registration as int) date_registration
-    , cast(date_unregistration as int) date_unregistration
-into staging."studentRegistration"
-from landing."studentRegistration"
+    , cast(NULLIF(date_registration, '') as int) date_registration
+    , cast(NULLIF(date_unregistration, '') as int) date_unregistration
+into staging.studentRegistration
+from landing.studentRegistration
 ;
 
 select
@@ -53,7 +53,7 @@ select
         when gender = 'F' then '1'
         when gender = 'M' then '0'
         else NULL
-    end as bit) is_female
+    end as smallint) is_female
     , cast(imd_band as varchar(7)) imd_band
     , cast(highest_education as varchar(27)) highest_education
     , cast(age_band as varchar(5)) age_band
@@ -64,20 +64,20 @@ select
         when disability = 'Y' then '1'
         when disability = 'N' then '0'
         else disability
-    end as bit) has_disability
+    end as smallint) has_disability
     , cast(final_result as varchar(11)) final_result
-into staging."studentInfo"
-from landing."studentInfo"
+into staging.studentInfo
+from landing.studentInfo
 ;
 
 select
     cast(id_student as int) student_id
     , cast(id_assessment as int) assessment_id
     , cast(date_submitted as int) date_submitted
-    , cast(is_banked as bit) is_banked
-    , cast(score as smallint) score
-into staging."studentAssessment"
-from landing."studentAssessment"
+    , cast(is_banked as smallint) is_banked
+    , cast(NULLIF(score, '') as smallint) score
+into staging.studentAssessment
+from landing.studentAssessment
 ;
 
 select
