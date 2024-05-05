@@ -1,8 +1,8 @@
 from tqdm import tqdm
 from psycopg.errors import DuplicateTable, UndefinedTable
 
-from alexlib.files import Directory
-from src.setup import cnxn, queries
+from alexlib.files.objects import Directory
+from setup import cnxn, queries
 
 schema = "main"
 main = queries / schema
