@@ -29,7 +29,7 @@ SELECT DISTINCT
     s.sum_click
 FROM staging.studentVle s
 JOIN main.modules m ON m.module_code = s.code_module
-JOIN main.presentations p ON p.presentation_code = s.code_presentation
+JOIN main.presentations p ON p.presentation_code = s.presentation_code
 JOIN main.student_info si ON si.orig_student_id = s.student_id
-                             AND si.module_id = m.id
-                             AND si.presentation_id = p.id;
+                             AND si.module_id = m.module_id
+                             AND si.presentation_id = p.presentation_id;

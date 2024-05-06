@@ -31,18 +31,18 @@ SELECT DISTINCT
     p.presentation_id,
     c.module_code AS module_code,
     c.presentation_code AS presentation_code,
-    LEFT(c.presentation_code, 4) AS presentation_year,
+    CAST(LEFT(c.presentation_code, 4) AS INT) AS presentation_year,
     CASE
         WHEN RIGHT(c.presentation_code, 1) = 'B' THEN 'February'
         ELSE 'October'
     END AS start_month,
-    CASE
+    CAST(CASE
         WHEN (RIGHT(c.presentation_code, 1) = 'B' AND LEFT(c.presentation_code, 4) = '2013') THEN '2013-02-01'
         WHEN (RIGHT(c.presentation_code, 1) = 'J' AND LEFT(c.presentation_code, 4) = '2013') THEN '2013-10-01'
         WHEN (RIGHT(c.presentation_code, 1) = 'B' AND LEFT(c.presentation_code, 4) = '2014') THEN '2014-02-01'
         WHEN (RIGHT(c.presentation_code, 1) = 'J' AND LEFT(c.presentation_code, 4) = '2014') THEN '2014-10-01'
         ELSE NULL
-    END AS start_date,
+    END AS DATE) AS start_date,
     c.module_presentation_length,
     CASE
         WHEN c.module_code IN ('AAA', 'BBB', 'GGG') THEN 'Social Sciences'

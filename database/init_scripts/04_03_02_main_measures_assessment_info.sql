@@ -6,9 +6,9 @@ CREATE TABLE main.assessment_info (
     course_id INTEGER NOT NULL REFERENCES main.course_info(course_id),
     module_id INTEGER NOT NULL REFERENCES main.module(module_id),
     presentation_id INTEGER NOT NULL REFERENCES main.presentation(presentation_id),
-    assessment_type_id INTEGER NOT NULL REFERENCES main.assessment_types(assessment_type_id),
-    date DATE,
-    weight DECIMAL
+    assessment_type_id INTEGER NOT NULL REFERENCES main.assessment_type(assessment_type_id),
+    assessment_date INTEGER,
+    assessment_weight DECIMAL
 );
 
 COMMIT;
@@ -21,8 +21,8 @@ INSERT INTO main.assessment_info (
     module_id,
     presentation_id,
     assessment_type_id,
-    date,
-    weight
+    assessment_date,
+    assessment_weight
 )
 SELECT DISTINCT
     a.assessment_id,
@@ -30,10 +30,10 @@ SELECT DISTINCT
     c.module_id,
     c.presentation_id,
     at.assessment_type_id,
-    a.date,
-    a.weight
+    a.assessment_date,
+    a.assessment_weight
 FROM staging.assessments a
-JOIN main.course_info c ON c.module_code = a.code_module AND c.presentation_code = a.code_presentation
-JOIN main.assessment_types at ON at.assessment_type = a.assessment_type;
+JOIN main.course_info c ON c.module_code = a.module_code AND c.presentation_code = a.presentation_code
+JOIN main.assessment_type at ON at.assessment_type = a.assessment_type;
 
 COMMIT;

@@ -20,15 +20,15 @@ services:
       db_network:
         aliases:
           - database
-  # adminer:
-  #   image: adminer
-  #   restart: always
-  #   ports:
-  #     - "8080:8080"
-  #   networks:
-  #     db_network:
-  #       aliases:
-  #         - adminer
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    networks:
+      db_network:
+        aliases:
+          - adminer
 
   # mlflow:
   #   image: ghcr.io/mlflow/mlflow

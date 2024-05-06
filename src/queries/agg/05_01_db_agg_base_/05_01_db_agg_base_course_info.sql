@@ -1,17 +1,14 @@
+CREATE TABLE agg.avg_course_lengths (
+    course_id INTEGER PRIMARY KEY REFERENCES main.course_info(course_id),
+    avg_module_length DECIMAL,
+    avg_presentation_length DECIMAL
+);
+
+INSERT INTO agg.avg_course_lengths
 select
-    vc.id course_id
-    , vc.module_id
-    , vc.presentation_id
+    vc.course_id
     , m.avg_module_length
     , p.avg_presentation_length
-    , vc.module_code
-    , vc.presentation_code
-    , vc.presentation_year
-    , vc.start_month
-    , vc.start_date
-    , vc.module_presentation_length
-    , vc.domain
-into agg.course_info
 from main.course_info vc
     join (
         select
@@ -27,3 +24,4 @@ from main.course_info vc
         from main.course_info vc
         group by vc.presentation_id
     ) p on p.presentation_id = vc.presentation_id
+;

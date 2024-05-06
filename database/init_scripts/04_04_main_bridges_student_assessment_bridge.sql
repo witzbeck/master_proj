@@ -10,8 +10,8 @@ CREATE TABLE main.student_assessment_bridge (
     date_submitted DATE,
     is_banked BOOLEAN,
     score DECIMAL,
-    date DATE,
-    weight DECIMAL
+    assessment_date DATE,
+    assessment_weight DECIMAL
 );
 
 COMMIT;
@@ -25,8 +25,8 @@ INSERT INTO main.student_assessment_bridge (
     date_submitted,
     is_banked,
     score,
-    date,
-    weight
+    assessment_date,
+    assessment_weight
 )
 SELECT
     si.student_id,
@@ -34,7 +34,7 @@ SELECT
     ai.course_id,
     ai.assessment_type_id,
     sa.date_submitted,
-    sa.is_banked,
+    sa.is_banked::BOOLEAN,
     sa.score,
     ai.date,
     ai.weight

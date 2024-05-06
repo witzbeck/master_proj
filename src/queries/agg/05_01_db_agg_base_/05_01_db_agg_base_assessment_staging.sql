@@ -1,13 +1,12 @@
 select distinct
-    s.id student_id
-    , b.student_id orig_student_id
+    s.student_id
     , a.course_id
     , b.assessment_id
     , a.assessment_type_id
     , t.assessment_type
     , b.score
     , a.weight
-    , case when a.weight > 0 then 1 else 0 end is_weighted
+    , case when a.weight > 0 then 1 else 0 end::BOOLEAN is_weighted
     , b.is_banked
     , b.date_submitted
     , a.date - b.date_submitted days_before_due_submitted
