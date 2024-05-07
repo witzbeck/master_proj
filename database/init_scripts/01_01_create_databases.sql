@@ -1,4 +1,4 @@
--- This script creates the necessary databases and schemas for the project
+-- This script creates the necessary databases for the project
 
-    CREATE DATABASE mlflow;
+    --CREATE DATABASE mlflow;
     CREATE DATABASE learning;

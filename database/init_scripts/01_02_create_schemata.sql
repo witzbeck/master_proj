@@ -3,18 +3,16 @@
 
 
 -- Start a transaction to group the schema creation commands
-    BEGIN;
+
 
 -- Create schemas in the 'learning' database
-    CREATE SCHEMA landing;
-    CREATE SCHEMA staging;
-    CREATE SCHEMA main;
-    CREATE SCHEMA main_audit;
-    CREATE SCHEMA main_archive;
-    CREATE SCHEMA main_temp;
-    CREATE SCHEMA agg;
-    CREATE SCHEMA first30days;
-    CREATE SCHEMA model;
+    BEGIN;    CREATE SCHEMA landing;          COMMIT;
+    BEGIN;    CREATE SCHEMA staging;          COMMIT;
+    BEGIN;    CREATE SCHEMA main;             COMMIT;
+    BEGIN;    CREATE SCHEMA main_audit;       COMMIT;
+    BEGIN;    CREATE SCHEMA main_archive;     COMMIT;
+    BEGIN;    CREATE SCHEMA main_temp;        COMMIT;
+    BEGIN;    CREATE SCHEMA agg;              COMMIT;
+    BEGIN;    CREATE SCHEMA model;            COMMIT;
 
 -- Commit the transaction to finalize the changes
-    COMMIT;

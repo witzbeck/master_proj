@@ -34,4 +34,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: witzbeck/learning-analytics:latest
+          tags: witzbeck/learning-analytics-database:latest
