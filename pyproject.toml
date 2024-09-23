@@ -15,7 +15,7 @@ statsmodels = "^0.14.1"
 
 psycopg-binary = "^3.1.18"
 psycopg = "^3.1"
-alexlib = {git = "http://github.com/witzbeck/alexlib.git", branch = "dev"}
+alexlib = {git = "http://github.com/witzbeck/alexlib.git", branch = "main"}
 
 [tool.poetry.group.test.dependencies]
 sqlfluff = "^3.0"

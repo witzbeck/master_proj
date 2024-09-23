@@ -4,5 +4,8 @@ paper.pdf: paper.tex
 	pdflatex paper.tex
 	pdflatex paper.tex
 
-clean: 
-	rm -f *.aux *.bbl *.blg *.log *.out *.pdf
+preclean: 
+	rm -f *.toc *.aux *.bbl *.blg *.log *.out *.pdf *fdb_latexmk *fls *synctex.gz
+
+cleanup: 
+	rm -f *.toc *.aux *.bbl *.blg *.out *fdb_latexmk *fls *synctex.gz

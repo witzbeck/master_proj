@@ -68,7 +68,7 @@ repos:
       - id: latex-pdf-cleanup
         name: Cleanup LaTeX intermediate file
         description: This hook cleans up the LaTeX build files but leaves the pdf
-        entry: sh -c 'cd paper && make clean'
+        entry: sh -c 'cd paper && make cleanup'
         language: system
         files: '(\.(tex|bib|cls|sty|toc)|([Mm]akefile|latexmkrc)$)'
         pass_filenames: false
