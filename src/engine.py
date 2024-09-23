@@ -1,13 +1,14 @@
 """
-    The module `engine` contains the `ModelEngine` class,
-    which is used to fit, test, and log the results of a machine learning model.
-    The class is designed to be used with the `analysis.RocCurve` class to generate
-    and plot ROC curves for the model.
-    The `ModelEngine` class is used in the `main.py` module to run a series of models
-    with different parameters and features.
-    The class is also used in the `tests/test_engine.py` module to test the functionality
-    of the class.
+The module `engine` contains the `ModelEngine` class,
+which is used to fit, test, and log the results of a machine learning model.
+The class is designed to be used with the `analysis.RocCurve` class to generate
+and plot ROC curves for the model.
+The `ModelEngine` class is used in the `main.py` module to run a series of models
+with different parameters and features.
+The class is also used in the `tests/test_engine.py` module to test the functionality
+of the class.
 """
+
 from functools import cached_property
 from warnings import catch_warnings
 
@@ -245,8 +246,10 @@ class ModelEngine:
         """Get the scores of the model."""
         y_true = list(self.data.y_test)
         y_pred = list(self.get_predictions())
-        rng = range(len(y_true))
-        scores = [1 if y_true[i] == y_pred[i] else 0 for i in rng]
+        scores = [
+            1 if true_ == pred_ else 0
+            for true_, pred_ in zip(y_true, y_pred, strict=True)
+        ]
         return array(scores)
 
     def test_data(self) -> None:

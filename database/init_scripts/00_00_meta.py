@@ -1,3 +1,4 @@
+from collections.abc import Generator
 from dataclasses import dataclass, field
 from functools import partial
 from pathlib import Path
@@ -16,8 +17,13 @@ sqlpaths_factory = partial(paths_factory, pattern="*.sql", path=here)
 @dataclass(slots=True)
 class PathGroup:
     paths: list[Path] = field(default_factory=paths_factory)
+    parent: Path = None
+    pattern: str = None
 
     def __post_init__(self) -> None:
+        if isinstance(self.paths, Generator):
+            self.paths = list(self.paths)
+        if self.paths
         self.paths = self.paths()
 
     def __repr__(self) -> str:
@@ -35,8 +41,19 @@ class PathGroup:
     @staticmethod
     def _get_tree_items(path: Path) -> list[tuple[str, str]]:
         return [item.stem.split("_") for item in path.iterdir() if item.is_file()]
+    
+    @classmethod
+    def from_parent(cls, parent: Path, pattern: str) -> "PathGroup":
+        lst = parent.iterdir()
+        return cls(parent=parent, pattern=pattern)
 
 
 if __name__ == "__main__":
-    pg = PathGroup(paths=sqlpaths_factory)
+    pg = PathGroup(parent=(here.parent / "_init_scripts"),paths=sqlpaths_factory)
     print(pg, len(pg.paths))
+    for path in pg.paths:
+        if "_db_" in path.stem:
+            new_stem = path.stem.replace("_db_", "_")
+            new_path = path.with_stem(new_stem)
+            path.rename(new_path)
+        print(path)
