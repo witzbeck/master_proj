@@ -43,7 +43,6 @@ jobs:
         root_file: paper.tex
         continue_on_error: true
         post_compile: make cleanup
-
     #----------------------------------------------
     # uploads the pdf as an artifact
     #----------------------------------------------
