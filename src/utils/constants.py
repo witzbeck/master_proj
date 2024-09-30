@@ -1,12 +1,18 @@
 """Constants for the project."""
 
+from logging import DEBUG, WARNING
 from pathlib import Path
 
+LOG_LEVEL, EVENT_LEVEL = DEBUG, WARNING
+
 HOME = Path.home()
-SOURCE_PATH = Path(__file__).parent
+SOURCE_PATH = Path(__file__).parent.parent
 PROJECT_PATH = SOURCE_PATH.parent
+DOTENV_PATH = PROJECT_PATH / ".env"
+
+FIGURES_PATH = PROJECT_PATH / "figures"
 DATA_PATH = PROJECT_PATH / "data"
-QUERY_PATH = PROJECT_PATH / "queries"
+QUERY_PATH = SOURCE_PATH / "queries"
 MODEL_TYPES = (
     "hxg_boost",
     "logreg",

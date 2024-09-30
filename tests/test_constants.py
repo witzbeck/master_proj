@@ -1,5 +1,11 @@
 from pathlib import Path
 
+from utils.constants import SOURCE_PATH
+
+
+def test_source_path_is_source(src_path: Path = SOURCE_PATH) -> None:
+    assert src_path.name == "src"
+
 
 def test_constant_exists(constant_path: Path, rope_value: int) -> None:
     assert constant_path.exists()

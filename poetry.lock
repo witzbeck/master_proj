@@ -25,7 +25,7 @@ statsmodels = "^0.14.3"
 type = "git"
 url = "http://github.com/witzbeck/alexlib.git"
 reference = "main"
-resolved_reference = "ef08d4e5ad7c191c7ecf3f0992395a4e2750f921"
+resolved_reference = "96f2c8e463e9e4814ae3c6d20157f871a2d6bc9d"
 
 [[package]]
 name = "appdirs"
@@ -2807,4 +2807,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "a6cbe73572cd5a17d6d01960d3f1f5c1b479251877d2a764629790d59c942611"
+content-hash = "6677db8a73926d15dda0f3a4fd5fccb015fa3726ea77d91a22f3c4382e9d5e38"

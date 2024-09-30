@@ -2,7 +2,7 @@ from pathlib import Path
 
 from pytest import FixtureRequest, fixture
 
-from src.constants import (
+from utils.constants import (
     BLUE,
     DATA_PATH,
     GRAY,
