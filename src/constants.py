@@ -1,12 +1,13 @@
 """Constants for the project."""
+
 from pathlib import Path
 
-
 HOME = Path.home()
-PROJECT_PATH = HOME / "repos/master_proj"
+SOURCE_PATH = Path(__file__).parent
+PROJECT_PATH = SOURCE_PATH.parent
 DATA_PATH = PROJECT_PATH / "data"
 QUERY_PATH = PROJECT_PATH / "queries"
-MODEL_TYPES = [
+MODEL_TYPES = (
     "hxg_boost",
     "logreg",
     "rforest",
@@ -18,7 +19,7 @@ MODEL_TYPES = [
     "svc",
     # "compnb",
     # "gauss",
-]
+)
 
 __range__ = range(-1, 3)
 # rope values

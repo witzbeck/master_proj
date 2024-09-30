@@ -38,3 +38,12 @@ def test_windowpane_color_is_4tuple_of_floats(windowpane_color: tuple) -> None:
 
 def test_windowpane_decision_is_str(windowpane_decision: str) -> None:
     assert isinstance(windowpane_decision, str)
+
+
+def test_model_type_is_str(model_type: str) -> None:
+    assert isinstance(model_type, str)
+
+
+def test_path_exists(path: Path) -> None:
+    assert isinstance(path, Path)
+    assert path.exists()

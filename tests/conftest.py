@@ -3,24 +3,27 @@ from pathlib import Path
 from pytest import FixtureRequest, fixture
 
 from src.constants import (
+    BLUE,
     DATA_PATH,
+    GRAY,
+    HOME,
     LEFT,
+    LIGHTGRAY,
     MID,
+    MODEL_TYPES,
+    NODECISION,
+    ORANGE,
     OUT,
     PROJECT_PATH,
     QUERY_PATH,
     RIGHT,
     ROPE,
-    WINDOWPANE_PLOT_PARAMS,
-    BLUE,
-    LIGHTGRAY,
+    SOURCE_PATH,
     WHITE,
-    ORANGE,
-    GRAY,
+    WINDOWPANE_PLOT_PARAMS,
     XGREATER,
-    XROPE,
     XLESS,
-    NODECISION,
+    XROPE,
 )
 
 
@@ -99,10 +102,31 @@ def windowpane_bayes_key(request: FixtureRequest) -> int:
 def windowpane_freq_key(request: FixtureRequest) -> int:
     return request.param
 
+
 @fixture(scope="session", params=(BLUE, LIGHTGRAY, WHITE, ORANGE, GRAY))
 def windowpane_color(request: FixtureRequest) -> int:
     return request.param
 
+
 @fixture(scope="session", params=(XGREATER, XROPE, XLESS, NODECISION))
 def windowpane_decision(request: FixtureRequest) -> int:
+    return request.param
+
+
+@fixture(scope="session", params=MODEL_TYPES)
+def model_type(request: FixtureRequest) -> int:
+    return request.param
+
+
+@fixture(
+    scope="session",
+    params=(
+        HOME,
+        SOURCE_PATH,
+        PROJECT_PATH,
+        DATA_PATH,
+        QUERY_PATH,
+    ),
+)
+def path(request: FixtureRequest) -> Path:
     return request.param
