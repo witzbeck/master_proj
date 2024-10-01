@@ -1,10 +1,9 @@
 from pathlib import Path
 
-from duckdb import DuckDBPyConnection, connect
+from duckdb import CatalogException, DuckDBPyConnection, connect
 from pandas import DataFrame
-from tqdm import tqdm
 
-from utils.constants import DB_PATH, QUERY_PATH, RAW_PATH
+from utils.constants import DB_PATH, QUERY_PATH, RAW_PATH, SCHEMAS
 
 
 def get_cnxn(database: Path = DB_PATH, read_only: bool = False) -> DuckDBPyConnection:
@@ -45,21 +44,36 @@ def create_schema(
     return cnxn
 
 
-def load_landing_data(
-    cnxn: DuckDBPyConnection, schema: str = "landing"
+def create_all_schemas(
+    cnxn: DuckDBPyConnection, schemas: tuple[str] = SCHEMAS
 ) -> DuckDBPyConnection:
-    create_schema(cnxn=cnxn, schema=schema)
-    landing_queries = (QUERY_PATH / "00_landing").glob("*.sql")
-
-    for query in tqdm(landing_queries):
-        table = query.stem
-        csv_path = RAW_PATH / f"{table}.csv"
-        select = query.read_text().replace(table, f"'{str(csv_path)}';")
-        sql = f"CREATE TABLE {schema}.{table} AS {select}"
-        cnxn.execute(sql)
-
-    print(cnxn.sql("SHOW TABLES").fetchdf())
+    for schema in schemas:
+        try:
+            create_schema(cnxn=cnxn, schema=schema)
+        except CatalogException:
+            continue
     return cnxn
 
 
-AGG_PATH = QUERY_PATH / "agg"
+def load_landing_csv(
+    table_name: str,
+    cnxn: DuckDBPyConnection,
+    parent_path: Path = RAW_PATH,
+    query_path: Path = QUERY_PATH,
+    schema: str = "landing",
+) -> DuckDBPyConnection:
+    assert parent_path.is_dir(), f"{parent_path} is not a directory"
+    csv_path = (parent_path / table_name).with_suffix(".csv")
+    assert csv_path.is_file(), f"{csv_path} is not a file"
+    sql_path = query_path / "00_landing" / f"{table_name}.sql"
+    assert sql_path.is_file(), f"{sql_path} is not a file"
+    select = sql_path.read_text().replace(table_name, f"'{str(csv_path)}';")
+    sql = f"CREATE TABLE {schema}.{table_name} AS {select}"
+    cnxn.execute(sql)
+
+
+def load_landing_data(cnxn: DuckDBPyConnection) -> DuckDBPyConnection:
+    landing_queries = (QUERY_PATH / "00_landing").glob("*.sql")
+    table_names = [query.stem for query in landing_queries]
+    [load_landing_csv(table, cnxn) for table in table_names]
+    return cnxn

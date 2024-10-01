@@ -28,14 +28,25 @@ from utils.constants import (
     XLESS,
     XROPE,
 )
-from utils.elt_config import get_cnxn, load_landing_data
+from utils.elt_config import create_all_schemas, get_cnxn, load_landing_data
 
 
 @fixture(scope="session")
 def memory_cnxn() -> DuckDBPyConnection:
     cnxn = get_cnxn(database=":memory:")
-    load_landing_data(cnxn=cnxn)
     return cnxn
+
+
+@fixture(scope="session")
+def cnxn_with_schemas(memory_cnxn: DuckDBPyConnection) -> DuckDBPyConnection:
+    create_all_schemas(cnxn=memory_cnxn)
+    return memory_cnxn
+
+
+@fixture(scope="session")
+def cnxn_with_landing_data(cnxn_with_schemas: DuckDBPyConnection) -> DuckDBPyConnection:
+    load_landing_data(cnxn=cnxn_with_schemas)
+    return cnxn_with_schemas
 
 
 @fixture(

@@ -1,17 +1,18 @@
 from dataclasses import dataclass
+
 from sqlalchemy import (
     Column,
     Float,
-    Integer,
-    String,
-    SmallInteger,
     ForeignKey,
+    Integer,
+    SmallInteger,
+    String,
     UniqueConstraint,
 )
-from sqlalchemy.orm import Session
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import Session
 
-from schemas.landing import Courses, StudentAssessment, StudentInfo, StudentVle, Vle
+from orm.landing import Courses, StudentAssessment, StudentInfo, StudentVle, Vle
 
 SCHEMA = "main"
 Base = declarative_base()

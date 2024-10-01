@@ -15,6 +15,8 @@ DATA_PATH = PROJECT_PATH / "data"
 RAW_PATH = DATA_PATH / "raw"
 CSV_PATHS = list(RAW_PATH.glob("*.csv"))
 DB_PATH = DATA_PATH / "learning.db"
+SCHEMAS = ("landing", "main", "agg", "model", "eval", "feat", "first30")
+
 QUERY_PATH = SOURCE_PATH / "queries"
 MODEL_TYPES = (
     "hxg_boost",

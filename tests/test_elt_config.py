@@ -24,8 +24,8 @@ def landing_table_name_with_schema(csv_path: Path) -> str:
 
 
 @fixture(scope="module")
-def info_schema_df(memory_cnxn: DuckDBPyConnection) -> DuckDBPyConnection:
-    return get_info_schema_df(cnxn=memory_cnxn)
+def info_schema_df(cnxn_with_landing_data: DuckDBPyConnection) -> DuckDBPyConnection:
+    return get_info_schema_df(cnxn=cnxn_with_landing_data)
 
 
 @fixture(scope="module")
