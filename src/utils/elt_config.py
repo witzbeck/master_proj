@@ -60,3 +60,6 @@ def load_landing_data(
 
     print(cnxn.sql("SHOW TABLES").fetchdf())
     return cnxn
+
+
+AGG_PATH = QUERY_PATH / "agg"
