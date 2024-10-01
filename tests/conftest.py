@@ -1,10 +1,13 @@
 from pathlib import Path
 
+from duckdb import DuckDBPyConnection
 from pytest import FixtureRequest, fixture
 
 from utils.constants import (
     BLUE,
+    CSV_PATHS,
     DATA_PATH,
+    FIGURES_PATH,
     GRAY,
     HOME,
     LEFT,
@@ -25,6 +28,14 @@ from utils.constants import (
     XLESS,
     XROPE,
 )
+from utils.elt_config import get_cnxn, load_landing_data
+
+
+@fixture(scope="session")
+def memory_cnxn() -> DuckDBPyConnection:
+    cnxn = get_cnxn(database=":memory:")
+    load_landing_data(cnxn=cnxn)
+    return cnxn
 
 
 @fixture(
@@ -33,7 +44,9 @@ from utils.constants import (
         PROJECT_PATH,
         DATA_PATH,
         QUERY_PATH,
-    ),
+        FIGURES_PATH,
+    )
+    + tuple(CSV_PATHS),
 )
 def constant_path(request: FixtureRequest) -> Path:
     return request.param

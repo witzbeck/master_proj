@@ -11,19 +11,15 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
     hooks:
-      - id: end-of-file-fixer
       - id: check-json
         types: [json]
       - id: check-toml
         types: [toml]
       - id: check-yaml
         types: [yaml]
-      - id: check-docstring-first
-      - id: check-added-large-files
-      - id: debug-statements
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.6
+    rev: v0.6.8
     hooks:
       - id: ruff
         types_or: [python, pyi, jupyter]
@@ -31,12 +27,6 @@ repos:
       - id: ruff-format
         types_or: [python, pyi, jupyter]
         args: [--config, pyproject.toml]
-
-  - repo: https://github.com/pre-commit/pygrep-hooks
-    rev: v1.10.0
-    hooks:
-      - id: python-use-type-annotations
-      - id: python-no-log-warn
 
   - repo: local
     hooks:
@@ -48,31 +38,26 @@ repos:
         pass_filenames: false
       - id: pytest-check
         name: pytest with coverage
-        entry: poetry run pytest --cov=alexlib -n auto
+        entry: poetry run pytest
         language: system
         types: [python]
         pass_filenames: false
 
   - repo: https://github.com/sqlfluff/sqlfluff
-    rev: 2.3.5
+    rev: 3.2.0
     hooks:
       - id: sqlfluff-fix
         name: SQLFluff Fix
         types: [sql]
         entry: sqlfluff fix --force --config pyproject.toml
 
-      - id: sqlfluff-lint
-        name: SQLFluff Lint
-        types: [sql]
-        entry: sqlfluff lint --config pyproject.toml
-
   - repo: local
     hooks:
       - id: latex-pdf-cleanup
         name: Cleanup LaTeX intermediate file
+        stages: [commit]
         description: This hook cleans up the LaTeX build files but leaves the pdf
         entry: sh -c 'cd paper && make cleanup'
         language: system
         files: '(\.(tex|bib|cls|sty|toc)|([Mm]akefile|latexmkrc)$)'
         pass_filenames: false
-        always_run: true

@@ -10,11 +10,11 @@ def get_info_schema(filename: str, dirpath: Path):
     return read_csv(filepath, keep_default_na=False)
 
 
-def path_list_to_dict(path_list):
+def path_list_to_dict(path_list: list[Path]):
     return {x.stem: x for x in path_list}
 
 
-def paths_to_df_dict(path_list):
+def paths_to_df_dict(path_list: list[Path]):
     return {x.stem: read_csv(x) for x in path_list}
 
 

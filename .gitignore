@@ -4,16 +4,12 @@
 !*.txt
 
 # proj files
-*.env
-.env.*
 /data
 /technical_refs
 /research
 
 # file sys
 .vscode/
-.idea/
-.vs/
 *.code-workspace
 
 # Build directories, caches, and temporary files
@@ -24,10 +20,6 @@ cache*
 .pytype/
 .ruff_cache/
 cython_debug/
-temp/
-temp*
-*.*~
-*~
 
 # Log files and directories
 logs/
@@ -37,12 +29,9 @@ logs/
 # Python build artifacts
 __pycache__/
 *.py[cod]
-*$py.class
 
 # Python virtual environment directories and environment files
 .env
-.env.*
-*.env
 *.[eE][nN][vV]*
 .venv/
 venv/

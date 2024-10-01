@@ -2,6 +2,7 @@
 authors = ["Alex Beckwith <57322567+witzbeck@users.noreply.github.com>"]
 description = "code associated w ms stats capstone"
 name = "master-proj"
+package-mode = true
 packages = [
     { include = "utils", from = "src" },
     { include = "model", from = "src" },
@@ -31,12 +32,13 @@ sqlfluff     = "^3.0"
 
 [tool.pytest.ini_options]
 addopts = [
-    "--cov=./src",
+    "--cov=utils",
+    "--cov=model",
     "--cov-report=term-missing",
     "--cov-fail-under=0",
     "--durations=10",
-    "-n",
-    "auto",
+    #"-n",
+    #"auto",
 ]
 testpaths = ["tests"]
 

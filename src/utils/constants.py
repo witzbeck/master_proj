@@ -12,6 +12,9 @@ DOTENV_PATH = PROJECT_PATH / ".env"
 
 FIGURES_PATH = PROJECT_PATH / "figures"
 DATA_PATH = PROJECT_PATH / "data"
+RAW_PATH = DATA_PATH / "raw"
+CSV_PATHS = list(RAW_PATH.glob("*.csv"))
+DB_PATH = DATA_PATH / "learning.db"
 QUERY_PATH = SOURCE_PATH / "queries"
 MODEL_TYPES = (
     "hxg_boost",
@@ -26,6 +29,47 @@ MODEL_TYPES = (
     # "compnb",
     # "gauss",
 )
+
+# model search
+INF_ITER = False
+JOB_CORES = -1
+PRE_DISPATCH = 96
+SEARCH_GROUPED = True
+SEARCH_ITER = 1
+SEARCH_RANDOM = True
+MODEL_TYPE = "logreg"
+PREDICT_COL = "is_withdraw_or_fail"
+
+# analysis
+EVAL_ROPE = 0.002
+ROPE_UPBOUND = 0.95
+ROPE_FLEXIBLE = False
+ALPHA = 0.05
+
+# cross validation
+TEST_SIZE = 0.25
+RANDOM_STATE = None
+CV_VERBOSE = 2
+CV_NSPLITS = 5
+CV_NREPEATS = 2
+CV_REFIT = "ROC_AUC"
+CV_RESULTS = "ALL"
+SIMPLE_NUM_IMPUTE = True
+
+# preprocessing
+NROWS = 10_000
+REDUCE_DIM = True
+
+# features
+USE_MOMENTS = False
+USE_STUDENT_INFO = True
+USE_IDS = False
+USE_TEXT = False
+USE_BY_ACTIVITY = True
+USE_DEMOGRAPHIC = True
+USE_ENGAGEMENT = False
+USE_ACADEMIC = True
+USE_ALL = False
 
 __range__ = range(-1, 3)
 # rope values

@@ -1,31 +1,27 @@
-from math import log, sqrt
+from dataclasses import dataclass, field
+from math import log
 from os import getenv
 from pathlib import Path
-from subprocess import PIPE, Popen
 from typing import Any
 
+from duckdb import DuckDBPyConnection
 from matplotlib.pyplot import subplots, xticks
 from numpy.random import choice
 from pandas import DataFrame, Series, read_sql
-from psycopg2 import connect
-from psycopg2.errors import ProgrammingError, UndefinedTable
 from seaborn import histplot
-from sqlalchemy import create_engine
 
+from alexlib.core import to_clipboard
 from alexlib.df import (
     filter_df,
     get_distinct_col_vals,
 )
 from alexlib.files.utils import path_search
+from alexlib.maths import euclidean_distance as euclidean
 from utils.utils import get_props
 
 
 def onehot_case(col: str, val: str):
     return f"case when {col} = '{val}' then 1 else 0 end"
-
-
-def pyth(_list: list):
-    return sqrt(sum(x**2 for x in _list))
 
 
 def get_deets(context: str):
@@ -37,45 +33,16 @@ def get_deets(context: str):
     return deets[0], deets[1], deets[2], deets[3]
 
 
-def create_conn(dbname: str, host: str, port: str, user: bool, pw: str = None):
-    dbname = f"dbname={dbname}"
-    host = f"host={host}"
-    port = f"port={port}"
-    user = f"user={user}"
-    deets = [dbname, host, port, user]
-    if pw is not None:
-        deets.append(f"password={pw}")
-    con_str = " ".join(deets)
-    return connect(con_str)
-
-
-def get_conn(context: str):
-    return create_conn(*get_deets(context))
-
-
-def build_engine(dbname: str, host: str, port: str, user: bool, pw: str = None):
-    pre_sqlalc = "postgresql+psycopg2://"
-    post_sqlalc = f"@{host}:{port}/{dbname}"
-    if pw is None:
-        login = user
-    else:
-        login = f"{user}:{pw}"
-
-    con_str = pre_sqlalc + login + post_sqlalc
-    return create_engine(con_str)
-
-
-def get_engine(context: str):
-    return build_engine(*get_deets(context))
-
-
 def get_table_abrv(table_name: str):
     parts = table_name.split("_")
     firsts = [x[0] for x in parts]
     return "".join(firsts)
 
 
+@dataclass(slots=True)
 class DbHelper:
+    cnxn: DuckDBPyConnection = field(default_factory=DuckDBPyConnection)
+
     def generate_select_query(
         self,
         schema: str,
@@ -102,11 +69,7 @@ class DbHelper:
         text = "".join(lines)
 
         if destination == "clipboard":
-            p = Popen(["pbcopy"], stdin=PIPE)
-            p.stdin.write(text.encode())
-            p.stdin.close()
-            retcode = p.wait()
-            return True if retcode == 0 else False
+            to_clipboard(text)
         else:
             filename = f"select_{schema}_{table}.sql"
             filepath = destination / filename
@@ -130,24 +93,7 @@ class DbHelper:
     def __init__(self, context: str) -> None:
         self.context = context
         self.db_name = getenv("DBNAME")
-        self.engine = get_engine(context)
         self.info_schema = self.get_info_schema()
-
-    def run_postgres_query(self, query):
-        with get_conn(self.context) as cnxn:
-            cnxn.autocommit = True
-            cursor = cnxn.cursor()
-            cursor.execute(query)
-            if query[:6].lower() != "select":
-                return True
-            try:
-                res = cursor.fetchall()
-                cols = [desc[0] for desc in cursor.description]
-                df = DataFrame.from_records(res)
-                df.columns = cols
-                return df
-            except ProgrammingError:
-                return False
 
     def obj_cmd(
         self,
@@ -210,15 +156,12 @@ class DbHelper:
         id_col: str,
     ) -> int:
         sql = f"select max({id_col}) from {schema}.{table}"
-        try:
-            id = self.run_postgres_query(sql)
-            id_int = id.iloc[0, 0]
-            if id_int is None:
-                return 1
-            else:
-                return int(id_int)
-        except UndefinedTable:
+        id = self.cnxn.execute(sql)
+        id_int = id.iloc[0, 0]
+        if id_int is None:
             return 1
+        else:
+            return int(id_int)
 
     def get_next_id(self, *args) -> int:
         return self.get_last_id(*args) + 1
@@ -315,7 +258,7 @@ class Column:
         self.logrange_prod = range_mult * _range
 
         to_pyth = [self.len_prod, self.ndist_prod, self.logrange_prod, self.text_prod]
-        angle = int(pyth(to_pyth))
+        angle = int(euclidean(to_pyth))
         if angle > 45:
             return 45
         else:
@@ -454,10 +397,7 @@ def update_host_table(
     if len(new_data) == 0:
         raise ValueError("did not grab data from source")
     else:
-        try:
-            dest_dbh.run_postgres_query(trunc_sql)
-        except UndefinedTable:
-            pass
+        dest_dbh.run_postgres_query(trunc_sql)
         new_data.to_sql(
             table,
             dest_dbh.engine,
