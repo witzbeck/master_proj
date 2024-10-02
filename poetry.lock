@@ -25,7 +25,7 @@ statsmodels = "^0.14.3"
 type = "git"
 url = "http://github.com/witzbeck/alexlib.git"
 reference = "main"
-resolved_reference = "adebdc6b0b9d73c41101e2ac681e0a1375531492"
+resolved_reference = "19b3371ef36a5fcff7dd6503520a0839cfcc448a"
 
 [[package]]
 name = "appdirs"
