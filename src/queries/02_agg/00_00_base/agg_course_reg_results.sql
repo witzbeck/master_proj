@@ -66,10 +66,10 @@ SELECT
 
 
 FROM main.student_info s
-    JOIN main.v_imd_band_onehot vibo ON vibo.id = s.imd_band_id
-    JOIN main.v_age_band_onehot vabo ON vabo.id = s.age_band_id
-    JOIN main.v_region_onehot vro ON vro.id = s.region_id
-    JOIN main.v_highest_education_onehot vheo ON vheo.id = s.highest_education_id
+    JOIN main.onehot_imd_band vibo ON vibo.id = s.imd_band_id
+    JOIN main.onehot_age_band vabo ON vabo.id = s.age_band_id
+    JOIN main.onehot_region vro ON vro.id = s.region_id
+    JOIN main.onehot_highest_education vheo ON vheo.id = s.highest_education_id
     JOIN main.final_result f ON f.id = s.final_result_id
 
 GROUP BY

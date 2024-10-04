@@ -1,4 +1,3 @@
-create view agg.v_course_modes_highest_ed as
 select
 
     course_id

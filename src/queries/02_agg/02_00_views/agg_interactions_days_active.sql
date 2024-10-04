@@ -1,4 +1,3 @@
-create view agg.v_interactions_days_active as
 select
     vis.student_id
 

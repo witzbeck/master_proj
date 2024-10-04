@@ -4,7 +4,7 @@ select
 ,count(*)                      n
 ,cast(sum(s.days_before_due_submitted) 
     as float) / count(*)       days
-from main.v_assessment_staging s
+from main.assessment_staging s
 group by 
  student_id
 )
@@ -17,7 +17,7 @@ select
 ,|/(sum((s.days_before_due_submitted - avg.days)^2) / avg.n) stddev_days
 
 
-from main.v_assessment_staging s
+from main.assessment_staging s
 join avg on avg.student_id=s.student_id
 group by
  avg.student_id

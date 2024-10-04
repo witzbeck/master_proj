@@ -1,5 +1,4 @@
-select
-    row_number() over () id,
+select row_number() over () id,
     m.id module_id,
     p.id presentation_id,
     m.module_code,
@@ -32,12 +31,12 @@ select
     case
         when m.module_code in ('AAA', 'BBB', 'GGG') then 'Social Sciences'
         else 'STEM'
-    end domain,
+    end AS domain,
     case
         when m.module_code = 'AAA' then 3
         when m.module_code = 'GGG' then 0
         else 1
-    end level
+    end AS level
 from landing.courses c
     join main.module m on m.module_code = c.module_code
     join main.presentation p on p.presentation_code = c.presentation_code

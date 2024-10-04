@@ -72,7 +72,7 @@ capitalisation_policy = "lower"
 aliasing = "implicit"
 
 [tool.sqlfluff.rules.aliasing.column]
-aliasing = "implicit"
+aliasing = "explicit"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
@@ -80,6 +80,17 @@ requires      = ["poetry-core"]
 
 
 [tool.ruff]
+select = [
+    "E4",  # Import order
+    "E7",  # Import statements
+    "E9",  # Blank lines
+    "F",   # String formatting
+    "B",   # Bugbear
+    "Q",   # Quotes
+    "W",   # PEP8
+    "C",   # Complexity
+    "I",   # Imports
+]
 exclude = [
     ".git",
     ".git-rewrite",

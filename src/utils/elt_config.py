@@ -76,7 +76,7 @@ def load_landing_csv(
     sql_path = query_path / "00_landing" / f"{table_name}.sql"
     assert sql_path.is_file(), f"{sql_path} is not a file"
     select = sql_path.read_text().replace(table_name, f"'{str(csv_path)}';")
-    sql = f"CREATE TABLE {schema}.{table_name} AS {select}"
+    sql = f"CREATE TABLE IF NOT EXISTS {schema}.{table_name} AS {select}"
     cnxn.execute(sql)
 
 
