@@ -18,4 +18,4 @@ select
 from main.vle_course_bridge vcb
     join main.course_info c on c.id = vcb.course_id
     join main.student_vle_bridge svb on svb.site_id = vcb.site_id
-    join main.activity_types at on at.id = vcb.activity_type_id
+    join main.activity_type at on at.id = vcb.activity_type_id

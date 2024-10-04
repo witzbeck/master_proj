@@ -42,10 +42,10 @@ def get_info_schema_df(cnxn: DuckDBPyConnection = None) -> DataFrame:
     return cnxn.sql("SHOW ALL TABLES").fetchdf()
 
 
-def get_all_schemas(info_schema_df: DataFrame = None) -> DuckDBPyConnection:
+def get_all_schemas(info_schema_df: DataFrame = None) -> list[str]:
     if info_schema_df is None:
         info_schema_df = get_info_schema_df()
-    return info_schema_df.loc[:, "schema"].unique()
+    return info_schema_df.loc[:, "schema"].unique().tolist()
 
 
 def get_all_table_names(

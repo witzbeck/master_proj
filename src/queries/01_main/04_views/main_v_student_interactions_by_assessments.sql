@@ -4,13 +4,13 @@ select
     svb.date activity_date,
     ast.assessment_type,
     ast.id assessment_type_id,
-    a.date assessment_date,
-    a.date - svb.date activity_days_before_due,
-    a.weight assessment_weight,
+    a.assessment_date,
+    a.assessment_date - svb.date activity_days_before_due,
+    a.assessment_weight,
     si.final_result_id,
     fr.final_result,
     sab.date_submitted,
-    sab.date_submitted - a.date days_submitted_early,
+    sab.date_submitted - a.assessment_date days_submitted_early,
     svb.sum_click,
     si.id student_id,
     si.imd_band_id,
@@ -34,15 +34,15 @@ from main.student_info si
             and scb.module_id = svb.module_id
             and scb.presentation_id = svb.presentation_id
     join main.student_assessment_bridge sab on sab.student_id = si.id
-    join main.assessment_info a
+    join main.assessment a
         on
             a.assessment_id = sab.assessment_id
             and a.course_id = scb.course_id
-    join main.activity_types act on act.id = vcb.activity_type_id
-    join main.assessment_types ast on ast.id = a.assessment_type_id
+    join main.activity_type act on act.id = vcb.activity_type_id
+    join main.assessment_type ast on ast.id = a.assessment_type_id
     join main.age_band ab on ab.id = si.age_band_id
     join main.final_result fr on fr.id = si.final_result_id
     join main.highest_education he on he.id = si.highest_education_id
 where
-    sab.date_submitted - a.date > 0
-    and a.date - svb.date > 0;
+    sab.date_submitted - a.assessment_date > 0
+    and a.assessment_date - svb.date > 0;

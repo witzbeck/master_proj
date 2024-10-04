@@ -4,4 +4,4 @@ select
     date_submitted,
     is_banked,
     score
-from staging.studentassessment;
+from landing.student_assessment;

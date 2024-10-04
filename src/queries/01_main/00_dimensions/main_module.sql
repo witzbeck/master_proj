@@ -1,9 +1,9 @@
 SELECT
     row_number() OVER (
-        ORDER BY code_module
+        ORDER BY module_code
     ) id,
-    code_module module_code
+    module_code
 FROM landing.courses
-WHERE code_module IS NOT NULL
-GROUP BY code_module
-ORDER BY code_module;
+WHERE module_code IS NOT NULL
+GROUP BY module_code
+ORDER BY module_code;

@@ -81,4 +81,4 @@ select
         else 0
     end is_url,
     activity_type
-from main.activity_types
+from main.activity_type

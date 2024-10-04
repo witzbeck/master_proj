@@ -26,8 +26,8 @@ from (
             end
         ) n_unregistrations
     from main.student_info sr
-        join main.modules m on m.id = sr.module_id
-        join main.presentations p on p.id = sr.presentation_id
+        join main.module m on m.id = sr.module_id
+        join main.presentation p on p.id = sr.presentation_id
     group by
         module_code,
         presentation_code,

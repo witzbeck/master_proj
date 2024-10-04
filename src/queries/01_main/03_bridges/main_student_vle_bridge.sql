@@ -6,9 +6,9 @@ select
     p.id presentation_id,
     date,
     sum_click
-from staging.studentvle s
-    join main.modules m on m.module_code = s.code_module
-    join main.presentations p on p.presentation_code = s.code_presentation
+from landing.student_vle s
+    join main.module m on m.module_code = s.module_code
+    join main.presentation p on p.presentation_code = s.presentation_code
     join main.student_info si on
         si.orig_student_id = s.student_id
         and si.module_id = m.id

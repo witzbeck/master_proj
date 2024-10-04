@@ -1,9 +1,9 @@
 SELECT
     row_number() OVER (
-        ORDER BY code_presentation
+        ORDER BY presentation_code
     ) id,
-    code_presentation presentation_code
+    presentation_code
 FROM landing.courses
-WHERE code_presentation IS NOT NULL
-GROUP BY code_presentation
-ORDER BY code_presentation;
+WHERE presentation_code IS NOT NULL
+GROUP BY presentation_code
+ORDER BY presentation_code;

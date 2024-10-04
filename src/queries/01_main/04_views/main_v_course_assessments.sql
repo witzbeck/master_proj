@@ -6,8 +6,8 @@ select
     c.module_code,
     c.presentation_code,
     t.assessment_type,
-    a.date assessment_date,
-    a.weight assessment_weight
-from main.assessment_info a
+    a.assessment_date,
+    a.assessment_weight
+from main.assessment a
     join main.course_info c on c.id = a.course_id
-    join main.assessment_types t on t.id = a.assessment_type_id
+    join main.assessment_type t on t.id = a.assessment_type_id

@@ -1,7 +1,7 @@
 select
     cast(id_student as int) student_id,
-    cast(code_module as varchar(3)) code_module,
-    cast(code_presentation as varchar(5)) code_presentation,
+    cast(code_module as varchar(3)) module_code,
+    cast(code_presentation as varchar(5)) presentation_code,
     cast(
         case
             when gender = 'F' then '1'
