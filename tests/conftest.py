@@ -28,7 +28,7 @@ from utils.constants import (
     XLESS,
     XROPE,
 )
-from utils.elt_config import create_all_schemas, get_cnxn, load_landing_data
+from utils.elt_config import DataDirectory, create_all_schemas, get_cnxn
 
 
 @fixture(scope="session")
@@ -44,8 +44,20 @@ def cnxn_with_schemas(memory_cnxn: DuckDBPyConnection) -> DuckDBPyConnection:
 
 
 @fixture(scope="session")
-def cnxn_with_landing_data(cnxn_with_schemas: DuckDBPyConnection) -> DuckDBPyConnection:
-    load_landing_data(cnxn=cnxn_with_schemas)
+def data_dir() -> DataDirectory:
+    return DataDirectory()
+
+
+@fixture(scope="session")
+def queries_dir(data_dir: DataDirectory) -> Path:
+    return data_dir.queries
+
+
+@fixture(scope="session")
+def cnxn_with_landing_data(
+    cnxn_with_schemas: DuckDBPyConnection, data_dir: DataDirectory
+) -> DuckDBPyConnection:
+    data_dir.queries.load_landing_data(cnxn=cnxn_with_schemas)
     return cnxn_with_schemas
 
 

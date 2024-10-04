@@ -49,7 +49,7 @@ repos:
       - id: sqlfluff-fix
         name: SQLFluff Fix
         types: [sql]
-        entry: sqlfluff fix --force --config pyproject.toml
+        entry: sqlfluff fix --config pyproject.toml
 
   - repo: local
     hooks:

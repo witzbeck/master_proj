@@ -17,7 +17,8 @@ from alexlib.df import (
 )
 from alexlib.files.utils import path_search
 from alexlib.maths import euclidean_distance as euclidean
-from utils.utils import get_props
+
+from utils import get_props
 
 
 def onehot_case(col: str, val: str):
