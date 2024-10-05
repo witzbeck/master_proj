@@ -63,11 +63,11 @@ def overwrite_std_params(clf_params: dict, std_params: dict, all: bool = True):
         return out_params
 
 
-def get_props(series: Series):
-    dist_vals = list(series.unique())
+def get_distinct_value_proportions(series: Series) -> DataFrame:
+    dist_vals = series.unique()
     n_all_vals = len(series)
     freqs = [sum(series == x) for x in dist_vals]
-    props = [sum(series == x) / n_all_vals for x in dist_vals]
+    props = [f / n_all_vals for f in freqs]
     return DataFrame.from_dict(
         {
             "value": dist_vals,
@@ -80,7 +80,7 @@ def get_props(series: Series):
 def make_prop_dict(df: DataFrame) -> dict:
     """Create a dictionary of proportions for each column in a DataFrame"""
     non_id_cols = [x for x in df.columns if x[-3:] != "_id"]
-    return {col: get_props(df[col]) for col in non_id_cols}
+    return {col: get_distinct_value_proportions(df[col]) for col in non_id_cols}
 
 
 def rm_pattern(list_of_strs: list, pattern: str, end: bool = True):
@@ -98,7 +98,6 @@ def wo_ids(x: str):
 
 def percentiles(_list: list, tiles: int = 100):
     _list = sorted(_list)
-    _len = len(_list)
     out_dict = {}
     out_dict["0"] = _list[0]
     for i in range(1, tiles):

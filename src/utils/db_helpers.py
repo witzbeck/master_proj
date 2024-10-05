@@ -12,23 +12,19 @@ from seaborn import histplot
 from tqdm import tqdm
 
 from alexlib.core import to_clipboard
-from alexlib.df import (
-    get_distinct_col_vals,
-)
+from alexlib.df import get_distinct_col_vals
 from alexlib.maths import euclidean_distance as euclidean
 
-from utils import get_props
 from utils.elt_config import get_info_schema_df
 
 
-def onehot_case(col: str, val: str):
-    return f"case when {col} = '{val}' then 1 else 0 end"
+def get_onehot_case_line(col: str, val: str):
+    return f"CASE WHEN {col} = '{val}' THEN 1 ELSE 0 END AS is_{val}"
 
 
-def get_table_abrv(table_name: str):
-    parts = table_name.split("_")
-    firsts = [x[0] for x in parts]
-    return "".join(firsts)
+def get_table_abrv(table_name: str, sep: str = "_") -> str:
+    """Get the abbreviation for a table name."""
+    return "".join([x[0] for x in table_name.split(sep)])
 
 
 @dataclass
@@ -78,25 +74,23 @@ class DbHelper:
         query = f"SELECT * FROM {schema}.{table} {limit_clause}"
         return self.cnxn.execute(query).fetchdf()
 
-    def obj_cmd(
+    def run_object_command(
         self,
-        cmd: str,
+        command: str,
         obj_type: str,
-        obj_schema: str,
         obj_name: str,
         addl_cmd: str = "",
     ) -> None:
-        sql = f"{cmd} {obj_type} {obj_schema}.{obj_name} {addl_cmd};"
+        sql = f"{command} {obj_type} {obj_name} {addl_cmd};"
         self.cnxn.sql(sql)
 
-    def drop_table(self, schema: str, table: str, cascade: bool = True):
-        if cascade:
-            self.obj_cmd("drop", "table", schema, table, addl_cmd="cascade")
-        else:
-            self.obj_cmd("drop", "table", schema, table)
+    def drop_table(self, schema: str, table: str):
+        object_name = f"{schema}.{table}"
+        self.run_object_command("DROP", "TABLE", object_name)
 
     def drop_view(self, schema: str, view: str):
-        self.obj_cmd("drop", "view", schema, view)
+        object_name = f"{schema}.{view}"
+        self.run_object_command("DROP", "VIEW", object_name)
 
 
 def create_onehot_view(
@@ -121,7 +115,7 @@ def create_onehot_view(
         new_col = new_col.replace("<", "_less")
         new_col = new_col.replace("=", "_equal")
         new_col = new_col.replace(">", "_greater")
-        case_stmt = onehot_case(dist_col, val)
+        case_stmt = get_onehot_case_line(dist_col, val)
         lines.append(f"{com}{case_stmt} {new_col}\n")
     lines.append(f"from {schema}.{table}")
     return "".join(lines)
@@ -138,6 +132,9 @@ class Column:
 
     def __post_init__(self):
         self.is_id = self.name.lower().endswith("_id")
+
+    def __len__(self) -> int:
+        return len(self.series)
 
     def __repr__(self) -> str:
         return ".".join([x for x in [self.schema, self.table, self.name] if x])
@@ -163,7 +160,7 @@ class Column:
     ):
         if self.nunique < ndist_min:
             return 0
-        self.ndist_prod = ndist_mult * self.ndist
+        self.ndist_prod = ndist_mult * self.nunique
 
         text_len = sum(len(str(x)) for x in self.unique_vals)
         if text_len > text_min:
@@ -190,6 +187,28 @@ class Column:
         angle = int(euclidean(to_pyth))
         return 45 if angle > 45 else angle
 
+    @cached_property
+    def frequencies(self) -> list[int]:
+        return [sum(self.series == x) for x in self.unique_vals]
+
+    @cached_property
+    def proportions(self) -> list[float]:
+        return [f / len(self.series) for f in self.frequencies]
+
+    @cached_property
+    def proportions_df(self) -> DataFrame:
+        return DataFrame.from_dict(
+            {
+                "value": self.unique_vals,
+                "frequency": self.frequencies,
+                "proportion": self.proportions,
+            }
+        )
+
+    @property
+    def nnulls(self) -> int:
+        return sum(self.series.isna())
+
     def desc(  # noqa: C901
         self,
         show_props: bool = False,
@@ -199,22 +218,16 @@ class Column:
         **kwargs,
     ):
         print(f"Describing {repr(self)}\n")
-        if self.nunique < 31:
-            self.props = get_props(self.series)
-            self.freqs = self.props["frequency"].values
-            self.distvals = self.props["value"].values
-            self.n_vals = sum(self.freqs)
-            if show_props:
-                print("Proportions:\n", self.props, "\n")
+        if self.nunique < 31 and show_props:
+            print("Proportions:\n", self.proportions_df, "\n")
         if show_nulls:
-            self.n_nulls = sum(self.series.isna())
-            print(f"Null count: {self.n_nulls}")
+            print(f"Null count: {self.nnulls}")
         if show_series_desc:
             print(self.series.describe(), "\n")
         if show_hist and not self.is_id and self.nunique <= 31:
-            self.xtick_angle = self.auto_xtick_angle()
+            xtick_angle = self.auto_xtick_angle()
         else:
-            self.xtick_angle = 0
+            xtick_angle = 0
         if show_hist:
             fig, ax = subplots(
                 nrows=1,
@@ -223,7 +236,7 @@ class Column:
                 dpi=200,
             )
             histplot(self.series, ax=ax, **kwargs)
-            xticks(rotation=self.xtick_angle)
+            xticks(rotation=xtick_angle)
             return fig, ax
 
 

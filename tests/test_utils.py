@@ -6,10 +6,10 @@ from pytest import raises
 
 from utils import (
     combine_domains,
+    get_distinct_value_proportions,
     get_idx_val,
     get_list_difs,
     get_list_mids,
-    get_props,
     get_rect_area,
     idx_list,
     lengthen_params_log,
@@ -185,7 +185,7 @@ def test_overwrite_std_params_extra_keys():
 # Test cases for get_props
 def test_get_props_basic():
     series = Series([1, 2, 2, 3, 3, 3])
-    result = get_props(series)
+    result = get_distinct_value_proportions(series)
     expected = DataFrame(
         {
             "value": [1, 2, 3],
@@ -198,7 +198,7 @@ def test_get_props_basic():
 
 def test_get_props_empty_series():
     series = Series([], dtype=float)
-    result = get_props(series)
+    result = get_distinct_value_proportions(series)
     expected = DataFrame(columns=["value", "frequency", "proportion"])
     expected = expected.astype(
         {
@@ -212,7 +212,7 @@ def test_get_props_empty_series():
 
 def test_get_props_single_value():
     series = Series([1, 1, 1, 1])
-    result = get_props(series)
+    result = get_distinct_value_proportions(series)
     expected = DataFrame({"value": [1], "frequency": [4], "proportion": [1.0]})
     assert_frame_equal(result.reset_index(drop=True), expected)
 
@@ -227,7 +227,10 @@ def test_make_prop_dict_basic():
         }
     )
     result = make_prop_dict(df)
-    expected = {"col1": get_props(df["col1"]), "col3": get_props(df["col3"])}
+    expected = {
+        "col1": get_distinct_value_proportions(df["col1"]),
+        "col3": get_distinct_value_proportions(df["col3"]),
+    }
     assert "col2_id" not in result
     assert_frame_equal(result["col1"].reset_index(drop=True), expected["col1"])
     assert_frame_equal(result["col3"].reset_index(drop=True), expected["col3"])
