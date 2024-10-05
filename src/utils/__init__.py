@@ -1,9 +1,10 @@
-from array import array
 from itertools import chain
 
+from numpy import array, percentile
 from pandas import DataFrame, Series
 
 from alexlib.files import DotenvFile
+
 from utils.constants import DOTENV_PATH, EVENT_LEVEL, LOG_LEVEL
 
 config = DotenvFile.from_path(
@@ -76,10 +77,10 @@ def get_props(series: Series):
     )
 
 
-def make_prop_dict(df: DataFrame):
+def make_prop_dict(df: DataFrame) -> dict:
+    """Create a dictionary of proportions for each column in a DataFrame"""
     non_id_cols = [x for x in df.columns if x[-3:] != "_id"]
-    all_series = [Series(df.loc[:, x]) for x in non_id_cols]
-    return {col: get_props(col) for col in all_series}
+    return {col: get_props(df[col]) for col in non_id_cols}
 
 
 def rm_pattern(list_of_strs: list, pattern: str, end: bool = True):
@@ -96,18 +97,13 @@ def wo_ids(x: str):
 
 
 def percentiles(_list: list, tiles: int = 100):
-    _list = list(_list)
-    _list.sort(key=lambda x: int(x))
+    _list = sorted(_list)
     _len = len(_list)
     out_dict = {}
-    tile_ratio = 1 / tiles
-    idx_ratio = _len * tile_ratio
-
     out_dict["0"] = _list[0]
     for i in range(1, tiles):
-        tile_idx = int(i * idx_ratio)
-        out_dict[i] = _list[tile_idx]
-
+        p = i / tiles * 100
+        out_dict[i] = percentile(_list, p)
     out_dict[tiles] = _list[-1]
     return out_dict
 

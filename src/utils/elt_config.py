@@ -3,7 +3,7 @@ from functools import cached_property
 from logging import getLogger
 from pathlib import Path
 
-from duckdb import CatalogException, DuckDBPyConnection, connect
+from duckdb import DuckDBPyConnection, connect
 from pandas import DataFrame
 from tqdm import tqdm
 
@@ -31,31 +31,25 @@ def create_schema(
 def create_all_schemas(
     cnxn: DuckDBPyConnection, schemas: tuple[str] = SCHEMAS
 ) -> DuckDBPyConnection:
-    for schema in schemas:
-        try:
-            create_schema(cnxn=cnxn, schema=schema)
-        except CatalogException:
-            logger.info(f"{schema} already exists")
+    for schema in tqdm(schemas, desc="Creating schemas"):
+        create_schema(cnxn=cnxn, schema=schema)
     return cnxn
 
 
-def get_info_schema_df(cnxn: DuckDBPyConnection = None) -> DataFrame:
-    if cnxn is None:
-        cnxn = get_cnxn()
+def get_info_schema_df(cnxn: DuckDBPyConnection) -> DataFrame:
+    """Return the information schema as a DataFrame."""
     return cnxn.sql("SHOW ALL TABLES").fetchdf()
 
 
-def get_all_schemas(info_schema_df: DataFrame = None) -> list[str]:
-    if info_schema_df is None:
-        info_schema_df = get_info_schema_df()
+def get_all_schemas(cnxn: DuckDBPyConnection) -> list[str]:
+    info_schema_df = get_info_schema_df(cnxn)
     return info_schema_df.loc[:, "schema"].unique().tolist()
 
 
 def get_all_table_names(
-    info_schema_df: DataFrame = None, concat_schema: bool = True
+    cnxn: DuckDBPyConnection, concat_schema: bool = True
 ) -> DuckDBPyConnection:
-    if info_schema_df is None:
-        info_schema_df = get_info_schema_df()
+    info_schema_df = get_info_schema_df(cnxn)
     if concat_schema:
         columns = ["schema", "name"]
         return (

@@ -7,6 +7,7 @@ from utils.constants import (
     BLUE,
     CSV_PATHS,
     DATA_PATH,
+    DB_PATH,
     FIGURES_PATH,
     GRAY,
     HOME,
@@ -38,15 +39,15 @@ from utils.elt_config import (
 
 
 @fixture(scope="session")
-def memory_cnxn() -> DuckDBPyConnection:
-    cnxn = get_cnxn(database=":memory:")
+def cnxn() -> DuckDBPyConnection:
+    cnxn = get_cnxn(database=DB_PATH)
     return cnxn
 
 
 @fixture(scope="session")
-def cnxn_with_schemas(memory_cnxn: DuckDBPyConnection) -> DuckDBPyConnection:
-    create_all_schemas(cnxn=memory_cnxn)
-    return memory_cnxn
+def cnxn_with_schemas(cnxn: DuckDBPyConnection) -> DuckDBPyConnection:
+    create_all_schemas(cnxn=cnxn)
+    return cnxn
 
 
 @fixture(scope="session")

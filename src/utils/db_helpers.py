@@ -1,37 +1,26 @@
 from dataclasses import dataclass, field
 from math import log
-from os import getenv
 from pathlib import Path
-from typing import Any
 
 from duckdb import DuckDBPyConnection
 from matplotlib.pyplot import subplots, xticks
 from numpy.random import choice
-from pandas import DataFrame, Series, read_sql
+from pandas import DataFrame, Series
 from seaborn import histplot
 
 from alexlib.core import to_clipboard
 from alexlib.df import (
-    filter_df,
     get_distinct_col_vals,
 )
 from alexlib.files.utils import path_search
 from alexlib.maths import euclidean_distance as euclidean
 
 from utils import get_props
+from utils.elt_config import get_info_schema_df
 
 
 def onehot_case(col: str, val: str):
     return f"case when {col} = '{val}' then 1 else 0 end"
-
-
-def get_deets(context: str):
-    context = context.upper()
-    dbname = "DBNAME"
-    vars = ["DBHOST", "DBPORT", "DBSUDO"]
-    deets = [dbname] + [context + x for x in vars]
-    deets = [getenv(x) for x in deets]
-    return deets[0], deets[1], deets[2], deets[3]
 
 
 def get_table_abrv(table_name: str):
@@ -44,6 +33,10 @@ def get_table_abrv(table_name: str):
 class DbHelper:
     cnxn: DuckDBPyConnection = field(default_factory=DuckDBPyConnection)
 
+    @property
+    def info_schema(self) -> DataFrame:
+        return get_info_schema_df(self.cnxn)
+
     def generate_select_query(
         self,
         schema: str,
@@ -51,7 +44,7 @@ class DbHelper:
         destination: Path = "clipboard",
         overwrite: bool = False,
     ) -> Path:
-        df = self.get_info_schema(schema=schema, table=table)
+        df = self.info_schema
         if len(df) == 0:
             raise ValueError("object does not exist")
         abrv = get_table_abrv(table)
@@ -80,22 +73,6 @@ class DbHelper:
             filepath.write_text(text)
             return filepath
 
-    def get_info_schema(self, schema=None, table=None):
-        sql = "select * from main.v_info_schema"
-        if schema is not None and table is None:
-            sql = f"{sql} where table_schema = '{schema}'"
-        elif schema is not None and table is not None:
-            sql = f"{sql} where table_schema = '{schema}'"
-            sql = f"{sql} and table_name = '{table}'"
-        elif schema is None and table is not None:
-            sql = f"{sql} where table_name = '{table}'"
-        return read_sql(sql, self.engine)
-
-    def __init__(self, context: str) -> None:
-        self.context = context
-        self.db_name = getenv("DBNAME")
-        self.info_schema = self.get_info_schema()
-
     def obj_cmd(
         self,
         cmd: str,
@@ -105,7 +82,7 @@ class DbHelper:
         addl_cmd: str = "",
     ) -> None:
         sql = f"{cmd} {obj_type} {obj_schema}.{obj_name} {addl_cmd};"
-        self.run_postgres_query(sql)
+        self.cnxn.sql(sql)
 
     def drop_table(self, schema: str, table: str, cascade: bool = True):
         if cascade:
@@ -116,82 +93,17 @@ class DbHelper:
     def drop_view(self, schema: str, view: str):
         self.obj_cmd("drop", "view", schema, view)
 
-    def trunc_table(self, schema: str, table: str):
-        self.obj_cmd("truncate", "table", schema, table)
-
-    def get_all_schema_tables(self, schema: str):
-        info = self.info_schema
-        table_col = "table_name"
-        schema_col = "table_schema"
-        schema_tabs = filter_df(info, schema_col, schema)
-        schema_tabs = filter_df(schema_tabs, "table_type", "BASE TABLE")
-        return get_distinct_col_vals(schema_tabs, table_col)
-
-    def trunc_schema(self, schema: str):
-        tabs = self.get_all_schema_tables(schema)
-        for tab in tabs:
-            self.trunc_table(schema, tab)
-
-    def run_pd_query(self, query: str):
-        return read_sql(query, self.engine)
-
     def df_from_file(self, filename: str, path: Path = None):
         if path is None:
             path = path_search(filename)
         text = path.read_text()
-        return self.run_pd_query(text)
-
-    def df_to_db(self, df: DataFrame, schema: str, table: str, **kwargs):
-        df.to_sql(table, self.engine, schema=schema, **kwargs)
-
-    def get_table(self, schema: str, table: str, nrows: int = None):
-        query = f"select * from {schema}.{table}"
-        if nrows is not None and nrows != "None":
-            query = f"{query} limit {str(nrows)};"
-        return self.run_pd_query(query)
-
-    def get_last_id(
-        self,
-        schema: str,
-        table: str,
-        id_col: str,
-    ) -> int:
-        sql = f"select max({id_col}) from {schema}.{table}"
-        id = self.cnxn.execute(sql)
-        id_int = id.iloc[0, 0]
-        if id_int is None:
-            return 1
-        else:
-            return int(id_int)
-
-    def get_next_id(self, *args) -> int:
-        return self.get_last_id(*args) + 1
-
-    def get_last_record(
-        self,
-        schema: str,
-        table: str,
-        id_col: str,
-    ) -> DataFrame:
-        last_id = self.get_last_id(schema, table, id_col)
-        sql = f"select * from {schema}.{table} where {id_col} = {last_id}"
-        return self.run_pd_query(sql)
-
-    def get_last_val(
-        self,
-        schema: str,
-        table: str,
-        id_col: str,
-        val_col: str,
-    ) -> Any:
-        last_rec = self.get_last_record(schema, table, id_col)
-        return last_rec.loc[0, val_col]
+        return self.cnxn.sql(text)
 
 
 def create_onehot_view(
-    dbh: DbHelper, schema: str, table: str, command: str = "create view"
+    cnxn: DuckDBPyConnection, schema: str, table: str, command: str = "create view"
 ) -> str:
-    df = dbh.run_pd_query(f"select * from {schema}.{table}")
+    df = cnxn.sql(f"select * from {schema}.{table}").df()
     dist_col = [x for x in df.columns if x[-2:] != "id"][0]
     id_col = [x for x in df.columns if x != dist_col][0]
     dist_vals = get_distinct_col_vals(df, dist_col)
@@ -271,7 +183,6 @@ class Column:
         table: str,
         col_name: str,
         series: Series,
-        calc_desc: bool = False,
     ) -> None:
         self.schema = schema
         self.table = table
@@ -386,35 +297,3 @@ class Table:
         table: str = None,
     ):
         return cls(context, schema, table, calc_desc=calc_desc, df=df)
-
-
-def update_host_table(
-    schema: str, table: str, source_context: str = "SERVER", dest_context: str = "LOCAL"
-):
-    source_dbh: str = (DbHelper(source_context),)
-    dest_dbh: str = DbHelper(dest_context)
-    trunc_sql = f"truncate table {schema}.{table};"
-    new_data = source_dbh.get_table(schema, table)
-    if len(new_data) == 0:
-        raise ValueError("did not grab data from source")
-    else:
-        dest_dbh.run_postgres_query(trunc_sql)
-        new_data.to_sql(
-            table,
-            dest_dbh.engine,
-            schema=schema,
-            if_exists="append",
-            index=False,
-            method="multi",
-        )
-
-
-def update_host_schema(
-    schema: str, source_context: str = "SERVER", dest_context: str = "LOCAL"
-):
-    source_dbh: str = (DbHelper(source_context),)
-    dest_dbh: str = DbHelper(dest_context)
-
-    schema_tables = source_dbh.get_all_schema_tables(schema)
-    for table in schema_tables:
-        update_host_table(schema, table, source_dbh=source_dbh, dest_dbh=dest_dbh)
