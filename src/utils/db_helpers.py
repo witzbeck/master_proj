@@ -2,11 +2,13 @@ from dataclasses import dataclass, field
 from functools import cached_property
 from math import log
 from pathlib import Path
+from random import choice
 
 from duckdb import DuckDBPyConnection
+from matplotlib.axis import Axis
+from matplotlib.figure import Figure
 from matplotlib.pyplot import subplots, xticks
 from numpy import ndarray
-from numpy.random import choice
 from pandas import DataFrame, Series
 from seaborn import histplot
 from tqdm import tqdm
@@ -106,9 +108,8 @@ def create_onehot_view(
     lines.append(f" {id_col}\n")
     lines.append(f",{dist_col}\n")
 
-    for i in range(len(dist_vals)):
+    for val in dist_vals:
         com = ","
-        val = dist_vals[i]
         new_col = f"is_{val}".replace(" ", "_")
         new_col = new_col.replace("%", "_percent")
         new_col = new_col.replace("-", "_")
@@ -131,21 +132,31 @@ class Column:
     calc_desc: bool = False
 
     def __post_init__(self):
+        """Set the is_id attribute."""
         self.is_id = self.name.lower().endswith("_id")
 
     def __len__(self) -> int:
+        """Get the length of the series."""
         return len(self.series)
 
     def __repr__(self) -> str:
+        """Get the full name of the column."""
         return ".".join([x for x in [self.schema, self.table, self.name] if x])
 
     @cached_property
     def unique_vals(self) -> ndarray:
+        """Get the unique values in the series."""
         return self.series.unique()
 
     @cached_property
     def nunique(self) -> int:
+        """Get the number of unique values in the series."""
         return len(self.unique_vals)
+
+    @property
+    def frequency_range(self) -> int:
+        """Get the range of frequencies for the unique values."""
+        return max(self.frequencies) - min(self.frequencies)
 
     def auto_xtick_angle(
         self,
@@ -157,43 +168,45 @@ class Column:
         range_mult: int = 2,
         text_min: int = 30,
         text_mult: int = 2,
-    ):
+        max_angle: int = 45,
+    ) -> int:
+        """Automatically determine the xtick angle for a histogram."""
+        # ndist_min: minimum number of distinct values
         if self.nunique < ndist_min:
             return 0
-        self.ndist_prod = ndist_mult * self.nunique
+        # ndist_mult: multiplier for number of distinct values
+        ndist_prod = ndist_mult * self.nunique
 
+        # text_min: minimum number of characters in unique values
         text_len = sum(len(str(x)) for x in self.unique_vals)
         if text_len > text_min:
-            logtext = log(text_len)
-            self.text_prod = text_mult * logtext
+            text_prod = text_mult * log(text_len)
         else:
             return 0
 
-        _len = len(self.series)
-        if _len > len_min:
-            _len = log(_len)
-            self.len_prod = len_mult * _len
-        else:
-            self.len_prod = 0
+        # len_min: minimum length of series
+        _len = len(self)
+        len_prod = 0 if _len < len_min else log(_len) * len_mult
 
-        freq_range = max(self.freqs) - min(self.freqs)
-        if freq_range > range_min:
-            _range = log(freq_range)
-        else:
-            _range = 0
-        self.logrange_prod = range_mult * _range
+        # range_min: minimum range of frequencies
+        rng = 0 if self.frequency_range < range_min else log(self.frequency_range)
+        logrange_prod = range_mult * rng
 
-        to_pyth = [self.len_prod, self.ndist_prod, self.logrange_prod, self.text_prod]
-        angle = int(euclidean(to_pyth))
-        return 45 if angle > 45 else angle
+        # Calculate the angle
+        to_pyth = [len_prod, ndist_prod, logrange_prod, text_prod]
+        calc_angle = int(euclidean(to_pyth))
+        return max_angle if calc_angle > max_angle else calc_angle
 
     @cached_property
     def frequencies(self) -> list[int]:
+        """Get the frequency of each unique value in the series."""
         return [sum(self.series == x) for x in self.unique_vals]
 
     @cached_property
     def proportions(self) -> list[float]:
-        return [f / len(self.series) for f in self.frequencies]
+        """Get the proportion of each unique value in the series."""
+        len_ = len(self)
+        return [f / len_ for f in self.frequencies]
 
     @cached_property
     def proportions_df(self) -> DataFrame:
@@ -207,6 +220,7 @@ class Column:
 
     @property
     def nnulls(self) -> int:
+        """Get the number of null values in the series."""
         return sum(self.series.isna())
 
     def desc(  # noqa: C901
@@ -215,8 +229,9 @@ class Column:
         show_nulls: bool = False,
         show_series_desc: bool = False,
         show_hist: bool = False,
-        **kwargs,
-    ):
+        histplot_kwargs: dict = None,
+    ) -> tuple[Figure, Axis]:
+        """Describe the column."""
         print(f"Describing {repr(self)}\n")
         if self.nunique < 31 and show_props:
             print("Proportions:\n", self.proportions_df, "\n")
@@ -235,6 +250,7 @@ class Column:
                 figsize=(5, 4),
                 dpi=200,
             )
+            kwargs = histplot_kwargs if histplot_kwargs else {}
             histplot(self.series, ax=ax, **kwargs)
             xticks(rotation=xtick_angle)
             return fig, ax
@@ -262,8 +278,21 @@ class Table:
     def rand_column(self) -> Column:
         return choice(list(self.columns.values()))
 
-    def desc_all_cols(self, **kwargs):
+    def desc_all_cols(
+        self,
+        show_props: bool = False,
+        show_nulls: bool = False,
+        show_series_desc: bool = False,
+        show_hist: bool = False,
+        histplot_kwargs: dict = None,
+    ) -> None:
         for i, col in tqdm(enumerate(self.df.columns)):
             print(f"({i + 1}/{self.ncolumns})")
             column = self.columns[col]
-            column.desc(**kwargs)
+            column.desc(
+                show_props=show_props,
+                show_nulls=show_nulls,
+                show_series_desc=show_series_desc,
+                show_hist=show_hist,
+                histplot_kwargs=histplot_kwargs,
+            )
