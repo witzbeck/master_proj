@@ -69,7 +69,7 @@ spacing_before = "align"
 capitalisation_policy = "lower"
 
 [tool.sqlfluff.rules.aliasing.table]
-aliasing = "implicit"
+aliasing = "explcit"
 
 [tool.sqlfluff.rules.aliasing.column]
 aliasing = "explicit"
@@ -80,17 +80,6 @@ requires      = ["poetry-core"]
 
 
 [tool.ruff]
-select = [
-    "E4",  # Import order
-    "E7",  # Import statements
-    "E9",  # Blank lines
-    "F",   # String formatting
-    "B",   # Bugbear
-    "Q",   # Quotes
-    "W",   # PEP8
-    "C",   # Complexity
-    "I",   # Imports
-]
 exclude = [
     ".git",
     ".git-rewrite",
@@ -107,6 +96,17 @@ exclude = [
 extend-include = ["*.ipynb"]
 indent-width = 4
 line-length = 88
+select = [
+    "E4", # Import order
+    "E7", # Import statements
+    "E9", # Blank lines
+    "F",  # String formatting
+    "B",  # Bugbear
+    "Q",  # Quotes
+    "W",  # PEP8
+    "C",  # Complexity
+    "I",  # Imports
+]
 target-version = "py312"
 
 [tool.ruff.lint]

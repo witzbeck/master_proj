@@ -27,6 +27,4 @@ from main.student_assessment_bridge b
     ) s on s.orig_student_id = b.student_id
     join main.assessment a on a.assessment_id = b.assessment_id
     join main.assessment_type t on t.id = a.assessment_type_id
-order by
-    orig_student_id,
-    a.assessment_id
+

@@ -1,5 +1,5 @@
-select
-    scb.student_id,
+select scb.student_id,
+    si.course_id,
     scb.module_id,
     scb.presentation_id,
     sum(a.assessment_date * a.assessment_weight) / sum(a.assessment_date) assessment_weight_date_rate,
@@ -32,16 +32,14 @@ select
 from main.student_info si
     join main.student_vle_bridge scb on si.id = scb.student_id
     join main.student_assessment_bridge sab on sab.student_id = si.id
-    join main.assessment a
-        on
-            a.assessment_id = sab.assessment_id
-            and a.module_id = scb.module_id
-            and a.presentation_id = scb.presentation_id
+    join main.assessment a on a.assessment_id = sab.assessment_id
+    and a.module_id = scb.module_id
+    and a.presentation_id = scb.presentation_id
     join main.final_result f on f.id = si.final_result_id
     join main.assessment_type t on t.id = a.assessment_type_id
 where a.assessment_weight > 0
-group by
-    scb.student_id,
+group by scb.student_id,
+    si.course_id,
     scb.module_id,
     scb.presentation_id,
     f.final_result

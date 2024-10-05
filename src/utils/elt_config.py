@@ -1,17 +1,20 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from functools import cached_property
 from logging import getLogger
 from pathlib import Path
 
 from duckdb import CatalogException, DuckDBPyConnection, connect
 from pandas import DataFrame
+from tqdm import tqdm
 
-from alexlib.files import Directory
+from alexlib.files import Directory, File
 from alexlib.times import Timer
 
 from utils.constants import DATA_PATH, DB_PATH, QUERY_PATH, RAW_PATH, SCHEMAS
 
 logger = getLogger(__name__)
+
+SQL_BLACKLIST = ("CREATE", "DROP", "ALTER", "TRUNCATE", "DELETE", "UPDATE", "INSERT")
 
 
 def get_cnxn(database: Path = DB_PATH, read_only: bool = False) -> DuckDBPyConnection:
@@ -80,6 +83,14 @@ def load_landing_csv(
     cnxn.execute(sql)
 
 
+def load_landing_data(
+    landing_query_keys: set[str], cnxn: DuckDBPyConnection
+) -> DuckDBPyConnection:
+    """Load landing data into the database."""
+    [load_landing_csv(table, cnxn) for table in landing_query_keys]
+    return cnxn
+
+
 @dataclass(frozen=True)
 class StagingPathGroup:
     source_path: Path
@@ -106,16 +117,20 @@ class QueriesDirectory(Directory):
         """Return a dictionary of landing queries."""
         return {x.path.stem: x for x in self.landing_dir.filelist}
 
-    def load_landing_data(self, cnxn: DuckDBPyConnection) -> DuckDBPyConnection:
-        """Load landing data into the database."""
-        [load_landing_csv(table, cnxn) for table in self.landing_query_dict.keys()]
-        return cnxn
+    def get_sorted_nonlanding_query_paths(self) -> list[Path]:
+        return sorted(
+            [
+                x.path
+                for x in self.allchildfiles
+                if x.path.suffix == ".sql" and "00_landing" not in x.path.parts
+            ],
+            key=lambda x: str(x.parent),
+        )
 
 
 @dataclass
 class DataDirectory(Directory):
     path: Path = DATA_PATH
-    queries: QueriesDirectory = field(default_factory=QueriesDirectory)
 
     def make_subdir(self, name: str) -> Path:
         """Make a subdirectory."""
@@ -146,19 +161,70 @@ class DataDirectory(Directory):
         }
 
 
-def get_staging_path_groups(data_dir: DataDirectory) -> list[StagingPathGroup]:
+def get_staging_path_groups(
+    data_dir: DataDirectory, queries: QueriesDirectory
+) -> list[StagingPathGroup]:
     """Return a list of StagingPathGroup objects."""
     return [
         StagingPathGroup(
             source_path=data_dir.source_path_dict[name],
-            query_path=data_dir.queries.landing_query_dict[name],
+            query_path=queries.landing_query_dict[name],
             staging_path=staging_path,
         )
         for name, staging_path in data_dir.staging_path_dict.items()
     ]
 
 
-def main(timer: Timer = None) -> None:
+def get_schema_table_name(query_path: Path | File) -> tuple[str, str]:
+    """Return the schema and table name."""
+    if isinstance(query_path, File):
+        query_path = query_path.path
+    name_parts = query_path.stem.split("_")
+    return name_parts[0], "_".join(name_parts[1:])
+
+
+def check_sql_path_for_blacklist(
+    sql_path: Path | File, blacklist: tuple[str] = SQL_BLACKLIST
+) -> bool:
+    """Check if the SQL path contains any blacklisted strings."""
+    if isinstance(sql_path, File):
+        sql_path = sql_path.path
+    check_text = sql_path.read_text().upper()
+    return any(x in check_text for x in blacklist)
+
+
+def get_object_type(table_name: str) -> str:
+    """Return the object type."""
+    return "VIEW" if table_name.lower().startswith("v_") else "TABLE"
+
+
+def get_create_object_command(
+    schema: str,
+    table_name: str,
+    sql: str,
+    obj_type: str = "TABLE",
+    ifnotexists: bool = True,
+    orreplace: bool = False,
+) -> str:
+    """Return the create object command."""
+    if ifnotexists:
+        ifnotexists = "IF NOT EXISTS"
+    else:
+        ifnotexists = ""
+    if orreplace:
+        orreplace = "OR REPLACE"
+        ifnotexists = ""
+    else:
+        orreplace = ""
+    return f"CREATE {orreplace} {obj_type} {ifnotexists} {schema}.{table_name} AS {sql}"
+
+
+def main(
+    timer: Timer = None,
+    replace: bool = True,
+) -> None:
+    """Main function."""
+
     if timer is None:
         timer = Timer()
     # Create a connection & all schemas
@@ -168,15 +234,33 @@ def main(timer: Timer = None) -> None:
 
     # Load landing data
     data_dir = DataDirectory()
-    data_dir.queries.load_landing_data(cnxn)
+    queries = QueriesDirectory()
+    load_landing_data(queries.landing_query_dict.keys(), cnxn)
     timer.log_from_last("Landing data")
 
+    # Load non-landing data
+    for query_path in tqdm(queries.get_sorted_nonlanding_query_paths()):
+        if query_path.stem.startswith("_"):
+            print(f"skipping {query_path.relative_to(queries.path)}")
+            continue
+        if check_sql_path_for_blacklist(query_path):
+            raise ValueError(f"Blacklisted SQL in {query_path}")
+        schema, table_name = get_schema_table_name(query_path)
+        if schema not in SCHEMAS:
+            raise ValueError(f"{schema} is not a valid schema in {SCHEMAS}")
+        sql = get_create_object_command(
+            schema, table_name, query_path.read_text(), orreplace=replace
+        )
+        print(
+            f"Creating {schema}.{table_name} from {"/".join(query_path.parts[-3:])}",
+            end="... ",
+        )
+        cnxn.execute(sql)
+        timer.log_from_start(f"{schema}.{table_name}")
+
     # Export database
-    sql = f"""EXPORT DATABASE
-    '{str(data_dir.staging_path)}' (FORMAT PARQUET)
-    """
-    [x.unlink() for x in data_dir.staging_path.iterdir()]
-    cnxn.execute(sql)
+    [x.unlink() for x in data_dir.export_path.iterdir() if x.is_file()]
+    cnxn.execute(f"""EXPORT DATABASE '{str(data_dir.export_path)}' (FORMAT PARQUET)""")
     timer.log_from_last("Export database")
     cnxn.close()
 

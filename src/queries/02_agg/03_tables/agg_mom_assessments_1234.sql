@@ -27,7 +27,7 @@ case
         when a.n > 2 then (sqrt(a.n * (a.n - 1))) /(a.n - 2)
         else 1
     end fp_coeff
-from main.assessment_staging s
+from agg.assessment_staging s
     join ass a on a.student_id = s.student_id
 group by s.student_id,
     a.n,

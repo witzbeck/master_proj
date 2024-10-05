@@ -26,9 +26,13 @@ case
 case
         when a.n > 2 then (sqrt(a.n * (a.n - 1))) /(a.n - 2)
         else 1
-    end fp_coeff
-from main.assessment_staging s
+    end fp_coeff into first30.mom_assessments_1234
+from main.v_assessment_staging s
     join ass a on a.student_id = s.student_id
+where (
+        s.date_due <= 30
+        or s.date_submitted <= 30
+    )
 group by s.student_id,
     a.n,
     a.avg_days,

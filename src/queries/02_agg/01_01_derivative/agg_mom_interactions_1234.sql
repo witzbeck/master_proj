@@ -54,7 +54,7 @@ select
     when stddev_visits_per_day = 0 then 0 
     else (sum((a.n_total_visits - a.avg_visits_per_day)^3) / a.n_days) / (stddev_visits_per_day^4) end kurt_visits_per_day
 ,case 
-    when a.n_days > 2 then (|/(a.n_days * (a.n_days - 1))) / (a.n_days - 2) 
+    when a.n_days > 2 then (sqrt(a.n_days * (a.n_days - 1))) / (a.n_days - 2) 
     else 1 end                                  fp_coeff_days
 
 from agg.mom_interactions_12 a

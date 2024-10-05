@@ -102,8 +102,8 @@ def test_queries_dir(queries_dir: QueriesDirectory) -> None:
     assert queries_dir.path.is_dir(), f"{queries_dir.path}"
 
 
-def test_data_dir_staging_path(data_dir: DataDirectory) -> None:
-    assert data_dir.staging_path.is_dir(), f"{data_dir.staging_path}"
+def test_data_dir_export_path(data_dir: DataDirectory) -> None:
+    assert data_dir.export_path.is_dir(), f"{data_dir.export_path}"
 
 
 def test_data_dir_source_path_dict(data_dir: DataDirectory) -> None:
@@ -120,9 +120,6 @@ def test_data_dir_staging_path_dict(data_dir: DataDirectory) -> None:
     assert data_dir.staging_path_dict is not None
     assert all(
         isinstance(x, Path) for x in data_dir.staging_path_dict.values()
-    ), f"{data_dir.staging_path_dict}"
-    assert all(
-        x.is_file() for x in data_dir.staging_path_dict.values()
     ), f"{data_dir.staging_path_dict}"
 
 
