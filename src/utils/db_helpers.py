@@ -1,18 +1,20 @@
 from dataclasses import dataclass, field
+from functools import cached_property
 from math import log
 from pathlib import Path
 
 from duckdb import DuckDBPyConnection
 from matplotlib.pyplot import subplots, xticks
+from numpy import ndarray
 from numpy.random import choice
 from pandas import DataFrame, Series
 from seaborn import histplot
+from tqdm import tqdm
 
 from alexlib.core import to_clipboard
 from alexlib.df import (
     get_distinct_col_vals,
 )
-from alexlib.files.utils import path_search
 from alexlib.maths import euclidean_distance as euclidean
 
 from utils import get_props
@@ -29,7 +31,7 @@ def get_table_abrv(table_name: str):
     return "".join(firsts)
 
 
-@dataclass(slots=True)
+@dataclass
 class DbHelper:
     cnxn: DuckDBPyConnection = field(default_factory=DuckDBPyConnection)
 
@@ -41,37 +43,40 @@ class DbHelper:
         self,
         schema: str,
         table: str,
-        destination: Path = "clipboard",
+        destination: Path = None,
         overwrite: bool = False,
     ) -> Path:
         df = self.info_schema
-        if len(df) == 0:
-            raise ValueError("object does not exist")
+        if df.empty:
+            raise ValueError("Object does not exist")
         abrv = get_table_abrv(table)
 
-        lines = ["select\n"]
+        cols = df["column_name"].tolist()
+        lines = ["SELECT\n"]
+        lines.extend([f"    {abrv}.{col}," for col in cols[:-1]])
+        lines.append(f"    {abrv}.{cols[-1]}\n")
+        lines.append(f"FROM {schema}.{table} {abrv}")
+        query = "\n".join(lines)
 
-        cols = list(df.loc[:, "column_name"])
-        for i, col in enumerate(cols):
-            if i == 0:
-                comma = " "
-            else:
-                comma = ","
-            line = f"{comma}{abrv}.{col}\n"
-            lines.append(line)
-        lines.append(f"from {schema}.{table} {abrv}")
-        text = "".join(lines)
-
-        if destination == "clipboard":
-            to_clipboard(text)
+        if destination is None:
+            to_clipboard(query)
+            return None
         else:
             filename = f"select_{schema}_{table}.sql"
             filepath = destination / filename
 
             if filepath.exists() and not overwrite:
-                raise FileExistsError("file already exists here. overwrite?")
-            filepath.write_text(text)
+                raise FileExistsError(
+                    "File already exists. Use overwrite=True to overwrite."
+                )
+            filepath.write_text(query)
             return filepath
+
+    # Add missing get_table method
+    def get_table(self, schema: str, table: str, nrows: int = None) -> DataFrame:
+        limit_clause = f"LIMIT {nrows}" if nrows else ""
+        query = f"SELECT * FROM {schema}.{table} {limit_clause}"
+        return self.cnxn.execute(query).fetchdf()
 
     def obj_cmd(
         self,
@@ -92,12 +97,6 @@ class DbHelper:
 
     def drop_view(self, schema: str, view: str):
         self.obj_cmd("drop", "view", schema, view)
-
-    def df_from_file(self, filename: str, path: Path = None):
-        if path is None:
-            path = path_search(filename)
-        text = path.read_text()
-        return self.cnxn.sql(text)
 
 
 def create_onehot_view(
@@ -128,9 +127,28 @@ def create_onehot_view(
     return "".join(lines)
 
 
+@dataclass
 class Column:
-    def is_id(col: str):
-        return False if col[-3:] != "_id" else True
+    schema: str
+    table: str
+    name: str
+    series: Series
+    is_id: bool = False
+    calc_desc: bool = False
+
+    def __post_init__(self):
+        self.is_id = self.name.lower().endswith("_id")
+
+    def __repr__(self) -> str:
+        return ".".join([x for x in [self.schema, self.table, self.name] if x])
+
+    @cached_property
+    def unique_vals(self) -> ndarray:
+        return self.series.unique()
+
+    @cached_property
+    def nunique(self) -> int:
+        return len(self.unique_vals)
 
     def auto_xtick_angle(
         self,
@@ -143,13 +161,11 @@ class Column:
         text_min: int = 30,
         text_mult: int = 2,
     ):
-        uni = list(self.series.unique())
-        self.ndist = len(uni)
-        if self.ndist < ndist_min:
+        if self.nunique < ndist_min:
             return 0
         self.ndist_prod = ndist_mult * self.ndist
 
-        text_len = sum(len(str(x)) for x in uni)
+        text_len = sum(len(str(x)) for x in self.unique_vals)
         if text_len > text_min:
             logtext = log(text_len)
             self.text_prod = text_mult * logtext
@@ -172,23 +188,7 @@ class Column:
 
         to_pyth = [self.len_prod, self.ndist_prod, self.logrange_prod, self.text_prod]
         angle = int(euclidean(to_pyth))
-        if angle > 45:
-            return 45
-        else:
-            return angle
-
-    def __init__(
-        self,
-        schema: str,
-        table: str,
-        col_name: str,
-        series: Series,
-    ) -> None:
-        self.schema = schema
-        self.table = table
-        self.col_name = col_name
-        self.series = series
-        self.is_id = Column.is_id(self.col_name)
+        return 45 if angle > 45 else angle
 
     def desc(  # noqa: C901
         self,
@@ -198,20 +198,8 @@ class Column:
         show_hist: bool = False,
         **kwargs,
     ):
-        try:
-            to_pyth = [
-                self.len_prod,
-                self.ndist_prod,
-                self.logrange_prod,
-                self.text_prod,
-            ]
-        except AttributeError:
-            pass
-        db_col = self.col_name
-        if self.schema is not None:
-            db_col = f"{self.schema}.{self.table}.{db_col}"
-        print(f"Describing {db_col}\n")
-        if (ndist := len(list(self.series.unique()))) < 31:
+        print(f"Describing {repr(self)}\n")
+        if self.nunique < 31:
             self.props = get_props(self.series)
             self.freqs = self.props["frequency"].values
             self.distvals = self.props["value"].values
@@ -223,13 +211,7 @@ class Column:
             print(f"Null count: {self.n_nulls}")
         if show_series_desc:
             print(self.series.describe(), "\n")
-        if show_hist and not self.is_id and ndist <= 31:
-            try:
-                print([round(x, 4) for x in to_pyth])
-            except AttributeError:
-                pass
-            except UnboundLocalError:
-                pass
+        if show_hist and not self.is_id and self.nunique <= 31:
             self.xtick_angle = self.auto_xtick_angle()
         else:
             self.xtick_angle = 0
@@ -245,55 +227,30 @@ class Column:
             return fig, ax
 
 
+@dataclass
 class Table:
-    def set_cols(self):
-        self.col_names = self.df.columns
-        self.ncols = len(self.col_names)
-        self.col_series = {x: self.df.loc[:, x] for x in self.col_names}
-        s, t, c = self.schema, self.table, self.col_series
-        d, n = self.calc_desc, self.col_names
-        self.cols = {x: Column(s, t, x, c[x], calc_desc=d) for x in n}
+    schema: str
+    name: str
+    df: DataFrame
+    calc_desc: bool = False
+    columns: dict[str, Column] = field(default_factory=dict)
 
-    def set_funcs(self):
-        self.rand_col = lambda: choice(list(self.cols.values()))
-        self.head = lambda x: self.df.head(x)
+    @property
+    def ncolumns(self) -> int:
+        return len(self.df.columns)
 
-    def __init__(
-        self,
-        context: str,
-        schema: str,
-        table: str,
-        calc_desc: bool = False,
-        df: DataFrame = None,
-        nrows: int = None,
-    ) -> None:
-        self.schema = schema
-        self.table = table
-        if df is None:
-            dbh = DbHelper(context)
-            self.df = dbh.get_table(schema, table, nrows=nrows)
-        else:
-            self.df = df
-        self.calc_desc = calc_desc
-        self.set_cols()
-        self.set_funcs()
+    def get_columns(self) -> dict[str, Column]:
+        return {
+            x: Column(self.schema, self.name, x, self.df.loc[:, x])
+            for x in self.df.columns
+        }
 
-    def desc_col(self, col: str, **kwargs):
-        col = self.cols[col]
-        col.desc(**kwargs)
+    @property
+    def rand_column(self) -> Column:
+        return choice(list(self.columns.values()))
 
-    def desc_all_cols(self):
-        for i, col in enumerate(self.col_names):
-            print(f"({i + 1}/{self.ncols})")
-            self.desc_col(col, show_hist=False)
-
-    @classmethod
-    def from_df(
-        cls,
-        df: DataFrame,
-        calc_desc: bool = False,
-        context: str = None,
-        schema: str = None,
-        table: str = None,
-    ):
-        return cls(context, schema, table, calc_desc=calc_desc, df=df)
+    def desc_all_cols(self, **kwargs):
+        for i, col in tqdm(enumerate(self.df.columns)):
+            print(f"({i + 1}/{self.ncolumns})")
+            column = self.columns[col]
+            column.desc(**kwargs)
