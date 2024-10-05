@@ -1,9 +1,9 @@
 """Constants for the project."""
 
-from logging import DEBUG, WARNING
+from logging import WARNING
 from pathlib import Path
 
-LOG_LEVEL, EVENT_LEVEL = DEBUG, WARNING
+LOG_LEVEL, EVENT_LEVEL = WARNING, WARNING
 
 HOME = Path.home()
 SOURCE_PATH = Path(__file__).parent.parent

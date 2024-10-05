@@ -262,7 +262,7 @@ class Table:
     name: str
     df: DataFrame
     calc_desc: bool = False
-    columns: dict[str, Column] = field(default_factory=dict)
+    columns: dict[str, Column] = field(init=False)
 
     @property
     def ncolumns(self) -> int:
@@ -273,6 +273,9 @@ class Table:
             x: Column(self.schema, self.name, x, self.df.loc[:, x])
             for x in self.df.columns
         }
+
+    def __post_init__(self):
+        self.columns = self.get_columns()
 
     @property
     def rand_column(self) -> Column:
