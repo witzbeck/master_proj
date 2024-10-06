@@ -1,5 +1,3 @@
-create view eval.v_all_runs_results as
-
 select
     r.model_type
     , ra.run_id

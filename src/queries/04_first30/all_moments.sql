@@ -1,4 +1,3 @@
-drop table first30.all_moments;
 
 select
  mit1.student_id
@@ -271,7 +270,6 @@ select
 ,coalesce(mipt1p.url_skew_clicks ,0) url_skew_clicks
 ,coalesce(mipt1p.url_kurt_clicks ,0) url_kurt_clicks
 ,coalesce(mipt1p.url_fp_coeff ,0) url_fp_coeff
-into first30.all_moments
 from first30.mom_interactions_total_1234 mit1
 left join first30.mom_assessments_1234 ma1 on ma1.student_id=mit1.student_id
 left join first30.mom_interactions_per_type_1234_pivot mipt1p on mipt1p.student_id=mit1.student_id

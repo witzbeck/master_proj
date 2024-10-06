@@ -1,4 +1,3 @@
-drop table agg.assessment_staging cascade;
 select distinct
  s.id student_id
 ,b.student_id orig_student_id
@@ -13,7 +12,6 @@ select distinct
 ,b.date_submitted
 ,a.date - b.date_submitted days_before_due_submitted
 ,a.date date_due
-into agg.assessment_staging
 from main.student_assessment_bridge b
 join (select id, orig_student_id 
         from main.student_info

@@ -15,6 +15,19 @@ from utils.constants import DATA_PATH, DB_PATH, QUERY_PATH, RAW_PATH, SCHEMAS
 logger = getLogger(__name__)
 
 SQL_BLACKLIST = ("CREATE", "DROP", "ALTER", "TRUNCATE", "DELETE", "UPDATE", "INSERT")
+CREATE_MODEL_RUNS_TABLE = """
+create table model.runs (
+    id serial primary key,
+    model_type text not null,
+    timestamp timestamp not null
+)
+"""
+CREATE_MODEL_TYPES_TABLE = """
+create table model.types(
+id serial primary key,
+model_type text not null
+);
+"""
 
 
 def get_cnxn(database: Path = DB_PATH, read_only: bool = False) -> DuckDBPyConnection:

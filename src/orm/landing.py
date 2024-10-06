@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from pathlib import Path
 
 from sqlalchemy import Column, Float, Integer, SmallInteger, String
@@ -11,10 +10,10 @@ SCHEMA = "landing"
 Base = declarative_base()
 
 
-@dataclass(slots=True)
 class LandingTable:
     __tablename__: str
     __schema__: str = SCHEMA
+    id: Column = Column(Integer, primary_key=True, autoincrement=True)
 
     def __str__(self) -> str:
         return f"{self.__schema__}.{self.__tablename__}"
@@ -33,7 +32,6 @@ class LandingTable:
         session.commit()
 
 
-@dataclass(slots=True)
 class Vle(Base, LandingTable):
     __tablename__ = "vle"
     site_id = Column(Integer)
@@ -44,9 +42,8 @@ class Vle(Base, LandingTable):
     week_to = Column(SmallInteger)
 
 
-@dataclass(slots=True)
 class StudentVle(Base, LandingTable):
-    __tablename__ = "studentVle"
+    __tablename__ = "student_vle"
     site_id = Column(Integer)
     student_id = Column(Integer)
     code_module = Column(String(45))
@@ -55,9 +52,8 @@ class StudentVle(Base, LandingTable):
     sum_click = Column(Integer)
 
 
-@dataclass(slots=True)
 class StudentRegistration(Base, LandingTable):
-    __tablename__ = "studentRegistration"
+    __tablename__ = "student_registration"
     code_module = Column(String(45))
     code_presentation = Column(String(45))
     student_id = Column(Integer)
@@ -65,9 +61,8 @@ class StudentRegistration(Base, LandingTable):
     date_unregistration = Column(Integer)
 
 
-@dataclass(slots=True)
 class StudentInfo(Base, LandingTable):
-    __tablename__ = "studentInfo"
+    __tablename__ = "student_info"
     student_id = Column(Integer)
     code_module = Column(String(45))
     code_presentation = Column(String(45))
@@ -83,7 +78,7 @@ class StudentInfo(Base, LandingTable):
 
 
 class StudentAssessment(Base, LandingTable):
-    __tablename__ = "studentAssessment"
+    __tablename__ = "student_assessment"
     student_id = Column(Integer)
     assessment_id = Column(Integer)
     date_submitted = Column(Integer)

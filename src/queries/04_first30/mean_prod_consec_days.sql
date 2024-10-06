@@ -30,6 +30,5 @@ join date_mod2 m2 on m2.d=m0.d and m2.student_id=m0.student_id
 select
  c.student_id
 ,sum(c.prod_3_click) / count(*) mean_prod_3_click
-into first30.prod_3_dates_seq
 from clicks c
 group by student_id

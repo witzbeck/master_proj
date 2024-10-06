@@ -1,4 +1,3 @@
-create view eval.v_features as
 select
     v.column_name
     , v.ordinal_position

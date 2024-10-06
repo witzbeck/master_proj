@@ -66,7 +66,6 @@ select
     , vr.is_south
     , vr.is_wales
 
-into first30.all_classes
 from main.student_info a
     join main.course_info c on c.id = a.course_id
     join first30.students s on s.id = a.id

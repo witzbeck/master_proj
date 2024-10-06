@@ -1,4 +1,3 @@
-create view model.v_compare_perf as 
 select
  b.id
 ,f.to_predict_col

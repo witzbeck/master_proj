@@ -34,7 +34,6 @@ select
     , sum(n_revisits) n_revisits_total
     , max(n_revisits) max_revisits_total
 
-into first30.activities_revisits
 from first30.interaction_types_staging i
     join revisits r on r.student_id = i.student_id
 group by

@@ -1,4 +1,3 @@
-drop table first30.all_features;
 select
  ac.student_id
 ,ac.course_id
@@ -358,7 +357,6 @@ select
 ,ae.n_revisits_total
 ,ae.max_revisits_total
 ,ae.mean_prod_3_click
-into first30.all_features
 from first30.all_classes ac
 join first30.all_engagement ae on ae.student_id=ac.student_id
 join first30.all_moments am on am.student_id=ac.student_id

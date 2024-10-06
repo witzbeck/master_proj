@@ -80,7 +80,6 @@ requires      = ["poetry-core"]
 
 
 [tool.ruff]
-fix = true
 exclude = [
     ".git",
     ".git-rewrite",
@@ -95,6 +94,7 @@ exclude = [
     "site-packages",
 ]
 extend-include = ["*.ipynb"]
+fix = true
 indent-width = 4
 line-length = 88
 target-version = "py312"

@@ -28,7 +28,6 @@ select
     , r.max_revisits_total
     , d.mean_prod_3_click
 
-into first30.all_engagement
 from first30.students s
     left join first30.grades g on g.student_id = s.id
     left join first30.activities_top_5th_perc p on p.student_id = s.id

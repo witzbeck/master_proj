@@ -241,7 +241,6 @@ select
     , sum(is_url * m.skew_clicks) url_skew_clicks
     , sum(is_url * m.kurt_clicks) url_kurt_clicks
     , sum(is_url * m.fp_coeff) url_fp_coeff
-into first30.mom_interactions_per_type_1234_pivot
 from first30.mom_interactions_per_type_1234 m
     join main.v_activity_types_onehot v on v.id = m.activity_type_id
 group by student_id

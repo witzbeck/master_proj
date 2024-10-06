@@ -1,6 +1,3 @@
-create view main.v_vs_staging_demog as 
-/*
-*/
 select
 --count(*) n
 v.id

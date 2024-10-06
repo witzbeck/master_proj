@@ -1,6 +1,3 @@
-create view eval2.v_all_runs_results as 
---drop view eval.v_all_runs_results cascade;
-
 select
  r.model_type
 ,ra.run_id

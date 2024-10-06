@@ -66,7 +66,6 @@ select
 ,vr.is_west_midlands_region             is_region_west_midlands
 ,vr.is_yorkshire_region                 is_region_yorkshire
 
-into first30.all_classes
 from first30.academic_info a
 join feat.course_info c on c.course_id=a.course_id
 join first30.demographic_info d on d.student_id=a.student_id

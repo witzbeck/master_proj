@@ -1,4 +1,3 @@
-create view first30.v_all_classes_ratios as
 select
     course_id
     , is_stem
