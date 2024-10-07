@@ -14,7 +14,7 @@ select avg.student_id,
     sqrt(sum((v.date - avg.date) ^ 2) / avg.n) stddev_date,
     avg.clicks avg_clicks,
     sum((v.sum_click - avg.clicks) ^ 2) / avg.n var_clicks,
-    sqrt(sum((v.sum_click - avg.clicks) ^ 2) / avg.n) stddev_clicks into first30.mom_interactions_total_12
+    sqrt(sum((v.sum_click - avg.clicks) ^ 2) / avg.n) stddev_clicks
 from agg.vle_interactions_staging v
     join avg on avg.student_id = v.student_id
 where v.date <= 30

@@ -15,7 +15,16 @@ from utils.constants import DATA_PATH, DB_PATH, QUERY_PATH, RAW_PATH, SCHEMAS
 
 logger = getLogger(__name__)
 
-SQL_BLACKLIST = ("CREATE", "DROP", "ALTER", "TRUNCATE", "DELETE", "UPDATE", "INSERT")
+SQL_BLACKLIST = (
+    "CREATE",
+    "DROP",
+    "ALTER",
+    "TRUNCATE",
+    "DELETE",
+    "UPDATE",
+    "INSERT",
+    "INTO",
+)
 CREATE_MODEL_RUNS_TABLE = """
 create table model.runs (
     id serial primary key,
@@ -29,6 +38,18 @@ id serial primary key,
 model_type text not null
 );
 """
+SOURCE_TABLES = {
+    "MODEL_RUNS",
+    "MODEL_TYPES",
+    "MODEL_RESULTS",
+    "LANDING_ASSESSMENTS",
+    "LANDING_COURSES",
+    "LANDING_STUDENT_ASSESSMENT",
+    "LANDING_STUDENT_INFO",
+    "LANDING_STUDENT_REGISTRATION",
+    "LANDING_STUDENT_VLE",
+    "LANDING_VLE",
+}
 
 
 def get_cnxn(database: Path = DB_PATH, read_only: bool = False) -> DuckDBPyConnection:
@@ -229,9 +250,19 @@ class QueriesDirectory(Directory):
         return self.target_groupby.to_dict()["Source"]
 
     @cached_property
-    def nontargeted_sources(self) -> set[str]:
-        return set(self.source_ntargets_map.keys()) - set(
-            self.target_nsources_map.keys()
+    def sources_without_targets(self) -> set[str]:
+        return (
+            set(self.target_nsources_map.keys())
+            - set(self.source_ntargets_map.keys())
+            - SOURCE_TABLES
+        )
+
+    @cached_property
+    def targets_without_sources(self) -> set[str]:
+        return (
+            set(self.source_ntargets_map.keys())
+            - set(self.target_nsources_map.keys())
+            - SOURCE_TABLES
         )
 
 
@@ -380,10 +411,9 @@ if __name__ == "__main__":
         print("/".join(path.parts[-3:]), "\n\t" + "\n\t".join(sources))
         print(qdir.path_normalized_name_map[path])
         break
-    """
     print(qdir.target_source_df)
-    print(qdir.source_groupby)
     print(qdir.source_ntargets_map)
-    print(qdir.target_groupby)
     print(qdir.target_nsources_map, "\n")
-    print("Nontargeted sources:", qdir.nontargeted_sources)
+    """
+    print("Sources Without Targets:", sorted(qdir.sources_without_targets))
+    print("Targets Without Sources:", sorted(qdir.targets_without_sources))

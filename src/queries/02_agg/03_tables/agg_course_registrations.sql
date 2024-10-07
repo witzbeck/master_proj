@@ -42,9 +42,8 @@ SELECT
 
 
 
-into agg.course_reg_results
 from main.student_info s
-join main.v_imd_band_onehot vibo on vibo.id=s.imd_band_id
+join main.onehot_imd_band vibo on vibo.id=s.imd_band_id
 join main.final_result f on f.id=s.final_result_id
 
 group by 

@@ -4,7 +4,8 @@ with avg as (
         count(*) n,
         cast(sum(vis.date) as float) / count(*) date,
         cast(sum(vis.sum_click) as float) / count(*) clicks
-    from agg.vle_interactions_staging vis
+    from agg.interaction_types_staging vis
+        join first30.students s on s.id = vis.student_id
     where date <= 30
     group by student_id,
         activity_type_id
@@ -18,7 +19,7 @@ select avg.student_id,
     avg.clicks avg_clicks,
     sum((v.sum_click - avg.clicks) ^ 2) / avg.n var_clicks,
     sqrt(sum((v.sum_click - avg.clicks) ^ 2) / avg.n) stddev_clicks
-from agg.vle_interactions_staging v
+from agg.interaction_types_staging v
     join avg on avg.student_id = v.student_id
 where v.date <= 30
 group by avg.student_id,

@@ -85,6 +85,6 @@ from agg.course_info c
             sum(vfro.is_pass) n_pass,
             sum(vfro.is_withdrawn) n_withdrawn
         from main.student_info s
-            join main.v_final_result_onehot vfro on vfro.id = s.final_result_id
+            join main.onehot_final_result vfro on vfro.id = s.final_result_id
         group by s.course_id
     ) fr on fr.course_id = c.course_id

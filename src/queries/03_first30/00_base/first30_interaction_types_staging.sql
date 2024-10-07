@@ -26,5 +26,6 @@ SELECT b.student_id,
     o.is_subpage,
     o.is_url
 FROM main.student_vle_bridge b
-    JOIN main.vle_course_bridge v on b.site_id = v.site_id
-    JOIN main.onehot_activity_type o on o.id = v.activity_type_id
+    JOIN main.vle_course_bridge v ON b.site_id = v.site_id
+    JOIN main.onehot_activity_type o ON o.id = v.activity_type_id
+WHERE b.date <= 30

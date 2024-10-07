@@ -383,3 +383,30 @@ def test_get_create_object_command_ifnotexists_ignored_with_orreplace():
     assert (
         result == expected
     )  # 'IF NOT EXISTS' should be ignored when 'OR REPLACE' is True
+
+
+# def test_qdir_has_no_targets_without_sources(queries_dir: QueriesDirectory) -> None:
+#    len_ = len(queries_dir.targets_without_sources)
+#    assert (
+#        len_ == 0
+#    ), f"Targets Without Sources: {len_} | {queries_dir.targets_without_sources}"
+
+
+@fixture(scope="module")
+def target_names(queries_dir: QueriesDirectory) -> list[str]:
+    return queries_dir.target_nsources_map.keys()
+
+
+@fixture(scope="module")
+def source_names(queries_dir: QueriesDirectory) -> list[str]:
+    return queries_dir.source_ntargets_map.keys()
+
+
+def test_target_names_without_view_code(target_names: list[str]) -> None:
+    names = [x for x in target_names if "_V_" in x.upper()]
+    assert not names, f"{len(names)} | {names}"
+
+
+def test_source_names_without_view_code(source_names: list[str]) -> None:
+    names = [x for x in source_names if "_V_" in x.upper()]
+    assert not names, f"{len(names)} | {names}"

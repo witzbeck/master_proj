@@ -22,7 +22,6 @@ select
 ,c.order_by_clicks
 ,ceiling(((99 * cast(c.order_by_visits as float)) / max_by_visits)) + 1 activity_percentile_by_visits
 ,ceiling(((99 * cast(c.order_by_clicks as float)) / max_by_clicks)) + 1 activity_percentile_by_clicks
-into first30.activities_ordered
 from activities_order c
 join (
     select

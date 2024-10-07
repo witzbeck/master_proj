@@ -2,11 +2,12 @@ from dataclasses import dataclass, field
 from datetime import datetime as dt
 from functools import partial
 
-from pandas import DataFrame, concat
-from psycopg.errors import DatatypeMismatch
+from duckdb import DuckDBPyConnection
+from pandas import DataFrame
 
 from alexlib.core import chkenv
-from utils import db_mgr as cnxn
+
+from utils.elt_config import get_cnxn
 
 
 @dataclass
@@ -14,6 +15,7 @@ class Logger:
     """A class to log the results of a model to a database table. Inherits from the ProjectTable class"""
 
     model_type: str
+    cnxn: DuckDBPyConnection = field(default_factory=get_cnxn)
     log_schema: str = field(default=chkenv("LOG_SCHEMA"))
     log_runs_table: str = field(default="runs")
     log_runs_id_col: str = field(default="id")
@@ -25,7 +27,7 @@ class Logger:
 
     def set_run_id(self) -> int:
         """Returns the next id for the runs table."""
-        return cnxn.get_next_id(
+        return self.cnxn.get_next_id(
             self.log_schema, self.log_runs_table, self.log_runs_id_col
         )
 
@@ -78,25 +80,13 @@ class Logger:
         df = DataFrame.from_dict(list_dict)
         if "param" in log_table or "result" in log_table:
             df.reset_index(inplace=True, names="iter_id")
-        try:
-            df.to_sql(
-                log_table,
-                cnxn.engine,
-                schema=self.log_schema,
-                if_exists=self.if_exists,
-                index=False,
-            )
-        except DatatypeMismatch:
-            existing = self.dbh.get_table(self.log_schema, log_table)
-            if len(existing.columns) == len(df.columns):
-                new_df = concat([existing, df])
-                new_df.to_sql(
-                    log_table,
-                    con=self.dbh.engine,
-                    schema=self.log_schema,
-                    if_exists="replace",
-                    index=False,
-                )
+        df.to_sql(
+            log_table,
+            self.cnxn,
+            schema=self.log_schema,
+            if_exists=self.if_exists,
+            index=False,
+        )
 
     def log_run(self, _keys: list = None) -> None:
         """Logs a run to the runs table."""

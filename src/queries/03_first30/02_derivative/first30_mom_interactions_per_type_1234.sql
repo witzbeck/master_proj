@@ -40,7 +40,7 @@ case
         when n > 2 then (sqrt(n * (n - 1))) /(n - 2)
         else 1
     end fp_coeff
-from agg.vle_interactions_staging v
+from agg.interaction_types_staging v
     join act a on a.student_id = v.student_id
     and a.activity_type_id = v.activity_type_id
 where v.date <= 30
