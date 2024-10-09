@@ -410,3 +410,27 @@ def test_target_names_without_view_code(target_names: list[str]) -> None:
 def test_source_names_without_view_code(source_names: list[str]) -> None:
     names = [x for x in source_names if "_V_" in x.upper()]
     assert not names, f"{len(names)} | {names}"
+
+
+def test_fewer_sources_than_targets(queries_dir: QueriesDirectory) -> None:
+    assert len(queries_dir.source_ntargets_map) <= len(queries_dir.target_nsources_map)
+
+
+def test_more_targets_than_sources(queries_dir: QueriesDirectory) -> None:
+    assert len(queries_dir.target_nsources_map) >= len(queries_dir.source_ntargets_map)
+
+
+def test_all_sources_have_targets(queries_dir: QueriesDirectory) -> None:
+    assert all(queries_dir.source_ntargets_map.values())
+
+
+def test_all_targets_have_sources(queries_dir: QueriesDirectory) -> None:
+    assert all(queries_dir.target_nsources_map.values())
+
+
+def test_more_targets_without_sources_than_sources_without_targets(
+    queries_dir: QueriesDirectory,
+) -> None:
+    assert len(queries_dir.targets_without_sources) <= len(
+        queries_dir.sources_without_targets
+    )
