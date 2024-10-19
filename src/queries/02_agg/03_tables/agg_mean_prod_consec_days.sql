@@ -28,9 +28,8 @@ join date_mod2 m2 on m2.d=m0.d and m2.student_id=m0.student_id
 )
 
 select
- p.student_id
-,sum(p.prod_3_click) / count(*) mean_prod_3_click
+ student_id
+,sum(prod_3_click) / count(*) mean_prod_3_click
 from clicks c
 group by student_id
 
-limit 1000;
