@@ -12,55 +12,34 @@ of the class.
 from functools import cached_property
 from warnings import catch_warnings
 
-from analysis import RocCurve
-from features import Features
-from logger import Logger
 from numpy import array
 from pandas import DataFrame, Series
-from params import Params, overwrite_std_params
-from preprocessing import DataPrep
-from setup import random_state
 from sklearn.decomposition import PCA
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import GridSearchCV, RepeatedStratifiedKFold
 from sklearn.pipeline import Pipeline
 
-from alexlib.core import chkenv
+from model.analysis import RocCurve
+from model.features import Features
+from model.logger import Logger
+from model.params import Params, overwrite_std_params
+from model.preprocessing import DataPrep
+from utils.constants import (
+    CV_NREPEATS,
+    CV_NSPLITS,
+    CV_REFIT,
+    CV_VERBOSE,
+    NROWS,
+    RANDOM_STATE,
+    SEARCH_RANDOM,
+    SIMPLE_NUM_IMPUTE,
+    TEST_SIZE,
+)
 
 
 class ModelEngine:
     """A class to fit, test, and log the results of a machine learning model."""
-
-    @property
-    def n_splits(self) -> int:
-        """The number of splits to use in the cross-validation."""
-        return chkenv("CV_NSPLITS", type=int)
-
-    @property
-    def n_repeats(self) -> int:
-        """The number of repeats to use in the cross-validation."""
-        return chkenv("CV_NREPEATS", type=int)
-
-    @property
-    def reduce_dim(self) -> bool:
-        """Whether to reduce the dimensions of the data before fitting the model."""
-        return chkenv("REDUCE_DIM", type=bool)
-
-    @property
-    def verbose(self) -> int:
-        """The verbosity level of the model fitting."""
-        return chkenv("CV_VERBOSE", type=int)
-
-    @property
-    def simple_num_impute(self) -> bool:
-        """Whether to use simple imputation for numerical data."""
-        return chkenv("SIMPLE_NUM_IMPUTE", type=bool)
-
-    @property
-    def search_random(self) -> bool:
-        """Whether to use random search for hyperparameter optimization."""
-        return chkenv("SEARCH_RANDOM", type=bool)
 
     @cached_property
     def params(self) -> Params:
@@ -76,7 +55,7 @@ class ModelEngine:
     def crossval(self) -> RepeatedStratifiedKFold:
         """The cross-validation object to use for the model."""
         return RepeatedStratifiedKFold(
-            n_splits=self.n_splits, n_repeats=self.n_repeats, random_state=random_state
+            n_splits=CV_NSPLITS, n_repeats=CV_NREPEATS, random_state=RANDOM_STATE
         )
 
     @cached_property
@@ -84,10 +63,10 @@ class ModelEngine:
         """The data to use for the model."""
         return DataPrep(
             self.feat,
-            nrows=self.params.nrows,
-            test_size=self.params.test_size,
-            random_state=random_state,
-            simpnum=self.simple_num_impute,
+            nrows=NROWS,
+            test_size=TEST_SIZE,
+            random_state=RANDOM_STATE,
+            simpnum=SIMPLE_NUM_IMPUTE,
             df_filter=self.df_filter,
         )
 
@@ -107,29 +86,29 @@ class ModelEngine:
     def gridsearch(self) -> GridSearchCV:
         """The grid search object to use for the model."""
         n_jobs = -1
-        if self.search_random:
+        if SEARCH_RANDOM:
             gs = self.params.searchcv(
-                self.pipe,
+                self.pipeline,
                 self.params._dict,
                 cv=self.crossval,
                 pre_dispatch=self.params.pre_dispatch,
                 n_iter=self.params.n_iter,
                 scoring=["roc_auc"],
-                refit=self.params.refit,
+                refit=CV_REFIT,
                 n_jobs=n_jobs,
-                verbose=self.verbose,
-                random_state=self.params.random_state,
+                verbose=CV_VERBOSE,
+                random_state=RANDOM_STATE,
             )
         else:
             gs = self.params.searchcv(
-                self.pipe,
+                self.pipeline,
                 self.params._dict,
                 cv=self.crossval,
                 pre_dispatch=self.params.pre_dispatch,
                 scoring=["roc_auc"],
                 refit=self.params.refit,
                 n_jobs=n_jobs,
-                verbose=self.verbose,
+                verbose=CV_VERBOSE,
             )
         return gs
 
@@ -139,10 +118,7 @@ class ModelEngine:
         return Logger(self.params.model_type)
 
     def get_all_params_log(self) -> dict:
-        all_params = {}
-        p_keys = [x for x in self.gridsearch.cv_results_.keys() if x[:6] == "param_"]
-        for key in p_keys:
-            all_params[key] = self.gridsearch.cv_results_[key]
+        all_params = self.gridsearch.cv_results_.copy()
         std_params = self.params.get_std_clf_params()
         return overwrite_std_params(all_params, std_params)
 
@@ -158,8 +134,8 @@ class ModelEngine:
             log = self.get_all_params_log()
         else:
             log = self.get_best_params_log()
-            log["n_splits"] = self.n_splits
-            log["n_repeats"] = self.n_repeats
+            log["n_splits"] = CV_NSPLITS
+            log["n_repeats"] = CV_NREPEATS
         self.logger.log_params(log)
 
     def get_feat_log(self) -> dict:

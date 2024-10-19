@@ -31,6 +31,9 @@ MODEL_TYPES = (
     # "compnb",
     # "gauss",
 )
+# logs
+LOG_SCHEMA = "model"
+(LOG_PATH := PROJECT_PATH / "logs").mkdir(exist_ok=True)
 
 # model search
 INF_ITER = False

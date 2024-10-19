@@ -1,11 +1,40 @@
+from dataclasses import dataclass, field
+from functools import cached_property
 from itertools import chain
 
 from pandas import DataFrame
 
-from alexlib.core import chkenv
 from alexlib.df import filter_df
 from alexlib.iters import rm_pattern
-from utils.db_helpers import Table
+
+from utils.constants import (
+    USE_ACADEMIC,
+    USE_ALL,
+    USE_BY_ACTIVITY,
+    USE_DEMOGRAPHIC,
+    USE_ENGAGEMENT,
+    USE_IDS,
+    USE_MOMENTS,
+    USE_TEXT,
+)
+
+CATEGORY_COLUMNS = (
+    "course_id",
+    "module_id",
+    "presentation_id",
+)
+TO_DROP_COLUMNS = ("student_id", "unreg_date", "reg_date_dif")
+FINAL_RESULT_COLUMNS = (
+    "final_result",
+    "final_result_id",
+    "is_pass_or_distinction",
+    "is_distinction",
+    "is_pass",
+    "is_fail",
+    "is_withdrawn",
+    "is_withdraw_or_fail",
+)
+SPLIT_COLUMNS = ("is_stem", "is_female", "has_disability")
 
 
 def wo_ids(x: str) -> str:
@@ -13,29 +42,20 @@ def wo_ids(x: str) -> str:
     return rm_pattern(x, "_id")
 
 
+@dataclass
 class Features:
     """A class to describe the features in a database table. Inherits from the ProjectTable class in the alexlib.db.objects module."""
 
-    cat_cols = [
-        "course_id",
-        "module_id",
-        "presentation_id",
-    ]
-    to_drop_cols = ["student_id", "unreg_date", "reg_date_dif"]
-    final_result_cols = [
-        "final_result",
-        "final_result_id",
-        "is_pass_or_distinction",
-        "is_distinction",
-        "is_pass",
-        "is_fail",
-        "is_withdrawn",
-        "is_withdraw_or_fail",
-    ]
+    df: DataFrame
+    schema: str = "eval"
+    table: str = "v_features"
+    field_col: str = "column_name"
+    to_include: list[str] = field(default_factory=list)
+    to_exclude: list[str] = field(default_factory=list)
 
-    def get_col_names(self, df: DataFrame) -> list:
+    def get_col_names(self) -> list:
         """Returns a list of column names from a DataFrame."""
-        return df.loc[:, self.field_col]
+        return self.df.loc[:, self.field_col].tolist()
 
     def get_col_cat(
         self,
@@ -44,166 +64,115 @@ class Features:
     ) -> list:
         """Returns a list of column names from a DataFrame that match a given condition."""
         filtered_df = filter_df(self.tbl.df, ind_col, ind_val)
-        return list(self.get_col_names(filtered_df))
+        return self.get_col_names(filtered_df)
 
-    def set_col_cats(self) -> None:
-        """Sets the column categories for the Features object."""
-        self.all = self.get_col_names(self.tbl.df)
-        self.demographic = self.get_col_cat("is_demographics", 1)
-        self.academic = self.get_col_cat("is_academic", 1)
-        self.engagement = self.get_col_cat("is_engagement", 1)
-        self.final_result = self.get_col_cat("is_final_result", 1)
-        self.moment = self.get_col_cat("is_moment", 1)
-        self.student_info = self.get_col_cat("is_student_info", 1)
-        self.by_activity = self.get_col_cat("is_by_activity", 1)
-        self.obj = self.get_col_cat("is_obj", 1)
-        self.ids = self.get_col_cat("is_id", 1)
-        self.bool = self.get_col_cat("is_bool", 1)
-        self.num = [x for x in self.all if x not in self.obj + self.bool]
+    @property
+    def all(self) -> list:
+        """Returns a list of all column names in the DataFrame."""
+        return self.get_col_names(self.tbl.df)
 
-    def get_keep_cols(self) -> list:
+    @cached_property
+    def obj(self) -> list:
+        """Returns a list of object columns in the DataFrame."""
+        return self.get_col_cat("is_obj", 1)
+
+    @cached_property
+    def ids(self) -> list:
+        """Returns a list of ID columns in the DataFrame."""
+        return self.get_col_cat("is_id", 1)
+
+    @cached_property
+    def bool(self) -> list:
+        """Returns a list of boolean columns in the DataFrame."""
+        return self.get_col_cat("is_bool", 1)
+
+    @cached_property
+    def num(self) -> list:
+        """Returns a list of numeric columns in the DataFrame."""
+        return [x for x in self.all if x not in self.obj + self.bool]
+
+    @cached_property
+    def keep_cols(self) -> set[str]:
         """Returns a list of columns to keep in the DataFrame."""
         keep_cols = [self.to_include]
-        if self.use_academic:
-            keep_cols.append(self.academic)
-        if self.use_demographic:
-            keep_cols.append(self.demographic)
-        if self.use_engagement:
-            keep_cols.append(self.engagement)
-        if self.use_moments:
-            keep_cols.append(self.moment)
-        if self.use_student_info:
-            keep_cols.append(self.student_info)
-        if self.use_ids:
-            keep_cols.append(self.ids)
-        if self.use_text:
-            keep_cols.append(self.obj)
-        if self.use_by_activity:
-            keep_cols.append(self.by_activity)
-        return chain.from_iterable(keep_cols)
+        if USE_ACADEMIC:
+            academic = self.get_col_cat("is_academic", 1)
+            keep_cols.append(academic)
+        if USE_DEMOGRAPHIC:
+            demographic = self.get_col_cat("is_demographics", 1)
+            keep_cols.append(demographic)
+        if USE_ENGAGEMENT:
+            engagement = self.get_col_cat("is_engagement", 1)
+            keep_cols.append(engagement)
+        if USE_MOMENTS:
+            moment = self.get_col_cat("is_moment", 1)
+            keep_cols.append(moment)
+        if USE_IDS:
+            ids = self.get_col_cat("is_id", 1)
+            keep_cols.append(ids)
+        if USE_TEXT:
+            obj = self.get_col_cat("is_obj", 1)
+            keep_cols.append(obj)
+        if USE_BY_ACTIVITY:
+            by_activity = self.get_col_cat("is_by_activity", 1)
+            keep_cols.append(by_activity)
+        return set(chain.from_iterable(keep_cols))
 
-    def get_drop_cols(self) -> list:
+    @property
+    def drop_cols(self) -> set[str]:
         """Returns a list of columns to drop in the DataFrame."""
-        drop_cols = [
-            Features.to_drop_cols,
-            self.to_exclude,
-            Features.final_result_cols,
-        ]
-        return chain.from_iterable(drop_cols)
+        return set(
+            chain.from_iterable(
+                [
+                    TO_DROP_COLUMNS,
+                    self.to_exclude,
+                    FINAL_RESULT_COLUMNS,
+                ]
+            )
+        )
 
-    def set_cols(self) -> list:
+    @property
+    def columns(self) -> list:
         """Sets the columns to keep and drop in the DataFrame. Returns a list of columns to keep."""
-        self.set_col_cats()
-        self.drop_cols = list(set(self.get_drop_cols()))
-        self.keep_cols = list(set(self.get_keep_cols()))
         return [x for x in self.keep_cols if x not in self.drop_cols]
 
-    @property
-    def to_predict_col(self) -> str:
-        """Returns the column to predict."""
-        return chkenv("PREDICT_COL")
-
-    @property
-    def context(self) -> str:
-        """Returns the context of the database table."""
-        return chkenv("CONTEXT")
-
-    @property
-    def use_all(self) -> bool:
-        """Returns True if the USE_ALL environment variable is set to True, else False."""
-        return (chkenv("USE_ALL", astype=bool),)
-
-    @property
-    def use_academic(self) -> bool:
-        """Returns True if the USE_ACADEMIC environment variable is set to True, else False."""
-        return (chkenv("USE_ACADEMIC", astype=bool),)
-
-    @property
-    def use_demographic(self) -> bool:
-        """Returns True if the USE_DEMOGRAPHIC environment variable is set to True, else False."""
-        return (chkenv("USE_DEMOGRAPHIC", astype=bool),)
-
-    @property
-    def use_engagement(self) -> bool:
-        """Returns True if the USE_ENGAGEMENT environment variable is set to True, else False."""
-        return (chkenv("USE_ENGAGEMENT", astype=bool),)
-
-    @property
-    def use_moments(self) -> bool:
-        """Returns True if the USE_MOMENTS environment variable is set to True, else False."""
-        return (chkenv("USE_MOMENTS", astype=bool),)
-
-    @property
-    def use_stud_info(self) -> bool:
-        """Returns True if the USE_STUDENT_INFO environment variable is set to True, else False."""
-        return (chkenv("USE_STUDENT_INFO", astype=bool),)
-
-    @property
-    def use_ids(self) -> bool:
-        """Returns True if the USE_IDS environment variable is set to True, else False."""
-        return (chkenv("USE_IDS", astype=bool),)
-
-    @property
-    def use_text(self) -> bool:
-        """Returns True if the USE_TEXT environment variable is set to True, else False."""
-        return (chkenv("USE_TEXT", astype=bool),)
-
-    @property
-    def use_by_activity(self) -> bool:
-        """Returns True if the USE_BY_ACTIVITY environment variable is set to True, else False."""
-        return (chkenv("USE_BY_ACTIVITY", astype=bool),)
-
-    def __init__(
-        self,
-        schema: str = "eval",  # features view cur only on eval
-        table: str = "v_features",
-        field_col: str = "column_name",
-        to_include: list = None,
-        to_exclude: list = None,
-    ) -> None:
+    def __post_init__(self) -> None:
         """Initializes the Features object."""
-        if to_exclude is None:
-            to_exclude = []
-        if to_include is None:
-            to_include = []
-        self.field_col = field_col
-        self.tbl = Table(self.context, schema, table)
-        self.all = self.get_col_names(self.tbl.df)
         self.demographic = self.get_col_cat("is_demographics", 1)
         self.academic = self.get_col_cat("is_academic", 1)
         self.engagement = self.get_col_cat("is_engagement", 1)
-        if self.use_all:
+        if USE_ALL:
             self.name = "all"
             self.use_academic = True
             self.use_demographic = True
             self.use_engagement = True
         elif self.use_academic:
             self.name = "academ"
+            self.use_academic = True
         elif self.use_demographic:
             self.name = "demog"
+            self.use_demographic = True
         elif self.use_engagement:
             self.name = "engage"
+            self.use_engagement = True
         else:
-            self.name = ""
-        self.to_exclude = to_exclude
-        self.to_include = to_include
-        self.set_cols()
+            raise ValueError("No features selected.")
 
     def __repr__(self) -> str:
         """Returns a string representation of the Features object."""
         ncols = len(self.keep_cols)
-        s, t = self.tbl.schema, self.tbl.table
-        return f"{self.name} ncols={ncols}, schema={s}, table={t}"
+        return f"{self.name} ncols={ncols}, schema={self.schema}, table={self.table}"
 
     def get_save_attr(self) -> dict[str:int]:
         """Returns a dictionary of attributes to save."""
-        save_dict = {}
-        save_dict["schema"] = self.tbl.schema
-        save_dict["table"] = self.tbl.table
-        d = dir(self)
-        save_attr = [x for x in d if (x[:3] == "inc" or x[-3:] == "col")]
-        for att in save_attr:
-            save_dict[att] = getattr(self, att)
+        save_dict = {
+            "schema": self.schema,
+            "table": self.table,
+        }
+        save_attr = {
+            x: self.x for x in dir(self) if (x[:3] == "inc" or x[-3:] == "col")
+        }
+        save_dict.update(save_attr)
         return save_dict
 
     def get_boolean_keep_cols(self) -> list:

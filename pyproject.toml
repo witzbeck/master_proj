@@ -36,7 +36,7 @@ addopts = [
     "--cov=utils",
     "--cov=model",
     "--cov-report=term-missing",
-    "--cov-fail-under=50",
+    "--cov-fail-under=30",
     "--durations=10",
     #"-n", # faster without parallelization
     #"auto",

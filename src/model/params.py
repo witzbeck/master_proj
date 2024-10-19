@@ -19,8 +19,8 @@ from sklearn.tree import DecisionTreeClassifier
 
 from alexlib.core import chkenv
 from alexlib.maths import discrete_exp_dist
-from utils import JOB_CORES, NROWS, RANDOM_STATE
-from utils.constants import MODEL_TYPES
+
+from utils.constants import JOB_CORES, MODEL_TYPES, NROWS, RANDOM_STATE
 
 MODEL_TYPE_MAP = {
     "logreg": LogisticRegression,

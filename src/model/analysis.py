@@ -3,8 +3,10 @@
 from collections.abc import Generator
 from dataclasses import dataclass, field
 from datetime import datetime
+from itertools import chain
 
 from baycomp import two_on_multiple
+from duckdb import DuckDBPyConnection
 from matplotlib.colors import BoundaryNorm, ListedColormap
 from matplotlib.pyplot import legend, subplots, tick_params, title, xlabel, ylabel
 from numpy import array, bool_, float_, int_, isnan, nan, zeros
@@ -18,10 +20,23 @@ from tqdm import tqdm
 from alexlib.core import chkenv
 from alexlib.db.managers import PostgresManager
 from alexlib.df import filter_df, get_distinct_col_vals
-from alexlib.iters import get_comb_gen, get_idx_val, link
+from alexlib.iters import get_comb_gen
 from alexlib.maths import combine_domains, get_list_difs, get_rect_area
-from utils import db_mgr
-from utils.constants import LEFT, MID, OUT, RIGHT, ROPE, WINDOWPANE_PLOT_PARAMS
+
+from utils import get_idx_val
+from utils.constants import (
+    CV_NREPEATS,
+    EVAL_ROPE,
+    LEFT,
+    LOG_SCHEMA,
+    MID,
+    OUT,
+    RIGHT,
+    ROPE,
+    ROPE_FLEXIBLE,
+    ROPE_UPBOUND,
+    WINDOWPANE_PLOT_PARAMS,
+)
 
 
 class Abroca:
@@ -375,10 +390,10 @@ class ModelResult:
 class Results:
     """A class for the model results."""
 
-    schema: str = field(default=chkenv("LOG_SCHEMA"))
-    table: str = field(default="v_all_runs_results")
-    rope: float = field(default=chkenv("EVAL_ROPE", astype=float))
-    runs: int = field(default=chkenv("CV_NREPEATS", astype=int))
+    schema: str = LOG_SCHEMA
+    table: str = "v_all_runs_results"
+    rope: float = EVAL_ROPE
+    runs: int = CV_NREPEATS
     lim: int = field(default=None)
     obj_list: list = field(default_factory=list)
 
@@ -398,8 +413,8 @@ class Results:
     @staticmethod
     def rope_eval(
         outcome: tuple,
-        flexible: bool = chkenv("ROPE_FLEXIBLE", astype=bool),
-        upbound: float = chkenv("ROPE_UPBOUND", astype=float),
+        flexible: bool = ROPE_FLEXIBLE,
+        upbound: float = ROPE_UPBOUND,
     ) -> float:
         """Evaluate the ROPE."""
         pleft, prope, pright = outcome
@@ -442,7 +457,7 @@ class Results:
         splits_array = self.get_splits_array()
         return posthoc_nemenyi_friedman(splits_array)
 
-    def iter_df(self) -> Series:
+    def iter_df(self) -> Generator[Series]:
         """Iterate through the dataframe."""
         _range = range(len(self.df))
         for i in _range:
@@ -469,35 +484,17 @@ class Results:
         self.obj_dict = {str(obj): obj for obj in self.obj_list}
         self.sort_cols()
 
-    def get_results(self) -> DataFrame:
+    def get_results(self, cnxn: DuckDBPyConnection) -> DataFrame:
         """Get the results for the model."""
-        s = self.schema
-        t = self.table
-        if self.lim is None:
-            return self.dbh.get_table(s, t)
-        else:
-            return self.dbh.get_table(s, t, nrows=self.lim)
+        return cnxn.sql(f"select * from {self.schema}.{self.table}").df()
 
     def get_index_grid(self, nanvar: str = None, asarray: bool = True) -> list:
         """Get the index grid for the model results."""
-        rng = self._range
-        index = [[i if i != j else nanvar for i in self._range] for j in rng]
+        rng = range(len(self))
+        index = [[i if i != j else nanvar for i in rng] for j in rng]
         if asarray:
             return array(index)
         return index
-
-    def init_steps(self) -> None:
-        """Run the init steps for the class."""
-        if len(self.obj_list) == 0:
-            self.df = self.get_results()
-            self.sort_cols()
-            self.get_res_objs()
-        self._len = len(self.obj_list)
-        self._range = range(self._len)
-        ol = self.obj_list
-        self.obj_names = [f"{str(ol[i])} ({i})" for i in range(len(ol))]
-        self.index = self.get_comp_index()
-        self.index_grid = self.get_index_grid()
 
     def __len__(self) -> int:
         """Get the length of the model results."""
@@ -505,18 +502,25 @@ class Results:
 
     def __post_init__(self) -> None:
         """Run the post init steps for the class."""
-        self.init_steps()
+        if len(self.obj_list) == 0:
+            self.df = self.get_results()
+            self.sort_cols()
+            self.get_res_objs()
+        self.obj_names = [
+            f"{str(self.obj_list[i])} ({i})" for i in range(len(self.obj_list))
+        ]
+        self.index = self.get_comp_index()
+        self.index_grid = self.get_index_grid()
 
-    def get_comp_index(self) -> list:
+    def get_comp_index(self) -> chain:
         """Get the comparison index for the model results."""
-        lists = [[(i, j) for i in self._range] for j in self._range]
-        _list = link(lists)
-        return _list
+        return chain.from_iterable([[(i, j) for i in self._range] for j in self._range])
 
     def get_comp_grid(self, bayes: bool) -> array:
         """Get the comparison grid for the model results."""
-        z = zeros((self._len, self._len))
-        for i in self._range:
+        _len = len(self)
+        z = zeros((_len, _len))
+        for i in range(_len):
             z[i][i] = OUT if bayes else MID
         return z
 
@@ -724,11 +728,11 @@ class Results:
         for pair in self.get_top_cluster_gen():
             yield self.comp_2_idx(*pair, plot=plot)
 
-    @staticmethod
-    def from_engines(engine_list: list, **kwargs) -> "Results":
+    @classmethod
+    def from_engines(cls, engine_list: list, **kwargs) -> "Results":
         """Get the results from the engines."""
         obj_list = [ModelResult.from_engine(engine) for engine in engine_list]
-        return Results(obj_list=obj_list, **kwargs)
+        return cls(obj_list=obj_list, **kwargs)
 
 
 def comp_rope_vals() -> None:
@@ -740,7 +744,6 @@ def comp_rope_vals() -> None:
             records = []
             res = Results(rope=rope, runs=runs, lim=150)
             if rope_comp_id == 0:
-                db_mgr.truncate_table(chkenv("LOG_SCHEMA"), "rope_comp")
                 if_exists = "append"
                 ncomp = (len(res.obj_list) ** 2) / 2
                 print(f"n comparisons = {ncomp}")

@@ -1,12 +1,11 @@
 from dataclasses import dataclass, field
-from datetime import datetime as dt
+from datetime import datetime
 from functools import partial
 
 from duckdb import DuckDBPyConnection
 from pandas import DataFrame
 
-from alexlib.core import chkenv
-
+from utils.constants import CV_RESULTS, LOG_SCHEMA
 from utils.elt_config import get_cnxn
 
 
@@ -16,7 +15,7 @@ class Logger:
 
     model_type: str
     cnxn: DuckDBPyConnection = field(default_factory=get_cnxn)
-    log_schema: str = field(default=chkenv("LOG_SCHEMA"))
+    log_schema: str = LOG_SCHEMA
     log_runs_table: str = field(default="runs")
     log_runs_id_col: str = field(default="id")
     log_id_col: str = field(default="run_id")
@@ -55,7 +54,7 @@ class Logger:
 
     def __post_init__(self) -> None:
         """Initializes the Logger object."""
-        self.cv_results = chkenv("CV_RESULTS")
+        self.cv_results = CV_RESULTS
         ptab = f"params_{self.model_type}"
         if self.cv_results == "ALL":
             self.log_results_table = self.log_results_table + "_all"
@@ -88,12 +87,15 @@ class Logger:
             index=False,
         )
 
-    def log_run(self, _keys: list = None) -> None:
+    @property
+    def log_record(self) -> dict:
+        """Returns the log record for the Logger object."""
+        return {
+            "run_id": self.run_id,
+            "model_type": self.model_type,
+            "timestamp": datetime.now(),
+        }
+
+    def log_run(self) -> None:
         """Logs a run to the runs table."""
-        if _keys is None:
-            _keys = ["id", "model_type", "timestamp"]
-        now: dt = (dt.now(),)
-        vals = [self.run_id, self.model_type, now]
-        _range = range(len(_keys))
-        _dict = {_keys[i]: vals[i] for i in _range}
-        self.send_log(self.log_runs_table, _dict)
+        self.send_log(self.log_runs_table, self.log_record)
