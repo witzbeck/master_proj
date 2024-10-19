@@ -1,9 +1,9 @@
 select s.student_id,
-    sum(s.weight) sum_weight,
+    sum(s.assessment_weight) sum_weight,
     sum(s.score) sum_score,
     course_weight,
     case
-        when course_weight > 0 then sum(s.score * s.weight) / course_weight
+        when course_weight > 0 then sum(s.score * s.assessment_weight) / course_weight
         else 0
     end day30_grade,
     sum(
@@ -37,7 +37,7 @@ select s.student_id,
     count(*) - sum(s.is_weighted) n_unweighted,
     min(s.days_before_due_submitted) min_days_before_due_submitted,
     max(s.days_before_due_submitted) max_days_before_due_submitted
-from main.student_grades s
+from main.assessment_staging s
     join (
         select distinct count(distinct assessment_id) dist,
             sum(assessment_weight) course_weight,

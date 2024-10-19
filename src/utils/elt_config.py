@@ -417,3 +417,4 @@ if __name__ == "__main__":
     """
     print("Sources Without Targets:", sorted(qdir.sources_without_targets))
     print("Targets Without Sources:", sorted(qdir.targets_without_sources))
+    main()

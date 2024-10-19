@@ -4,6 +4,7 @@ select scb.student_id,
     scb.presentation_id,
     sum(a.assessment_date * a.assessment_weight) / sum(a.assessment_date) assessment_weight_date_rate,
     sum(a.assessment_weight) sum_weight,
+    sum(sab.score) sum_score,
     sum(sab.score * a.assessment_weight) score_weight_product,
     sum(
         case

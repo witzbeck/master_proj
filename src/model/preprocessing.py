@@ -10,46 +10,26 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
-from alexlib.core import chkenv
 from alexlib.df import filter_df
 
 from model.features import Features
-from utils.db_helpers import Table
+from utils.constants import (
+    PREDICT_COL,
+    RANDOM_STATE,
+    SIMPLE_NUM_IMPUTE,
+    TEST_SIZE,
+)
 
 
 @dataclass
 class DataPrep:
     """A class to preprocess data for machine learning."""
 
-    feat: Features = field()
+    data: DataFrame
+    features: Features
     schema: str = field(default="first30")
     table: str = field(default="all_features")
     df_filter: tuple = field(default=None)
-
-    @property
-    def context(self) -> str:
-        """Returns the context."""
-        return chkenv("CONTEXT")
-
-    @property
-    def nrows(self) -> int:
-        """Returns the number of rows to retrieve from the database."""
-        return chkenv("NROWS", type=int)
-
-    @property
-    def test_size(self) -> float:
-        """Returns the test size for the train_test_split function."""
-        return chkenv("TEST_SIZE", type=float)
-
-    @property
-    def random_state(self) -> int:
-        """Returns the random state for the train_test_split function."""
-        return chkenv("RANDOM_STATE", type=int)
-
-    @property
-    def simple_num_impute(self) -> bool:
-        """Returns whether to use the simple imputer for numeric columns."""
-        return chkenv("SIMPLE_NUM_IMPUTE", type=bool)
 
     def __post_init__(self) -> None:
         """Initializes the DataPrep object."""
@@ -62,7 +42,10 @@ class DataPrep:
         ]
     )
     knn_num_trans = Pipeline(
-        [("knn_num_imputer", KNNImputer()), ("scaler", StandardScaler())]
+        [
+            ("knn_num_imputer", KNNImputer()),
+            ("scaler", StandardScaler()),
+        ]
     )
     simp_num_trans = Pipeline(
         [
@@ -74,30 +57,25 @@ class DataPrep:
         [("bool_imputer", SimpleImputer(strategy="constant", fill_value=0))]
     )
 
-    def get_data(self) -> DataFrame:
-        """Returns the dataframe from the database."""
-        self.data = Table(self.context, self.schema, self.table, nrows=self.nrows)
-        return self.data.df
-
     def set_y(self) -> Series:
         """Returns the target variable."""
-        y = self.df.loc[:, self.feat.to_predict_col]
+        y = self.df.loc[:, PREDICT_COL]
         self.y_1d = ravel(y)
         return y
 
     def set_X(self) -> DataFrame:
         """Returns the feature variables."""
-        return self.df.loc[:, self.feat.keep_cols]
+        return self.df.loc[:, self.features.keep_cols]
 
     def sort_cols(self) -> None:
         """Sorts the columns into boolean, categorical, and numeric."""
-        self.boolean_cols = self.feat.get_boolean_keep_cols()
-        self.categorical_cols = self.feat.get_categorical_keep_cols()
-        self.numeric_cols = self.feat.get_numeric_keep_cols()
+        self.boolean_cols = self.features.get_boolean_keep_cols()
+        self.categorical_cols = self.features.get_categorical_keep_cols()
+        self.numeric_cols = self.features.get_numeric_keep_cols()
 
     def set_preprocessor(self) -> ColumnTransformer:
         """Returns the preprocessor for the data."""
-        if self.simple_num_impute:
+        if SIMPLE_NUM_IMPUTE:
             num_trans = DataPrep.simp_num_trans
         else:
             num_trans = DataPrep.knn_num_trans
@@ -112,11 +90,10 @@ class DataPrep:
         )
         return prep
 
-    def set_test_sets(self, make_c_cont: bool = False, shuffle: bool = False) -> None:
+    def set_test_sets(self, make_c_cont: bool = False) -> None:
         """Sets the train and test sets. If make_c_cont is True, makes the arrays C contiguous. If shuffle is True, shuffles the data."""
-        rand_state = None if shuffle else self.random_state
         X_train, X_test, y_train, y_test = train_test_split(
-            self.X, self.y, test_size=self.test_size, random_state=rand_state
+            self.X, self.y, test_size=TEST_SIZE, random_state=RANDOM_STATE
         )
 
         if make_c_cont:
@@ -130,9 +107,10 @@ class DataPrep:
 
     def main_steps(self) -> None:
         """Runs the main steps of the class."""
-        self.df = self.get_data()
         if self.df_filter is not None:
-            self.df = filter_df(self.df, self.df_filter[0], self.df_filter[-1])
+            self.df = filter_df(self.data, self.df_filter[0], self.df_filter[-1])
+        else:
+            self.df = self.data
         self.y = self.set_y()
         self.X = self.set_X()
         self.sort_cols()
@@ -141,7 +119,7 @@ class DataPrep:
 
     def __repr__(self) -> str:
         """Returns the representation of the class."""
-        self.nrows = len(self.data.df)
+        self.nrows = len(self.data)
         return f"nrows={self.nrows}, schema={self.schema}, table={self.table}"
 
     def get_save_attr(self) -> dict[str:int]:
@@ -155,16 +133,8 @@ class DataPrep:
             "n_bool_cols": bools,
             "n_cat_cols": cats,
             "n_num_cols": nums,
-            "test_size": self.test_size,
-            "simple_num_impute": self.simple_num_impute,
+            "test_size": TEST_SIZE,
+            "simple_num_impute": SIMPLE_NUM_IMPUTE,
             "source_schema": self.schema,
             "source_table": self.table,
         }
-
-    def desc_col(self, *args, **kwargs) -> None:
-        """Describes the columns of the dataframe."""
-        self.data.desc_col(*args, **kwargs)
-
-    def desc_predict_col(self) -> None:
-        """Describes the predict column of the dataframe."""
-        self.desc_col(self.feat.to_predict_col)
