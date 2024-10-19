@@ -8,7 +8,7 @@ with act as (
         m.avg_clicks,
         m.var_clicks,
         m.stddev_clicks
-    from first30.mom_interactions_per_type_12 m
+    from agg.mom_interactions_per_type_12 m
 )
 select v.student_id,
     v.course_id,
