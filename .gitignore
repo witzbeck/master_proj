@@ -64,7 +64,6 @@ ipython_config.py
 
 # LaTeX intermediate files
 *.aux
-*.bbl
 *.blg
 *.fls
 *.fdb_latexmk
