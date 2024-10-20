@@ -27,6 +27,7 @@ jobs:
     - name: Compile LaTeX PDF
       uses: xu-cheng/latex-action@v3
       with:
+        args: -f
         working_directory: paper
         root_file: paper.tex
         continue_on_error: true
