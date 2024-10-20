@@ -12,17 +12,14 @@ with activities_order as (
         course_id,
         activity_type_id,
         site_id,
-        activity_type
     from agg.activities_by_frequency
     group by course_id,
         activity_type_id,
         site_id,
-        activity_type
 )
 select c.course_id,
     c.activity_type_id,
     c.site_id,
-    c.activity_type,
     c.n_clicks,
     c.n_visits,
     c.order_by_visits,
@@ -48,7 +45,6 @@ from activities_order c
 group by c.course_id,
     c.activity_type_id,
     c.site_id,
-    c.activity_type,
     c.n_clicks,
     c.n_visits,
     c.order_by_visits,
