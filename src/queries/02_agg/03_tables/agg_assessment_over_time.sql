@@ -11,17 +11,17 @@ from (
                 s.student_id
                 order by s.date_due
             ) cum_score,
-            sum(s.weight) over (
+            sum(s.assessment_weight) over (
                 partition by s.course_id,
                 s.student_id
                 order by s.date_due
             ) cum_weight,
-            sum(s.score * s.weight) over (
+            sum(s.score * s.assessment_weight) over (
                 partition by s.course_id,
                 s.student_id
                 order by s.date_due
             ) cum_score_weight_prod,
-            s.weight,
+            s.assessment_weight,
             s.is_banked,
             s.date_due
         from agg.assessment_staging s
