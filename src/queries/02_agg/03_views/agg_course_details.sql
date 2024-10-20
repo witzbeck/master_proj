@@ -75,9 +75,9 @@ select c.*,
     cm.highest_ed_bot_2,
     cm.highest_ed_bot_3
 from agg.course_info c
-    join agg.course_reg cr on cr.course_id = c.course_id
-    join agg.course_modes cm on cm.course_id = c.course_id
-    join agg.course_student_bands csb on csb.course_id = c.course_id
+    join agg.course_registrations cr on cr.course_id = c.id
+    join agg.course_modes cm on cm.course_id = c.id
+    join agg.course_student_bands csb on csb.course_id = c.id
     join (
         select s.course_id,
             sum(vfro.is_distinction) n_distinction,
@@ -87,4 +87,4 @@ from agg.course_info c
         from main.student_info s
             join main.onehot_final_result vfro on vfro.id = s.final_result_id
         group by s.course_id
-    ) fr on fr.course_id = c.course_id
+    ) fr on fr.course_id = c.id
