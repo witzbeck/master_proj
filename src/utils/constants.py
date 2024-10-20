@@ -10,11 +10,15 @@ SOURCE_PATH = Path(__file__).parent.parent
 PROJECT_PATH = SOURCE_PATH.parent
 DOTENV_PATH = PROJECT_PATH / ".env"
 
+OULAD_BASE = "https://analyse.kmi.open.ac.uk"
+OULAD_URL = f"{OULAD_BASE}/open_dataset/download"
+OULAD_MD5_URL = f"{OULAD_BASE}/open_dataset/downloadCheckSum"
+OULAD_MD5 = "7412686fd77cf0e0ee1e8c3e9b354308"
+
 FIGURES_PATH = PROJECT_PATH / "figures"
 (DATA_PATH := PROJECT_PATH / "data").mkdir(exist_ok=True)
 (RAW_PATH := DATA_PATH / "raw").mkdir(exist_ok=True)
 (EXPORT_PATH := DATA_PATH / "export").mkdir(exist_ok=True)
-CSV_PATHS = list(RAW_PATH.glob("*.csv"))
 DB_PATH = DATA_PATH / "learning.db"
 SCHEMAS = ("landing", "main", "agg", "model", "eval", "feat", "first30", "analysis")
 

@@ -5,7 +5,6 @@ from pytest import FixtureRequest, fixture
 
 from utils.constants import (
     BLUE,
-    CSV_PATHS,
     DATA_PATH,
     FIGURES_PATH,
     GRAY,
@@ -33,6 +32,7 @@ from utils.elt_config import (
     QueriesDirectory,
     create_all_schemas,
     get_cnxn,
+    get_csv_paths,
     load_landing_data,
 )
 
@@ -75,7 +75,7 @@ def cnxn_with_landing_data(
         QUERY_PATH,
         FIGURES_PATH,
     )
-    + tuple(CSV_PATHS),
+    + tuple(get_csv_paths()),
 )
 def constant_path(request: FixtureRequest) -> Path:
     return request.param

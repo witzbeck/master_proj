@@ -7,7 +7,6 @@ from pytest import FixtureRequest, fixture
 from alexlib.files import Directory, File
 
 from orm import SCHEMAS
-from utils.constants import CSV_PATHS
 from utils.elt_config import (
     SQL_BLACKLIST,
     DataDirectory,
@@ -17,6 +16,7 @@ from utils.elt_config import (
     get_all_schemas,
     get_all_table_names,
     get_create_object_command,
+    get_csv_paths,
     get_info_schema_df,
     get_object_type,
     get_schema_table_name,
@@ -29,7 +29,7 @@ def schema(request: FixtureRequest) -> str:
     return request.param
 
 
-@fixture(scope="module", params=CSV_PATHS)
+@fixture(scope="module", params=get_csv_paths())
 def csv_path(request: FixtureRequest) -> Path:
     return request.param
 

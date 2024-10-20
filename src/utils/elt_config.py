@@ -111,6 +111,11 @@ SOURCE_TABLES = {
 }
 
 
+def get_csv_paths(parent_path: Path = RAW_PATH) -> list[Path]:
+    """Return a list of CSV paths."""
+    return list(parent_path.glob("*.csv"))
+
+
 def get_cnxn(database: Path = DB_PATH, read_only: bool = False) -> DuckDBPyConnection:
     return connect(database=database, read_only=read_only)
 
