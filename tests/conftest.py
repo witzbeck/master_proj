@@ -7,7 +7,6 @@ from utils.constants import (
     BLUE,
     CSV_PATHS,
     DATA_PATH,
-    DB_PATH,
     FIGURES_PATH,
     GRAY,
     HOME,
@@ -40,7 +39,7 @@ from utils.elt_config import (
 
 @fixture(scope="session")
 def cnxn() -> DuckDBPyConnection:
-    cnxn = get_cnxn(database=DB_PATH)
+    cnxn = get_cnxn(database=":memory:")
     return cnxn
 
 
