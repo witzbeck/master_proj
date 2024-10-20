@@ -87,7 +87,7 @@ jobs:
     #----------------------------------------------
     # get dataset
     #----------------------------------------------
-    - name: Run tests
+    - name: Get dataset
       run: |
         poetry run get-data
 

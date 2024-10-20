@@ -22,21 +22,9 @@ jobs:
     - uses: actions/checkout@v4
 
     #----------------------------------------------
-    # cache step for PDF
-    #----------------------------------------------
-    - uses: actions/cache@v4
-      id: cache-pdf
-      with:
-        path: paper/paper.pdf
-        key: ${{ runner.os }}-pdf-${{ hashFiles('paper/**') }}
-        restore-keys: |
-          ${{ runner.os }}-pdf-
-    
-    #----------------------------------------------
     # set up Tex Live
     #----------------------------------------------
-    - name: set up Tex Live
-      if: steps.cache-pdf.outputs.cache-hit != 'true'
+    - name: Compile LaTeX PDF
       uses: xu-cheng/latex-action@v3
       with:
         working_directory: paper
@@ -48,7 +36,6 @@ jobs:
     # uploads the pdf as an artifact
     #----------------------------------------------
     - name: upload pdf
-      if: steps.cache-pdf.outputs.cache-hit != 'true'
       uses: actions/upload-artifact@v3
       with:
         name: PDF
