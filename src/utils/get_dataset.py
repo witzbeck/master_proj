@@ -7,7 +7,6 @@ from zipfile import ZipFile
 from requests import get
 
 from utils.constants import OULAD_MD5_URL, OULAD_URL, RAW_PATH
-from utils.elt_config import get_csv_paths
 
 logger = getLogger(__name__)
 SOURCE_TABLE_MAP = {
@@ -60,7 +59,7 @@ def unzip_file(zip_path: Path, extract_path: Path = EXTRACT_PATH) -> None:
     logger.info(f"Unzipped {zip_path} to {extract_path}.")
 
 
-def get_dataset() -> None:
+def main() -> None:
     """Download and extract the dataset."""
     if not DATASET_PATH.exists():
         download_dataset()
@@ -74,5 +73,5 @@ def get_dataset() -> None:
         (EXTRACT_PATH / f"{orig}.csv").rename(RAW_PATH / f"{dest}.csv")
 
 
-if len(get_csv_paths()) == 0:
-    get_dataset()
+if __name__ == "__main__":
+    main()

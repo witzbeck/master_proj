@@ -85,6 +85,13 @@ jobs:
       run: poetry install --with dev --no-interaction
     
     #----------------------------------------------
+    # get dataset
+    #----------------------------------------------
+    - name: Run tests
+      run: |
+        poetry run get-data
+
+    #----------------------------------------------
     # run test suite
     #----------------------------------------------
     - name: Run tests

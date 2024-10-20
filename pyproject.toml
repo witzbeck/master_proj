@@ -31,6 +31,9 @@ pytest-mock  = "^3.12"
 pytest-xdist = "^3.5"
 sqlfluff     = "^3.0"
 
+[tool.poetry.scripts]
+get-data = "utils.get_dataset:main"
+
 [tool.pytest.ini_options]
 addopts = [
     "--cov=utils",
