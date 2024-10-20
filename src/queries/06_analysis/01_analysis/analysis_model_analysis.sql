@@ -1,10 +1,10 @@
 select
  b.id
-,f.to_predict_col
+,f.to_predict_column
 ,b.comb_order
 ,b.order_by_mean_fit_time
 ,b.order_by_mean_roc_auc
-,b.model_type
+,b.model_type_id
 ,b.run_date
 ,b.mean_roc_auc
 ,b.mean_fit_time
@@ -20,7 +20,7 @@ select
 r.id
 ,row_number() over(order by s.mean_test_roc_auc desc) order_by_mean_roc_auc
 ,row_number() over(order by s.mean_fit_time) order_by_mean_fit_time
-,r.model_type
+,r.model_type_id
 ,cast(r.timestamp as date) run_date
 ,cast(s.mean_test_roc_auc as numeric(8, 4)) mean_roc_auc
 ,cast(s.mean_fit_time as numeric(8,4)) mean_fit_time

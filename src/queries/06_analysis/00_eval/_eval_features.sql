@@ -54,7 +54,7 @@ select
         then 1
         else 0
     end is_demographics
-from first30.all_features_info_schema v
+from information_schema.columns v
 where case
     when left(column_name, 5) in ('unreg', 'coeff', 'fp_co') then 1
     when right(column_name, 5) in ('fp_co', 'coeff', 'e_dif') then 1

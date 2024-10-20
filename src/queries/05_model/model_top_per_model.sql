@@ -9,14 +9,14 @@ select a.model_type,
 from (
         select row_number() over (
                 partition by case
-                    when ru.model_type = 'svm' then 'svc'
-                    else ru.model_type
+                    when t.model_type = 'svm' then 'svc'
+                    else t.model_type
                 end
                 order by r.mean_test_roc_auc desc
             ) n,
             case
-                when ru.model_type = 'svm' then 'svc'
-                else ru.model_type
+                when t.model_type = 'svm' then 'svc'
+                else t.model_type
             end model_type,
             r.mean_fit_time,
             r.std_fit_time,
@@ -27,6 +27,7 @@ from (
             r.rank_test_roc_auc
         from model.results r
             join model.runs ru on ru.id = r.run_id
+            join model.types t on t.id = ru.model_type_id
         where mean_test_roc_auc is not null
     ) a
 group by a.model_type

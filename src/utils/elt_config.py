@@ -26,36 +26,76 @@ SQL_BLACKLIST = (
     "INTO",
 )
 CREATE_MODEL_TYPES_TABLE = """
-create table model.types(
-id serial primary key,
+create or replace table model.types(
+id integer primary key,
 model_type text not null
 );
 """
 CREATE_MODEL_RUNS_TABLE = """
-create table model.runs (
-    id serial primary key,
+create or replace table model.runs (
+    id integer primary key,
+    iter_id integer not null,
     model_type_id integer not null,
     model_params json not null,
     timestamp timestamp not null
 )
 """
 CREATE_MODEL_RESULTS_TABLE = """
-create table model.results(
-id serial primary key,
+create or replace table model.results(
+id integer primary key,
 run_id integer not null,
+iter_id integer not null,
 mean_fit_time float not null,
 std_fit_time float not null,
 mean_score_time float not null,
 std_score_time float not null,
 mean_test_roc_auc float not null,
 std_test_roc_auc float not null,
-rank_test_roc_auc integer not null
+rank_test_roc_auc integer not null,
+mean_test_accuracy float not null,
+std_test_accuracy float not null
 );
 """
-CREATE_MODEL_TABLES = (
+CREATE_MODEL_FEATURES_TABLE = """
+create or replace table model.features(
+id integer primary key,
+run_id integer not null,
+to_predict_column text not null,
+use_academic boolean not null,
+use_demographic boolean not null,
+use_engagement boolean not null,
+use_moments boolean not null,
+use_ids boolean not null,
+use_text boolean not null,
+use_by_activity boolean not null
+);
+"""
+CREATE_MODEL_WARNINGS_TABLE = """
+create or replace table model.warnings(
+id integer primary key,
+run_id integer not null,
+warnings text not null
+);
+"""
+CREATE_ANALYSIS_ABROCA_TABLE = """
+create or replace table analysis.abroca(
+index integer primary key,
+run_id integer not null,
+iter_id integer not null,
+course_id integer not null,
+is_stem boolean not null,
+is_female boolean not null,
+has_disability boolean not null
+);
+"""
+
+CREATE_TABLES = (
     CREATE_MODEL_RUNS_TABLE,
     CREATE_MODEL_TYPES_TABLE,
     CREATE_MODEL_RESULTS_TABLE,
+    CREATE_MODEL_FEATURES_TABLE,
+    CREATE_MODEL_WARNINGS_TABLE,
+    CREATE_ANALYSIS_ABROCA_TABLE,
 )
 SOURCE_TABLES = {
     "MODEL_RUNS",
@@ -389,8 +429,8 @@ def main(
     timer.log_from_last("Connection & schemas")
     create_all_schemas(cnxn)
 
-    # Create model tables
-    for sql in CREATE_MODEL_TABLES:
+    # Create model & analysis tables
+    for sql in CREATE_TABLES:
         cnxn.execute(sql)
 
     # Load landing data
