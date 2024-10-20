@@ -30,7 +30,6 @@ jobs:
         working_directory: paper
         root_file: paper.tex
         continue_on_error: true
-        pre_compile: make paper.pdf
         post_compile: make cleanup
 
     #----------------------------------------------
