@@ -453,7 +453,7 @@ def main(
             schema, table_name, query_path.read_text(), orreplace=replace
         )
         print(
-            f"Creating {schema}.{table_name} from {"/".join(query_path.parts[-3:])}",
+            f"Creating {schema}.{table_name} from {'/'.join(query_path.parts[-3:])}",
             end="... ",
         )
         cnxn.execute(sql)
