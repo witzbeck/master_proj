@@ -19,7 +19,7 @@ select avg.student_id,
     sqrt(
         sum((v.n_activities - avg.n_activities) ^ 2) / avg.n
     ) stddev_n_activities
-from agg.student_activities_per_day v
+from agg.interaction_types_staging v
     join avg on avg.student_id = v.student_id
 where v.date <= 30
 group by avg.student_id,

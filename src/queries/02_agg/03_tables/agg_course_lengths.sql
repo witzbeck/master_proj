@@ -1,5 +1,5 @@
 select
- vc.course_id
+ vc.id course_id
 ,vc.module_id
 ,vc.presentation_id
 ,m.avg_module_length
