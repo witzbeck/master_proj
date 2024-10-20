@@ -1,6 +1,9 @@
 # Use pdflatex for PDF output
 $pdf_mode = 1;
 
+# Work split into several parts
+@default_files = ('paper.tex');
+
 # Specify the pdflatex command
 $pdflatex = 'pdflatex -interaction=nonstopmode %O %S';
 
