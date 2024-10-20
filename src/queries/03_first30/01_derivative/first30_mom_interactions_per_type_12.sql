@@ -5,7 +5,7 @@ with avg as (
         cast(sum(vis.date) as float) / count(*) date,
         cast(sum(vis.sum_click) as float) / count(*) clicks
     from agg.interaction_types_staging vis
-        join first30.students s on s.id = vis.student_id
+        join first30.student_ids s on s.id = vis.student_id
     where date <= 30
     group by student_id,
         activity_type_id

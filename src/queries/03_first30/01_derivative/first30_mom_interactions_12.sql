@@ -60,7 +60,7 @@ select avg.student_id,
         sum(avg.avg_visits_per_day - avg.n_days) ^ 2 / avg.n_days
     ) stddev_visits_per_day
 from avg
-    join first30.students s on s.id = avg.student_id
+    join first30.student_ids s on s.id = avg.student_id
 group by avg.student_id,
     avg.course_id,
     avg.module_id,

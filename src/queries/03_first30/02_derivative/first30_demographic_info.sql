@@ -7,4 +7,4 @@ select
     , si.is_female
     , si.has_disability
 from main.student_info si
-    join first30.students i on i.id = si.id
+    join first30.student_ids i on i.id = si.id
