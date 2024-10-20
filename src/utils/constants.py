@@ -11,8 +11,9 @@ PROJECT_PATH = SOURCE_PATH.parent
 DOTENV_PATH = PROJECT_PATH / ".env"
 
 FIGURES_PATH = PROJECT_PATH / "figures"
-DATA_PATH = PROJECT_PATH / "data"
-RAW_PATH = DATA_PATH / "raw"
+(DATA_PATH := PROJECT_PATH / "data").mkdir(exist_ok=True)
+(RAW_PATH := DATA_PATH / "raw").mkdir(exist_ok=True)
+(EXPORT_PATH := DATA_PATH / "export").mkdir(exist_ok=True)
 CSV_PATHS = list(RAW_PATH.glob("*.csv"))
 DB_PATH = DATA_PATH / "learning.db"
 SCHEMAS = ("landing", "main", "agg", "model", "eval", "feat", "first30", "analysis")
