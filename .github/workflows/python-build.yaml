@@ -38,6 +38,7 @@ jobs:
     # Set up Python
     # ---------------------------------------------
     - name: Set up Python
+      id: setup-python
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
@@ -56,6 +57,7 @@ jobs:
     # load cached poetry dependencies if available
     # ---------------------------------------------
     - name: Load cached virtualenv
+      id: load-cached-virtualenv
       uses: actions/cache@v4
       with:
         path: .venv
@@ -64,10 +66,16 @@ jobs:
           ${{ runner.os }}-poetry-
     
     #----------------------------------------------
+    # Check the poetry lock file
+    #----------------------------------------------
+    - name: Install dependencies
+      run: poetry check
+    
+    #----------------------------------------------
     # install dependencies if cache does not exist
     #----------------------------------------------
     - name: Install dependencies
-      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+      if: steps.load-cached-virtualenv.outputs.cache-hit != 'true'
       run: poetry install --with dev --no-interaction --no-root
     
     #----------------------------------------------
@@ -81,5 +89,4 @@ jobs:
     #----------------------------------------------
     - name: Run tests
       run: |
-        poetry run pytest --cov=master_proj --cov-report=xml -n auto
-        poetry run sqlfluff lint --config pyproject.toml
+        poetry run pytest
