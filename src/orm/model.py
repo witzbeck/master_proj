@@ -14,9 +14,14 @@ class ModelTable:
         return f"{self.__schema__}.{self.__tablename__}"
 
 
+class ModelTypes(Base, ModelTable):
+    __tablename__ = "types"
+    model_type = Column(String(45))
+
+
 class ModelRuns(Base, ModelTable):
     __tablename__ = "runs"
-    model_type = Column(String(45))
+    model_type_id = Column(String(45))
     model_params = Column(JSON)
     timestamp = Column(DateTime)
 

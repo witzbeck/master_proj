@@ -25,19 +25,38 @@ SQL_BLACKLIST = (
     "INSERT",
     "INTO",
 )
-CREATE_MODEL_RUNS_TABLE = """
-create table model.runs (
-    id serial primary key,
-    model_type text not null,
-    timestamp timestamp not null
-)
-"""
 CREATE_MODEL_TYPES_TABLE = """
 create table model.types(
 id serial primary key,
 model_type text not null
 );
 """
+CREATE_MODEL_RUNS_TABLE = """
+create table model.runs (
+    id serial primary key,
+    model_type_id integer not null,
+    model_params json not null,
+    timestamp timestamp not null
+)
+"""
+CREATE_MODEL_RESULTS_TABLE = """
+create table model.results(
+id serial primary key,
+run_id integer not null,
+mean_fit_time float not null,
+std_fit_time float not null,
+mean_score_time float not null,
+std_score_time float not null,
+mean_test_roc_auc float not null,
+std_test_roc_auc float not null,
+rank_test_roc_auc integer not null
+);
+"""
+CREATE_MODEL_TABLES = (
+    CREATE_MODEL_RUNS_TABLE,
+    CREATE_MODEL_TYPES_TABLE,
+    CREATE_MODEL_RESULTS_TABLE,
+)
 SOURCE_TABLES = {
     "MODEL_RUNS",
     "MODEL_TYPES",
@@ -369,6 +388,10 @@ def main(
     cnxn = get_cnxn()
     timer.log_from_last("Connection & schemas")
     create_all_schemas(cnxn)
+
+    # Create model tables
+    for sql in CREATE_MODEL_TABLES:
+        cnxn.execute(sql)
 
     # Load landing data
     data_dir = DataDirectory()
