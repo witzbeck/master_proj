@@ -5,7 +5,6 @@ select
 ,vis.site_id
 ,vis.date
 ,vis.sum_click
-,vis.sum_click * vis.activity_type
 ,vis.sum_click * vis.is_dataplus           clicks_dataplus
 ,vis.sum_click * vis.is_dualpane           clicks_dualpane
 ,vis.sum_click * vis.is_externalquiz       clicks_externalquiz

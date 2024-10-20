@@ -75,7 +75,7 @@ select a.id student_id,
     vr.is_wales
 from main.student_info a
     join main.course_info c on c.id = a.course_id
-    join first30.students s on s.id = a.id
+    join first30.student_ids s on s.id = a.id
     left join main.onehot_age_band va on va.id = a.age_band_id
     left join main.onehot_final_result vf on vf.id = a.final_result_id
     left join main.onehot_highest_education vh on vh.id = a.highest_education_id

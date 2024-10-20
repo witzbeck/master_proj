@@ -25,4 +25,4 @@ select r.student_id,
     a.n_times_accessed_subpage,
     a.n_times_accessed_url
 from agg.student_activity_revisits r
-    join agg.interactions_times_accessed_activity a on a.student_id = r.student_id;
+    join agg.activities_days_active a on a.student_id = r.student_id;

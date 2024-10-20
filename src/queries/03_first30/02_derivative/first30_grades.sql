@@ -1,11 +1,11 @@
 select
     s.student_id
-    , sum(s.weight) sum_weight
+    , sum(s.assessment_weight) sum_weight
     , sum(s.score) sum_score
     , course_weight
     , case
         when course_weight > 0
-        then sum(s.score * s.weight) / course_weight
+        then sum(s.score * s.assessment_weight) / course_weight
         else 0
     end day30_grade
 
@@ -24,10 +24,10 @@ from agg.assessment_staging s
     join (
         select
             count(distinct assessment_id) dist
-            , sum(weight) course_weight
+            , sum(assessment_weight) course_weight
             , course_id
-        from main.assessment_info
-        where date <= 30
+        from agg.assessment_staging
+        where date_due <= 30
         group by course_id
     ) n on n.course_id = s.course_id
 where s.date_due <= 30
