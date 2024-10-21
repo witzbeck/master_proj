@@ -38,7 +38,7 @@ jobs:
         continue_on_error: true
         args: -pdf -f -interaction=nonstopmode
         extra_system_packages: inkscape
-        #post_compile: make cleanup
+        post_compile: make paper.pdf
 
     #----------------------------------------------
     # uploads the pdf as an artifact
