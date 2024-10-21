@@ -3,13 +3,14 @@
 from collections.abc import Generator
 from dataclasses import dataclass, field
 from datetime import datetime
+from functools import cached_property
 from itertools import chain
 
 from baycomp import two_on_multiple
 from duckdb import DuckDBPyConnection
 from matplotlib.colors import BoundaryNorm, ListedColormap
 from matplotlib.pyplot import legend, subplots, tick_params, title, xlabel, ylabel
-from numpy import array, bool_, float_, int_, isnan, nan, zeros
+from numpy import array, bool_, floating, int_, integer, isnan, nan, ndarray, zeros
 from pandas import DataFrame, Series
 from scikit_posthocs import posthoc_nemenyi_friedman
 from scipy.stats import friedmanchisquare
@@ -17,7 +18,6 @@ from seaborn import heatmap
 from sklearn.metrics import roc_auc_score, roc_curve
 from tqdm import tqdm
 
-from alexlib.core import chkenv
 from alexlib.db.managers import PostgresManager
 from alexlib.df import filter_df, get_distinct_col_vals
 from alexlib.iters import get_comb_gen
@@ -25,6 +25,7 @@ from alexlib.maths import combine_domains, get_list_difs, get_rect_area
 
 from utils import get_idx_val
 from utils.constants import (
+    ALPHA,
     CV_NREPEATS,
     EVAL_ROPE,
     LEFT,
@@ -109,8 +110,9 @@ class Abroca:
     def __init__(self, split_col: str, curve_dict: dict) -> None:
         """Initialize the class."""
         self.split_col = split_col
-        self.roc1 = curve_dict[self.keys[0]]
-        self.roc2 = curve_dict[self.keys[-1]]
+        self.curves = curve_dict  # Add this line
+        self.roc1 = self.curves[self.keys[0]]
+        self.roc2 = self.curves[self.keys[-1]]
         self.steps()
 
     @staticmethod
@@ -156,42 +158,33 @@ class Abroca:
             return ax
 
 
+@dataclass
 class RocCurve:
     """A class for calculating the ROC curve."""
 
-    def get_rates(self) -> tuple[list, list]:
-        """Get the rates for the ROC curve."""
-        fpr, tpr, _ = roc_curve(self.y_true, self.y_prob)
-        return fpr, tpr
+    y_true: ndarray
+    y_prob: ndarray
+    X_test: ndarray
+    fpr: ndarray = field(init=False)
+    tpr: ndarray = field(init=False)
+
+    @cached_property
+    def roc_curve(self) -> tuple[ndarray, ndarray, ndarray]:
+        """Get the ROC curve."""
+        return roc_curve(self.y_true, self.y_prob)
 
     def set_rates(self) -> None:
         """Set the rates for the ROC curve."""
-        self.fpr, self.tpr = self.get_rates()
+        self.fpr, self.tpr, _ = self.roc_curve
 
-    def get_auc(self) -> float:
+    @cached_property
+    def auc(self) -> float:
         """Get the AUC for the ROC curve."""
         return roc_auc_score(self.y_true, self.y_prob)
 
-    def set_auc(self) -> None:
-        """Set the AUC for the ROC curve."""
-        self.auc = self.get_auc()
-
-    def steps(self) -> None:
-        """Run the steps for the class."""
-        self.set_rates()
-        self.set_auc()
-
-    def __init__(
-        self,
-        y_true: list,
-        y_prob: list,
-        X_test: float,
-    ) -> None:
+    def __post_init__(self) -> None:
         """Initialize the class."""
-        self.y_true = y_true
-        self.y_prob = y_prob
-        self.X_test = X_test
-        self.steps()
+        self.set_rates()
 
     @staticmethod
     def _mk_legend_text(
@@ -223,26 +216,20 @@ class RocCurve:
 
     def plot(self, **kwargs) -> None:
         """Plot the ROC curve."""
-        fpr = self.fpr
-        tpr = self.tpr
-        auc = self.auc
-        RocCurve._plot(fpr, tpr, auc, **kwargs)
+        RocCurve._plot(self.fpr, self.tpr, self.auc, **kwargs)
 
     def get_X_slices(
-        self,
+        X_test: DataFrame,
         slice_col: str,
     ) -> dict:
         """Get the slices for the ROC curve."""
-        X_test = self.X_test
         vals = get_distinct_col_vals(X_test, slice_col)
-        sc = slice_col
-        fdf = filter_df
-        return {f"slice{str(x)}": fdf(X_test, sc, x) for x in vals}
+        return {f"slice{str(x)}": filter_df(X_test, slice_col, x) for x in vals}
 
-    def get_y_slice(self, X_slice: dict, y_series: Series) -> Series:
+    @staticmethod
+    def get_y_slice(X_slice: DataFrame, y_series: Series) -> Series:
         """Get the Y slice for the ROC curve."""
-        idx_list = list(X_slice.index)
-        return y_series.loc[idx_list]
+        return y_series.loc[X_slice.index]
 
     def get_roc_obj(
         self,
@@ -251,7 +238,7 @@ class RocCurve:
         """Get the ROC object for the ROC curve."""
         y_true = self.get_y_slice(X_test, self.y_true)
         y_prob = self.get_y_slice(X_test, self.y_prob)
-        return RocCurve(y_true, y_prob, X_test)
+        return RocCurve(y_true=y_true, y_prob=y_prob, X_test=X_test)
 
     def get_roc_objs(
         self,
@@ -271,19 +258,20 @@ class RocCurve:
         return [self.get_abroca(x) for x in split_cols]
 
 
-def get_num(_str: str) -> float | int | str | None:
-    """Get the number from the string."""
-    if _str is None:
-        return _str
-    elif _str.isnumeric():
-        return int(_str)
-    elif _str.isalnum():
-        return _str
+def get_num(value) -> float | int | str | None:
+    """Attempt to convert the value to an int or float, return original value if fails."""
+    if value is None:
+        return value
+    if isinstance(value, (int, float, integer, floating)):
+        return value
     try:
-        ret = int(_str)
-    except ValueError:
-        ret = float(_str)
-    return ret
+        return int(value)
+    except (ValueError, TypeError):
+        pass
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return value
 
 
 def try_array_float_list(
@@ -297,7 +285,7 @@ def try_array_float_list(
     elif key == "warm_start":
         return [bool(x) for x in array_]
     dtype = array_.dtype
-    if max(isinstance(dtype, t) for t in [bool_, float_, int_]):
+    if max(isinstance(dtype, t) for t in [bool_, floating, int_]):
         return array_.tolist()
     try:
         return [get_num(x) for x in array_]
@@ -305,7 +293,7 @@ def try_array_float_list(
         return array_.tolist()
 
 
-def format_clf_params(series: Series) -> dict[str:list]:
+def format_clf_params(series: Series) -> dict[str, list]:
     """Format the classifier parameters."""
     keys = [x for x in series.columns if x[-3:] != "_id"]
     vals = [series[key].values for key in keys]
@@ -339,11 +327,13 @@ class ModelResult:
 
     def get_name(self) -> str:
         """Get the name for the model result."""
-        m = self.model_type
-        r = str(self.run_id)
-        i = str(self.iter_id)
-        n = self.feat = self.name
-        return "_".join([m, r, i, n])
+        return "_".join(
+            [
+                str(x)
+                for x in [self.model_type, self.run_id, self.iter_id, self.name]
+                if x
+            ]
+        )
 
     def __repr__(self) -> str:
         """Get the representation for the model result."""
@@ -374,7 +364,7 @@ class ModelResult:
         """Get the parameters for the model result."""
         sql = f"""
         select *
-        from {chkenv("LOG_SCHEMA")}.params_{self.model_type}
+        from {LOG_SCHEMA}.params_{self.model_type}
         where run_id={self.run_id}
         and iter_id={self.iter_id}
         """
@@ -402,7 +392,7 @@ class Results:
         p: float,
         i: int,
         j: int,
-        alpha: float = chkenv("ALPHA", astype=float),
+        alpha: float = ALPHA,
     ) -> int:
         """Evaluate the alpha."""
         if p > alpha:
@@ -450,7 +440,7 @@ class Results:
     def do_friedman(self) -> tuple:
         """Do the Friedman test for the model results."""
         splits = self.get_splits()
-        return friedmanchisquare(splits)
+        return friedmanchisquare(*splits)
 
     def do_nemenyi(self) -> array:
         """Do the Nemenyi test for the model results."""
@@ -509,6 +499,7 @@ class Results:
         self.obj_names = [
             f"{str(self.obj_list[i])} ({i})" for i in range(len(self.obj_list))
         ]
+        self._range = range(len(self))  # Add this line
         self.index = self.get_comp_index()
         self.index_grid = self.get_index_grid()
 
@@ -695,7 +686,7 @@ class Results:
         _len: bool = False,
         _obj_list: bool = False,
         _res_obj: bool = True,
-    ) -> list["Results"] | "Results":
+    ) -> list["Results"]:
         """Get the top cluster for the model results."""
         grid = self.grid
         top_row = grid[0][1:]
@@ -785,7 +776,7 @@ def comp_rope_vals() -> None:
             df.to_sql(
                 "rope_comp",
                 con=res.dbh.engine,
-                schema=chkenv("LOG_SCHEMA"),
+                schema=LOG_SCHEMA,
                 if_exists=if_exists,
                 index=True,
                 method="multi",
