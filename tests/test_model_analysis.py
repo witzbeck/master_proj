@@ -32,11 +32,11 @@ def sample_arrays():
 @fixture
 def sample_series():
     data = {
-        "param1": array([1, 2, 3]),
-        "param2": array([0.1, 0.2, 0.3]),
-        "param3_id": array([100, 101, 102]),
-        "n_jobs": array([1, 2, 3]),
-        "warm_start": array([1, 0, 1]),
+        "param1": [1, 2, 3],
+        "param2": [0.1, 0.2, 0.3],
+        "param3_id": [100, 101, 102],
+        "n_jobs": [1, 2, 3],
+        "warm_start": [1, 0, 1],
     }
     return DataFrame(data)
 
