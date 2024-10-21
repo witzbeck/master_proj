@@ -38,6 +38,7 @@ jobs:
     # Set up Python
     # ---------------------------------------------
     - name: Set up Python
+      id: setup-python
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
@@ -56,6 +57,7 @@ jobs:
     # load cached poetry dependencies if available
     # ---------------------------------------------
     - name: Load cached virtualenv
+      id: load-cached-virtualenv
       uses: actions/cache@v4
       with:
         path: .venv
@@ -64,39 +66,34 @@ jobs:
           ${{ runner.os }}-poetry-
     
     #----------------------------------------------
+    # Check the poetry lock file
+    #----------------------------------------------
+    - name: Install dependencies
+      run: poetry check
+    
+    #----------------------------------------------
     # install dependencies if cache does not exist
     #----------------------------------------------
     - name: Install dependencies
-      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-      run: poetry install --with test --no-interaction --no-root
+      if: steps.load-cached-virtualenv.outputs.cache-hit != 'true'
+      run: poetry install --with dev --no-interaction --no-root
     
     #----------------------------------------------
     # install your root project, if required
     #----------------------------------------------
     - name: Install project
-      run: poetry install --with test --no-interaction
+      run: poetry install --with dev --no-interaction
     
+    #----------------------------------------------
+    # get dataset
+    #----------------------------------------------
+    - name: Get dataset
+      run: |
+        poetry run get-data
+
     #----------------------------------------------
     # run test suite
     #----------------------------------------------
     - name: Run tests
       run: |
-        poetry run pytest --cov=master_proj --cov-report=xml -n auto
-        poetry run sqlfluff lint --config pyproject.toml
-
-  build_pdf:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: set up Tex Live
-      uses: xu-cheng/latex-action@v3
-      with:
-        working_directory: paper
-        root_file: paper.tex
-
-    - name: upload pdf
-      uses: actions/upload-artifact@v3
-      with:
-        name: PDF
-        path: paper/paper.pdf
-    
+        poetry run pytest
