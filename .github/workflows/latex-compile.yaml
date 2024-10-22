@@ -36,9 +36,6 @@ jobs:
         working_directory: paper
         root_file: paper.tex
         continue_on_error: true
-        #args: -pdf -f -interaction=nonstopmode
-        #extra_system_packages: inkscape
-        #post_compile: make paper.pdf
 
     #----------------------------------------------
     # uploads the pdf as an artifact
