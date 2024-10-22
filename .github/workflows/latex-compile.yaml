@@ -70,7 +70,7 @@ jobs:
 
       - name: Get Semantic Version With Poetry
         id: get_version
-        run: echo ::set-output name=version::$(poetry version | cut -d' ' -f2)
+        run: echo version=$(poetry version | cut -d' ' -f2) >> $GITHUB_OUTPUT
 
       - name: Create Release
         id: create_release
