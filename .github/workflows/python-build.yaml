@@ -26,26 +26,17 @@ jobs:
         python-version: ['3.12', '3.11']
 
     steps:
-    # ---------------------------------------------
-    # Checkout repository
-    # ---------------------------------------------
-    - uses: actions/checkout@v4
-      name: Checkout repository
+    - name: Checkout Repository
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
     
-    # ---------------------------------------------
-    # Set up Python
-    # ---------------------------------------------
-    - name: Set up Python
+    - name: Setup Python
       id: setup-python
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     
-    # ---------------------------------------------
-    # install poetry
-    # ---------------------------------------------
     - name: Install Poetry
       uses: snok/install-poetry@v1
       with:
@@ -53,10 +44,10 @@ jobs:
         virtualenvs-in-project: true
         installer-parallel: true
     
-    # ---------------------------------------------
-    # load cached poetry dependencies if available
-    # ---------------------------------------------
-    - name: Load cached virtualenv
+    - name: Check Lock File
+      run: poetry check
+
+    - name: Load Cached Virtualenv
       id: load-cached-virtualenv
       uses: actions/cache@v4
       with:
@@ -64,36 +55,15 @@ jobs:
         key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
         restore-keys: |
           ${{ runner.os }}-poetry-
-    
-    #----------------------------------------------
-    # Check the poetry lock file
-    #----------------------------------------------
-    - name: Install dependencies
-      run: poetry check
-    
-    #----------------------------------------------
-    # install dependencies if cache does not exist
-    #----------------------------------------------
-    - name: Install dependencies
+  
+    - name: Install Dependencies
       if: steps.load-cached-virtualenv.outputs.cache-hit != 'true'
       run: poetry install --with dev --no-interaction --no-root
     
-    #----------------------------------------------
-    # install your root project, if required
-    #----------------------------------------------
-    - name: Install project
-      run: poetry install --with dev --no-interaction
-    
-    #----------------------------------------------
-    # get dataset
-    #----------------------------------------------
-    - name: Get dataset
+    - name: Get Dataset
       run: |
         poetry run get-data
 
-    #----------------------------------------------
-    # run test suite
-    #----------------------------------------------
-    - name: Run tests
+    - name: Run Tests
       run: |
         poetry run pytest
