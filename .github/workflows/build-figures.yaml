@@ -47,6 +47,9 @@ jobs:
       if: steps.load-cached-virtualenv.outputs.cache-hit != 'true'
       run: poetry install --with dev --no-interaction --no-root
     
+    - name: Install Project
+      run: poetry install --no-interaction --no-root
+
     - name: Get Dataset
       run: poetry run get-data
     
