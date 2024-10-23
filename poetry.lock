@@ -11,7 +11,7 @@ develop = false
 
 [package.dependencies]
 cryptography = "^43.0"
-duckdb = "^1.1.0"
+duckdb = "^1.1.2"
 faker = "^30.3.0"
 matplotlib = "^3.8"
 pandas = "^2.2"
@@ -25,7 +25,7 @@ statsmodels = "^0.14.4"
 type = "git"
 url = "http://github.com/witzbeck/alexlib.git"
 reference = "main"
-resolved_reference = "fa05b88034390e16ff6cbb9ceea6f89a1767ce37"
+resolved_reference = "bdf3590031e6338efb1aa9c51310efca42a6f0ea"
 
 [[package]]
 name = "appdirs"
