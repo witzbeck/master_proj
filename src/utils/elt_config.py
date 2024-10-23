@@ -447,7 +447,7 @@ def main(
     # Load non-landing data
     for query_path in tqdm(queries.get_sorted_nonlanding_query_paths()):
         if query_path.stem.startswith("_"):
-            print(f"skipping {query_path.relative_to(queries.path)}")
+            logger.info(f"skipping {query_path.relative_to(queries.path)}")
             continue
         if check_sql_path_for_blacklist(query_path):
             raise ValueError(f"Blacklisted SQL in {query_path}")
@@ -457,7 +457,7 @@ def main(
         sql = get_create_object_command(
             schema, table_name, query_path.read_text(), orreplace=replace
         )
-        print(
+        logger.info(
             f"Creating {schema}.{table_name} from {'/'.join(query_path.parts[-3:])}",
             end="... ",
         )
@@ -469,20 +469,3 @@ def main(
     cnxn.execute(f"""EXPORT DATABASE '{str(data_dir.export_path)}' (FORMAT PARQUET)""")
     timer.log_from_last("Export database")
     cnxn.close()
-
-
-if __name__ == "__main__":
-    # main()
-    qdir = QueriesDirectory()
-    """
-    for path, sources in qdir.path_source_map.items():
-        print("/".join(path.parts[-3:]), "\n\t" + "\n\t".join(sources))
-        print(qdir.path_normalized_name_map[path])
-        break
-    print(qdir.target_source_df)
-    print(qdir.source_ntargets_map)
-    print(qdir.target_nsources_map, "\n")
-    """
-    print("Sources Without Targets:", sorted(qdir.sources_without_targets))
-    print("Targets Without Sources:", sorted(qdir.targets_without_sources))
-    main()
