@@ -447,7 +447,7 @@ def main(
     # Load non-landing data
     for query_path in tqdm(queries.get_sorted_nonlanding_query_paths()):
         if query_path.stem.startswith("_"):
-            print(f"skipping {query_path.relative_to(queries.path)}")
+            logger.info(f"skipping {query_path.relative_to(queries.path)}")
             continue
         if check_sql_path_for_blacklist(query_path):
             raise ValueError(f"Blacklisted SQL in {query_path}")
@@ -457,8 +457,8 @@ def main(
         sql = get_create_object_command(
             schema, table_name, query_path.read_text(), orreplace=replace
         )
-        print(
-            f"Creating {schema}.{table_name} from {'/'.join(query_path.parts[-3:])}",
+        logger.info(
+            f"Creating {schema}.{table_name} from {"/".join(query_path.parts[-3:])}",
             end="... ",
         )
         cnxn.execute(sql)
