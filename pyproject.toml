@@ -35,6 +35,7 @@ sqlfluff     = "^3.0"
 
 [tool.poetry.scripts]
 get-data = "utils.get_dataset:main"
+etl = "utils.elt_config:main"
 
 [tool.pytest.ini_options]
 addopts = [
