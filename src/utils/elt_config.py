@@ -469,20 +469,3 @@ def main(
     cnxn.execute(f"""EXPORT DATABASE '{str(data_dir.export_path)}' (FORMAT PARQUET)""")
     timer.log_from_last("Export database")
     cnxn.close()
-
-
-if __name__ == "__main__":
-    # main()
-    qdir = QueriesDirectory()
-    """
-    for path, sources in qdir.path_source_map.items():
-        print("/".join(path.parts[-3:]), "\n\t" + "\n\t".join(sources))
-        print(qdir.path_normalized_name_map[path])
-        break
-    print(qdir.target_source_df)
-    print(qdir.source_ntargets_map)
-    print(qdir.target_nsources_map, "\n")
-    """
-    print("Sources Without Targets:", sorted(qdir.sources_without_targets))
-    print("Targets Without Sources:", sorted(qdir.targets_without_sources))
-    main()
