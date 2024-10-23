@@ -23,9 +23,6 @@ jobs:
           figures/
           .github/workflows/latex-compile.yaml
 
-    #----------------------------------------------
-    # set up Tex Live
-    #----------------------------------------------
     - name: Compile LaTeX PDF
       uses: xu-cheng/latex-action@v3
       with:
@@ -33,10 +30,7 @@ jobs:
         root_file: paper.tex
         continue_on_error: true
 
-    #----------------------------------------------
-    # uploads the pdf as an artifact
-    #----------------------------------------------
-    - name: upload pdf
+    - name: Upload PDF as Artifact
       uses: actions/upload-artifact@v3
       with:
         name: PDF
@@ -47,6 +41,10 @@ jobs:
     runs-on: [ubuntu-latest]
     steps:
       - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github/workflows/latex-compile.yaml
+            pyproject.toml
   
       - name: Download PDF
         uses: actions/download-artifact@v3
@@ -62,29 +60,6 @@ jobs:
           virtualenvs-in-project: true
           installer-parallel: true
 
-      # Bump Version
-      - name: Bump Patch Version
-        run: poetry version patch
-  
-      # Configure Git
-      - name: Configure Git
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-  
-      # Commit Changes
-      - name: Commit Version Bump
-        run: |
-          git add pyproject.toml
-          git commit -m "Bump version [skip ci]"
-  
-      # Push Changes
-      - name: Push Changes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git push origin HEAD:${{ github.ref }}
-  
       # Get Updated Version
       - name: Get Updated Version With Poetry
         id: get_version
