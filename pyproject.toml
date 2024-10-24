@@ -14,7 +14,9 @@ version = "1.4.0"
 [tool.poetry.dependencies]
 alexlib         = { git = "http://github.com/witzbeck/alexlib.git", branch = "main" }
 baycomp         = "*"
+click           = "^8.1.7"
 matplotlib      = "^3.9.2"
+matplotlib-venn = "^1.1.1"
 numpy           = "^2.1.1"
 pandas          = "^2.2.3"
 python          = "^3.11"
@@ -22,7 +24,6 @@ scikit-learn    = "^1.5.2"
 scikit-posthocs = "*"
 seaborn         = "^0.13"
 tqdm            = "^4.66"
-click = "^8.1.7"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel    = "^6.29"
