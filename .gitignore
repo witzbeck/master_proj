@@ -6,6 +6,7 @@
 # proj files
 /data
 /technical_refs
+!/research/presentation/*.pdf
 /research
 
 # file sys
@@ -16,10 +17,7 @@
 .cache/
 cache/
 cache*
-.pybuilder/
-.pytype/
 .ruff_cache/
-cython_debug/
 
 # Log files and directories
 logs/
@@ -73,15 +71,12 @@ ipython_config.py
 *.log
 
 # Build outputs
-*.pdf
+paper/*.pdf
 
 # OS files
 .DS_Store
 
 # Project-specific files and directories
-/data/
-/technical_refs/
-/research/
 target/
 runs/
 tensorflow_code/
