@@ -17,7 +17,7 @@ from alexlib.core import to_clipboard
 from alexlib.df import get_distinct_col_vals
 from alexlib.maths import euclidean_distance as euclidean
 
-from utils.elt_config import get_info_schema_df
+from utils.elt_config import get_cnxn, get_info_schema_df
 
 
 def get_onehot_case_line(col: str, val: str):
@@ -31,7 +31,7 @@ def get_table_abrv(table_name: str, sep: str = "_") -> str:
 
 @dataclass
 class DbHelper:
-    cnxn: DuckDBPyConnection = field(default_factory=DuckDBPyConnection)
+    cnxn: DuckDBPyConnection = field(default_factory=get_cnxn)
 
     @property
     def info_schema(self) -> DataFrame:
