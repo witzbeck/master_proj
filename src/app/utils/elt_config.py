@@ -1,3 +1,4 @@
+from collections.abc import Generator
 from dataclasses import dataclass
 from functools import cached_property
 from itertools import chain
@@ -421,10 +422,17 @@ def get_create_object_command(
     return f"CREATE {orreplace} {obj_type} {ifnotexists} {schema}.{table_name} AS {sql}"
 
 
+def export_database(cnxn: DuckDBPyConnection, export_path: Path) -> None:
+    """Export the database."""
+    [x.unlink() for x in export_path.iterdir() if x.is_file()]
+    cnxn.execute(f"""EXPORT DATABASE '{str(export_path)}' (FORMAT PARQUET)""")
+
+
 def main(
     timer: Timer = None,
     replace: bool = True,
-) -> None:
+    export_db: bool = False,
+) -> Generator[DuckDBPyConnection, None, None]:
     """Main function."""
 
     if timer is None:
@@ -458,14 +466,14 @@ def main(
             schema, table_name, query_path.read_text(), orreplace=replace
         )
         logger.info(
-            f"Creating {schema}.{table_name} from {'/'.join(query_path.parts[-3:])}",
+            f"Creating {schema}.{table_name} from {"/".join(query_path.parts[-3:])}",
             end="... ",
         )
         cnxn.execute(sql)
         timer.log_from_start(f"{schema}.{table_name}")
 
-    # Export database
-    [x.unlink() for x in data_dir.export_path.iterdir() if x.is_file()]
-    cnxn.execute(f"""EXPORT DATABASE '{str(data_dir.export_path)}' (FORMAT PARQUET)""")
-    timer.log_from_last("Export database")
-    cnxn.close()
+    if export_db:
+        # Export database
+        export_database(cnxn, data_dir.export_path)
+        timer.log_from_last("Exported database")
+    return cnxn

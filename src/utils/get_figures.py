@@ -1,5 +1,25 @@
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
+
+THEME_STYLE = "whitegrid"
+
+
+@dataclass(frozen=True)
+class FigSize:
+    width: int
+    height: int
+
+    @property
+    def asdict(self) -> dict[str, int]:
+        return {"width": self.width, "height": self.height}
+
+
+class FigSizes(Enum):
+    LOGO = FigSize(300, 300)
+    DEMOG = FigSize(500, 500)
+    FULL = FigSize(800, 800)
+    XL = FigSize(1000, 1000)
 
 
 @dataclass(frozen=True)
@@ -9,6 +29,7 @@ class ProjectFigure:
     source_url: str = None
     source_table: str = None
     current_file: str = None
+    func: Callable = None
 
 
 @dataclass(frozen=True)
@@ -21,13 +42,22 @@ class PresentationFigure(ProjectFigure):
     pass
 
 
+class SharedFigures(Enum):
+    FIRST30_DAYS_ACTIVE = PaperFigure(
+        "First 30 Days Active",
+        "The distribution of student active days in the first 30 days of each course",
+        current_file="n_days_active.png",
+        source_table="first30.all_features",
+    )
+
+
 class PaperFigures(Enum):
-    ROPE_PDF1 = PaperFigure(
+    BAYES_ROPE_PDF = PaperFigure(
         "Bayes On One",
         "A probability density function resulting from a Bayesian Signed Rank Test",
         current_file="rope_rforest_519_0__etree_358_0_.png",
     )
-    ROPE_PDF2 = PaperFigure(
+    BAYES_ROPE_POSTERIOR = PaperFigure(
         "Bayes On Two",
         "A Bayesian posterior plot resulting from a Bayesian hierarchical correlated t-test",
         current_file="rope_on_two_hxg_boost_531_0__hxg_boost_540_0_.png",
@@ -67,11 +97,6 @@ class PaperFigures(Enum):
         "The distribution of student regions in the OULAD dataset",
         current_file="region_by_student.png",
     )
-    FIRST30_DAYS_ACTIVE = PaperFigure(
-        "First 30 Days Active",
-        "The distribution of student active days in the first 30 days of each course",
-        current_file="n_days_active.png",
-    )
     TOP_ACTIVITIES_TOTAL_CLICKS = PaperFigure(
         "Top Activities Total Clicks",
         "The total number of clicks on activities ranked in the top 5th percentile of activities as measured by student clicks",
@@ -83,13 +108,13 @@ class PaperFigures(Enum):
         current_file="roc_fit_by_mtype.png",
     )
     WINDOWPANE_FREQUENTIST = PaperFigure(
-        "Windowpane Frequentist",
-        "A windowpane plot of frequentist model performance using the results of the non-parametric Nemenyi test",
+        "Windowpane Plot of Frequentist Model Comparisons",
+        "A windowpane plot of frequentist model comparisons using the results of the non-parametric Nemenyi test",
         current_file="freq_window_20_16_top_100.png",
     )
     WINDOWPANE_BAYESIAN = PaperFigure(
-        "Windowpane Bayesian",
-        "A windowpane plot of Bayesian model performance using the results of a Bayesian signed rank test using a ROPE of 0.002",
+        "Windowpane Plot of Bayesian Model Comparisons",
+        "A windowpane plot of Bayesian model comparisons using the results of a Bayesian signed rank test using a ROPE of 0.002",
         current_file="bayes_window_20_16_top_100.png",
     )
     ABROCA_MODEL_CURVES = PaperFigure(
@@ -101,4 +126,11 @@ class PaperFigures(Enum):
         "ABROCA Regression",
         "The relationship between ABROCA and demographic balance and mean test ROC AUC for the top four models",
         current_file="abroca_by_gender_dis.png",
+    )
+
+
+class PresentationFigures(Enum):
+    FINAL_RESULT_BY_IMD_BAND = PresentationFigure(
+        "Final Result by IMD Band",
+        "The distribution of final results by Index of Multiple Deprivation band",
     )
