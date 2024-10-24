@@ -1395,6 +1395,24 @@ files = [
 traitlets = "*"
 
 [[package]]
+name = "matplotlib-venn"
+version = "1.1.1"
+description = "Functions for plotting area-proportional two- and three-way Venn diagrams in matplotlib."
+optional = false
+python-versions = "*"
+files = [
+    {file = "matplotlib-venn-1.1.1.tar.gz", hash = "sha256:d885bc015f5091a4b8a8138ff20a7ed166c33b5c36dbc0489f95a5cbc76a2ae5"},
+]
+
+[package.dependencies]
+matplotlib = "*"
+numpy = "*"
+scipy = "*"
+
+[package.extras]
+shapely = ["shapely"]
+
+[[package]]
 name = "nest-asyncio"
 version = "1.6.0"
 description = "Patch asyncio to allow nested event loops"
@@ -2832,4 +2850,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "6677db8a73926d15dda0f3a4fd5fccb015fa3726ea77d91a22f3c4382e9d5e38"
+content-hash = "603674494243bbd0860645e8e066ae675934d9a4283b48193347c1ecbb2da72d"

@@ -1,8 +1,19 @@
 from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
+
+from matplotlib.axis import Axis
+from matplotlib.figure import Figure
+from matplotlib.pyplot import subplots
+from matplotlib_venn import venn3
+
+from utils.constants import FIGURES_PATH
 
 THEME_STYLE = "whitegrid"
+(GENERATED_FIGURES_PATH := FIGURES_PATH / "generated").mkdir(
+    parents=True, exist_ok=True
+)
 
 
 @dataclass(frozen=True)
@@ -14,12 +25,49 @@ class FigSize:
     def asdict(self) -> dict[str, int]:
         return {"width": self.width, "height": self.height}
 
+    @property
+    def astuple(self) -> tuple[int, int]:
+        return (self.width, self.height)
+
 
 class FigSizes(Enum):
     LOGO = FigSize(300, 300)
     DEMOG = FigSize(500, 500)
     FULL = FigSize(800, 800)
     XL = FigSize(1000, 1000)
+
+
+def get_edm_venn(
+    center_size: int = 8,
+    sides_size: int = 8,
+    sets_size: int = 6,
+    figsize: tuple[int, int] = (10, 10),
+    dpi: int = 200,
+) -> tuple[Figure, Axis]:
+    """Create a Venn diagram explaining EDM/LA."""
+    fig, ax = subplots(figsize=figsize, dpi=dpi)
+    subset_labels = [
+        "Computer\nScience",  # CS
+        "Education",  # Ed
+        "Computer-Based\nLearning",
+        "Statistics",  # Stats
+        "Data Mining\nMachine Learning",
+        "Educational\nStatistics",
+        "Educational Data Mining\nLearning Analytics",
+    ]
+    subsets = [
+        sets_size,  # CS
+        sets_size,  # Ed
+        sides_size,  # CBL
+        sets_size,  # Stats
+        sides_size,  # DM/ML
+        sides_size,  # EdStats
+        center_size,  # EDM/LA
+    ]
+    venn = venn3(subsets=subsets, set_labels=None, ax=ax)
+    for name, label in zip(subset_labels, venn.subset_labels, strict=True):
+        label.set_text(name)
+    return fig, ax
 
 
 @dataclass(frozen=True)
@@ -30,6 +78,14 @@ class ProjectFigure:
     source_table: str = None
     current_file: str = None
     func: Callable = None
+
+    @property
+    def filename(self) -> str:
+        return f"{self.name.lower().replace(" ", "_")}.png"
+
+    @property
+    def filepath(self) -> Path:
+        return GENERATED_FIGURES_PATH / self.filename
 
 
 @dataclass(frozen=True)
@@ -43,8 +99,8 @@ class PresentationFigure(ProjectFigure):
 
 
 class SharedFigures(Enum):
-    FIRST30_DAYS_ACTIVE = PaperFigure(
-        "First 30 Days Active",
+    FIRST30_DAYS_ACTIVE_BY_FINAL_RESULT = PaperFigure(
+        "First 30 Days Active by Final Result",
         "The distribution of student active days in the first 30 days of each course",
         current_file="n_days_active.png",
         source_table="first30.all_features",
@@ -133,4 +189,15 @@ class PresentationFigures(Enum):
     FINAL_RESULT_BY_IMD_BAND = PresentationFigure(
         "Final Result by IMD Band",
         "The distribution of final results by Index of Multiple Deprivation band",
+        source_table="landing.student_info",
+    )
+    MIN_DAYS_BEFORE_DUE_HIST = PresentationFigure(
+        "Minimum Days Before Due Date Submitted Histogram",
+        "The distribution of the minimum days before due date for each student",
+        source_table="first30.all_features",
+    )
+    EDM_LA_VENN = PresentationFigure(
+        "EDM LA Venn",
+        "A Venn diagram showing the relationship between fields of research, Educational Data Mining, and Learning Analytics",
+        func=get_edm_venn,
     )
