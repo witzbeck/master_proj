@@ -148,11 +148,17 @@ class PresentationFigure(ProjectFigure):
 
 
 class SharedFigures(Enum):
-    FIRST30_DAYS_ACTIVE_BY_FINAL_RESULT = PaperFigure(
+    FIRST30_DAYS_ACTIVE_BY_FINAL_RESULT = ProjectFigure(
         "First 30 Days Active by Final Result",
         "The distribution of student active days in the first 30 days of each course",
         current_file="n_days_active.png",
         source_table="first30.all_features",
+    )
+    ABROCA_BY_DEMOG_BALANCE = ProjectFigure(
+        "ABROCA by Demographic Characteristic Balance",
+        "The results of fitted regression models using ABROCA, ROCAUC, and demographic balance",
+        current_file=FIGURES_PATH / "abroca_by_gender_dis.png",
+        figsize=FigSizes.FULL.value,
     )
 
 
