@@ -1,19 +1,51 @@
 from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
+from functools import partial
 from pathlib import Path
 
+from IPython.display import Image
 from matplotlib.axis import Axis
 from matplotlib.figure import Figure
 from matplotlib.pyplot import subplots
 from matplotlib_venn import venn3
+from pymupdf import IRect, Page, Rect
 
-from utils.constants import FIGURES_PATH
+from utils.constants import FIGURES_PATH, LOGOS_PATH, PRESENTATION_RESEARCH_PATH
 
 THEME_STYLE = "whitegrid"
 (GENERATED_FIGURES_PATH := FIGURES_PATH / "generated").mkdir(
     parents=True, exist_ok=True
 )
+
+
+def get_page_from_file(source_file: Path, page_number: int) -> Page:
+    doc = open(str(source_file))  # open a document
+    page = doc[page_number - 1]
+    return page
+
+
+def get_page_irect(page: Page, dpi: int) -> Rect:
+    return page.get_pixmap(dpi=dpi).irect
+
+
+def get_page_xy_centers(page_irect: Rect) -> tuple[int, int]:
+    x0, y0, x1, y1 = page_irect
+    return int((x1 - x0) // 2), int((y1 - y0) // 2)
+
+
+def save_figure_from_page(
+    source_file: Path,
+    target_path: Path,
+    page_number: int,
+    dpi: int,
+    top_left: tuple[int, int],
+    bot_right: tuple[int, int],
+):
+    irect = IRect(top_left, bot_right)
+    page = get_page_from_file(source_file, page_number)
+    pix = page.get_pixmap(dpi=dpi, clip=irect)  # create a Pixmap
+    pix.save(target_path)  # save the image as png
 
 
 @dataclass(frozen=True)
@@ -76,8 +108,10 @@ class ProjectFigure:
     description: str
     source_url: str = None
     source_table: str = None
+    source_file: Path = None
     current_file: str = None
     func: Callable = None
+    figsize: FigSize = FigSizes.FULL.value
 
     @property
     def filename(self) -> str:
@@ -86,6 +120,21 @@ class ProjectFigure:
     @property
     def filepath(self) -> Path:
         return GENERATED_FIGURES_PATH / self.filename
+
+    @property
+    def image(self) -> Image:
+        if self.filepath.exists():
+            ret = Image(filename=self.filepath, **self.figsize.asdict)
+        elif self.current_file is not None:
+            ret = Image(filename=self.current_file, **self.figsize.asdict)
+        elif self.func is not None:
+            self.func()
+            ret = Image(filename=self.filepath, **self.figsize.asdict)
+        else:
+            raise ValueError("No image available")
+        print(self.name)
+        print(self.description)
+        return ret
 
 
 @dataclass(frozen=True)
@@ -200,4 +249,80 @@ class PresentationFigures(Enum):
         "EDM LA Venn",
         "A Venn diagram showing the relationship between fields of research, Educational Data Mining, and Learning Analytics",
         func=get_edm_venn,
+    )
+    AUTOML_FEATURE_ENGINEERING = PresentationFigure(
+        "AutoML Feature Engineering",
+        "A comparison of the interpretability of features engineered using AutoML",
+        source_file=PRESENTATION_RESEARCH_PATH
+        / "AutoML Feature Engineering for Student Modeling Yields High Accuracy, but Limited Interpretability.pdf",
+        current_file=FIGURES_PATH / "auto_fe.png",
+        func=partial(
+            save_figure_from_page,
+            source_file=PRESENTATION_RESEARCH_PATH,
+            target_path=GENERATED_FIGURES_PATH / "AutoML_Feature_Engineering.png",
+            page_number=18,
+            dpi=300,
+            top_left=(0, 0),
+            bot_right=(500, 500),
+        ),
+    )
+    SCIKIT_LEARN_LOGO = PresentationFigure(
+        "Scikit Learn",
+        "Machine Learning Models & Components",
+        current_file=LOGOS_PATH / "scikit-learn.png",
+        figsize=FigSizes.LOGO.value,
+    )
+    SCIPY_LOGO = PresentationFigure(
+        "SciPy",
+        "Random Variables & Statistical Tests",
+        current_file=LOGOS_PATH / "scipy.png",
+        figsize=FigSizes.LOGO.value,
+    )
+    NUMPY_LOGO = PresentationFigure(
+        "NumPy",
+        "Array Computation",
+        current_file=LOGOS_PATH / "numpy.png",
+        figsize=FigSizes.LOGO.value,
+    )
+    SEABORN_LOGO = PresentationFigure(
+        "Seaborn",
+        "Visualizations",
+        current_file=LOGOS_PATH / "seaborn.png",
+        figsize=FigSizes.LOGO.value,
+    )
+    MATPLOTLIB_LOGO = PresentationFigure(
+        "Matplotlib",
+        "Visualizations",
+        current_file=LOGOS_PATH / "matplotlib.png",
+        figsize=FigSizes.LOGO.value,
+    )
+    PANDAS_LOGO = PresentationFigure(
+        "Pandas",
+        "Database Communication & Data Manipulation",
+        current_file=LOGOS_PATH / "pandas.png",
+        figsize=FigSizes.LOGO.value,
+    )
+    PSYCOPG2_LOGO = PresentationFigure(
+        "Psycopg2",
+        "Database Communication",
+        current_file=LOGOS_PATH / "psycopg2.png",
+        figsize=FigSizes.LOGO.value,
+    )
+    POSTGRESQL_LOGO = PresentationFigure(
+        "PostgreSQL",
+        "Database System",
+        current_file=LOGOS_PATH / "postgresql.png",
+        figsize=FigSizes.LOGO.value,
+    )
+    JUPYTER_LOGO = PresentationFigure(
+        "Jupyter",
+        "Notebook Engine",
+        current_file=LOGOS_PATH / "jupyter.png",
+        figsize=FigSizes.LOGO.value,
+    )
+    PYTHON_LOGO = PresentationFigure(
+        "Python",
+        "Programming Language",
+        current_file=LOGOS_PATH / "python.png",
+        figsize=FigSizes.LOGO.value,
     )
