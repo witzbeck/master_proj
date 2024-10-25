@@ -22,6 +22,7 @@ scikit-posthocs = "*"
 seaborn         = "^0.13"
 tqdm            = "^4.66"
 matplotlib-venn = "^1.1.1"
+pymupdf = "^1.24.12"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel    = "^6.29"

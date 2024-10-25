@@ -15,7 +15,11 @@ OULAD_URL = f"{OULAD_BASE}/open_dataset/download"
 OULAD_MD5_URL = f"{OULAD_BASE}/open_dataset/downloadCheckSum"
 OULAD_MD5 = "7412686fd77cf0e0ee1e8c3e9b354308"
 
+RESEARCH_PATH = PROJECT_PATH / "research"
+PRESENTATION_RESEARCH_PATH = RESEARCH_PATH / "presentation"
+
 FIGURES_PATH = PROJECT_PATH / "figures"
+LOGOS_PATH = FIGURES_PATH / "logos"
 (DATA_PATH := PROJECT_PATH / "data").mkdir(exist_ok=True)
 (RAW_PATH := DATA_PATH / "raw").mkdir(exist_ok=True)
 (EXPORT_PATH := DATA_PATH / "export").mkdir(exist_ok=True)
