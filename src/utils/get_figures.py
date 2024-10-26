@@ -135,7 +135,7 @@ class ProjectFigure:
     source_url: str = None
     source_table: str = None
     source_file: Path = None
-    current_file: str = None
+    current_file: Path = None
     func: Callable = None
     figsize: FigSize = FigSizes.FULL.value
 
@@ -146,6 +146,11 @@ class ProjectFigure:
     @property
     def filepath(self) -> Path:
         return GENERATED_FIGURES_PATH / self.filename
+
+    @property
+    def exists(self) -> bool:
+        cur_exists = self.current_file is not None and Path(self.current_file).exists()
+        return self.filepath.exists() or cur_exists or self.func is not None
 
     @property
     def image(self) -> Image:
@@ -178,7 +183,7 @@ class SharedFigures(Enum):
     FIRST30_DAYS_ACTIVE_BY_FINAL_RESULT = ProjectFigure(
         "First 30 Days Active by Final Result",
         "The distribution of student active days in the first 30 days of each course",
-        current_file="n_days_active.png",
+        current_file=FIGURES_PATH / "n_days_active.png",
         source_table="first30.all_features",
     )
     ABROCA_BY_DEMOG_BALANCE = ProjectFigure(
@@ -285,52 +290,52 @@ class PaperFigures(Enum):
     OULAD_COURSE_BREAKDOWN = PaperFigure(
         "OULAD Course Breakdown",
         "A breakdown of the OULAD dataset by course modules and domains",
-        current_file="oulad_students_courses.png",
+        current_file=FIGURES_PATH / "oulad_students_courses.png",
     )
     OULAD_ERD = PaperFigure(
         "OULAD ERD",
         "An Entity Relationship Diagram of the OULAD dataset",
-        current_file="raw_model.png",
+        current_file=FIGURES_PATH / "raw_model.png",
     )
     OULAD_VS_2015 = PaperFigure(
         "OULAD vs 2015",
         "An evaluation of the similarity between the published OULAD dataset and the 2015 data for CCC module",
-        current_file="oulad_vs_15.png",
+        current_file=FIGURES_PATH / "oulad_vs_15.png",
     )
     OULAD_VS_2015_AGES = PaperFigure(
         "OULAD vs 2015 Ages",
         "The distribution of student ages for OULAD data (blue) and 2015 data (red) for CCC module",
-        current_file="oulad_15_age.png",
+        current_file=FIGURES_PATH / "oulad_15_age.png",
     )
     STUDENT_AGE_BANDS = PaperFigure(
         "Student Age Bands",
         "The distribution of student ages in the OULAD dataset",
-        current_file="age_band_by_student.png",
+        current_file=FIGURES_PATH / "age_band_by_student.png",
     )
     STUDENT_FINAL_RESULTS = PaperFigure(
         "Student Final Results",
         "The distribution of final results in the OULAD dataset",
-        current_file="final_result_by_student.png",
+        current_file=FIGURES_PATH / "final_result_by_student.png",
     )
     STUDENT_REGIONS = PaperFigure(
         "Student Regions",
         "The distribution of student regions in the OULAD dataset",
-        current_file="region_by_student.png",
+        current_file=FIGURES_PATH / "region_by_student.png",
     )
     TOP_ACTIVITIES_TOTAL_CLICKS = PaperFigure(
         "Top Activities Total Clicks",
         "The total number of clicks on activities ranked in the top 5th percentile of activities as measured by student clicks",
-        current_file="n_total_clicks_by_top_5th_clicks.png",
+        current_file=FIGURES_PATH / "n_total_clicks_by_top_5th_clicks.png",
     )
     MODEL_TYPE_ROC_FIT = PaperFigure(
         "Model Type ROC Fit",
         "The mean and standard deviation of fit time and ROC AUC by model type",
-        current_file="roc_fit_by_mtype.png",
+        current_file=FIGURES_PATH / "roc_fit_by_mtype.png",
     )
     ABROCA_REGRESSION = PaperFigure(
         "ABROCA Regression",
         "The relationship between ABROCA and demographic balance and mean test ROC AUC for the top four models",
-        current_file="abroca_by_gender_dis.png",
+        current_file=FIGURES_PATH / "abroca_by_gender_dis.png",
     )
 
 
@@ -339,11 +344,13 @@ class PresentationFigures(Enum):
         "Final Result by IMD Band",
         "The distribution of final results by Index of Multiple Deprivation band",
         source_table="landing.student_info",
+        current_file=FIGURES_PATH / "imd.png",
     )
     MIN_DAYS_BEFORE_DUE_HIST = PresentationFigure(
         "Minimum Days Before Due Date Submitted Histogram",
         "The distribution of the minimum days before due date for each student",
         source_table="first30.all_features",
+        current_file=FIGURES_PATH / "avg_days_early_by_days_active.png",
     )
     EDM_LA_VENN = PresentationFigure(
         "EDM LA Venn",
