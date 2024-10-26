@@ -480,4 +480,4 @@ def main(
     return cnxn
 
 
-pipeline_etl = partial(main, export_db=True, database=":memory:")
+pipeline_etl = partial(main, export_db=False, database=":memory:")
