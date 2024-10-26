@@ -6,7 +6,7 @@ from pathlib import Path
 LOG_LEVEL, EVENT_LEVEL = WARNING, WARNING
 
 HOME = Path.home()
-SOURCE_PATH = Path(__file__).parent.parent
+SOURCE_PATH = Path(__file__).parent.parent.parent
 PROJECT_PATH = SOURCE_PATH.parent
 DOTENV_PATH = PROJECT_PATH / ".env"
 
