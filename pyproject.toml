@@ -4,9 +4,10 @@ description = "code associated w ms stats capstone"
 name = "master-proj"
 package-mode = true
 packages = [
-    { include = "utils", from = "src" },
-    { include = "model", from = "src" },
-    { include = "orm", from = "src" },
+    { include = "app", from = "src" },
+    { include = "utils", from = "src/app" },
+    { include = "orm", from = "src/app" },
+    { include = "model", from = "src/app" },
 ]
 version = "1.3.0"
 
@@ -21,6 +22,7 @@ scikit-learn    = "^1.5.2"
 scikit-posthocs = "*"
 seaborn         = "^0.13"
 tqdm            = "^4.66"
+click = "^8.1.7"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel    = "^6.29"
@@ -123,7 +125,7 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$" # Allow unused vari
 
 [tool.ruff.lint.isort]
 known-first-party  = ["alexlib"]
-known-local-folder = ["utils", "model", "orm"]
+known-local-folder = ["utils", "model", "orm", "app"]
 
 
 [tool.ruff.lint.per-file-ignores]
