@@ -9,7 +9,7 @@ packages = [
     { include = "orm", from = "src/app" },
     { include = "model", from = "src/app" },
 ]
-version = "1.4.4"
+version = "1.4.5"
 
 [tool.poetry.dependencies]
 alexlib         = { git = "http://github.com/witzbeck/alexlib.git", branch = "main" }
