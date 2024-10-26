@@ -160,6 +160,78 @@ class SharedFigures(Enum):
         current_file=FIGURES_PATH / "abroca_by_gender_dis.png",
         figsize=FigSizes.FULL.value,
     )
+    ABROCA_LOGREG_ETREE = ProjectFigure(
+        "ABROCA LogReg ETree",
+        "The ABROCA statistic rendered for two models split by is_female and has_disability",
+        current_file=FIGURES_PATH / "abroca_logreg_271_0_etree_358_0_.png",
+        figsize=FigSizes.XL.value,
+    )
+    BAYESIAN_ROPE_WINDOWPANE = ProjectFigure(
+        "Bayesian ROPE Windowpane",
+        "A windowpane plot of Bayesian model comparisons using the results of a Bayesian signed rank test using a ROPE of 0.002",
+        current_file=FIGURES_PATH / "bayes_window_20_16_top_100.png",
+        figsize=FigSizes.FULL.value,
+    )
+    FREQUENTIST_ROPE_WINDOWPANE = ProjectFigure(
+        "Frequentist ROPE Windowpane",
+        "A windowpane plot of frequentist model comparisons using the results of the non-parametric Nemenyi test",
+        current_file=FIGURES_PATH / "freq_window_20_16_top_100.png",
+        figsize=FigSizes.FULL.value,
+    )
+    ROC_BY_FIT_TIME = ProjectFigure(
+        "ROC by Fit Time",
+        "The mean and standard deviation of fit time and ROC AUC by model type",
+        current_file=FIGURES_PATH / "roc_fit_by_mtype.png",
+        figsize=FigSizes.XL.value,
+    )
+    N_TOTAL_CLICKS_BY_TOP_5TH_CLICKS = ProjectFigure(
+        "Top Activities Total Clicks",
+        "The total number of clicks on activities ranked in the top 5th percentile of activities as measured by student clicks",
+        current_file=FIGURES_PATH / "n_total_clicks_by_top_5th_clicks.png",
+        figsize=FigSizes.FULL.value,
+    )
+    N_DAYS_ACTIVE_BY_FINAL_RESULT = ProjectFigure(
+        "Days Active by Final Result",
+        "The distribution of student active days in each course",
+        current_file=FIGURES_PATH / "n_days_active_by_final_result.png",
+        figsize=FigSizes.FULL.value,
+    )
+    FINAL_RESULT_BY_STUDENT_COUNT = ProjectFigure(
+        "Final Result by Student Count",
+        "The distribution of final results by student count",
+        current_file=FIGURES_PATH / "final_result_by_student.png",
+        figsize=FigSizes.FULL.value,
+    )
+    COURSE_DOMAIN_BY_STUDENT_COUNT = ProjectFigure(
+        "Course Domain by Student Count",
+        "The distribution of course domains by student count",
+        current_file=FIGURES_PATH / "course_domain_by_student.png",
+        figsize=FigSizes.FULL.value,
+    )
+    HIGHEST_EDUCATION_BY_STUDENT_COUNT = ProjectFigure(
+        "Highest Education by Student Count",
+        "The distribution of highest education by student count",
+        current_file=FIGURES_PATH / "highest_education_by_student.png",
+        figsize=FigSizes.FULL.value,
+    )
+    REGION_BY_STUDENT_COUNT = ProjectFigure(
+        "Region by Student Count",
+        "The distribution of regions by student count",
+        current_file=FIGURES_PATH / "region_by_student.png",
+        figsize=FigSizes.FULL.value,
+    )
+    IMD_BAND_BY_STUDENT_COUNT = ProjectFigure(
+        "IMD Band by Student Count",
+        "The distribution of IMD bands by student count",
+        current_file=FIGURES_PATH / "imd_band_by_student.png",
+        figsize=FigSizes.FULL.value,
+    )
+    OULAD_15_IMD_BAND = ProjectFigure(
+        "OULAD 15 IMD Band",
+        "The distribution of IMD bands for the OULAD dataset and the 2015 data for the CCC module",
+        current_file=FIGURES_PATH / "oulad_15_imd.png",
+        figsize=FigSizes.FULL.value,
+    )
 
 
 class PaperFigures(Enum):
@@ -331,4 +403,46 @@ class PresentationFigures(Enum):
         "Programming Language",
         current_file=LOGOS_PATH / "python.png",
         figsize=FigSizes.LOGO.value,
+    )
+    IMD_BAND_IRELAND = PresentationFigure(
+        "IMD Band Ireland",
+        "The distribution of IMD bands for Ireland",
+        source_table="landing.student_info",
+        current_file=FIGURES_PATH / "imd.png",
+    )
+    AGE_BAND_BY_STUDENT = PresentationFigure(
+        "Age Band by Student",
+        "The distribution of age bands by student count",
+        source_table="landing.student_info",
+        current_file=FIGURES_PATH / "age_band_by_student.png",
+    )
+    OULAD_15_AGE = PresentationFigure(
+        "OULAD 15 Age",
+        "The distribution of student ages for the OULAD dataset and the 2015 data for the CCC module",
+        current_file=FIGURES_PATH / "oulad_15_age.png",
+    )
+    OULAD_VS_15 = PresentationFigure(
+        "OULAD vs 15",
+        "An evaluation of the similarity between the published OULAD dataset and the 2015 data for CCC module",
+        current_file=FIGURES_PATH / "oulad_vs_15.png",
+    )
+    OULADS_STUDENTS_COURSES = PresentationFigure(
+        "OULADs Students Courses",
+        "A breakdown of the OULAD dataset by course modules and domains",
+        current_file=FIGURES_PATH / "oulad_students_courses.png",
+    )
+    SOURCE_ERD_MODEL = PresentationFigure(
+        "Source ERD Model",
+        "An Entity Relationship Diagram of the OULAD dataset",
+        current_file=FIGURES_PATH / "raw_model.png",
+    )
+    HXGBOOST_ABROCA_IS_FEMALE = PresentationFigure(
+        "HXGBoost ABROCA Is Female Demo",
+        "The ABROCA statistic rendered for a model split by is_female",
+        current_file=FIGURES_PATH / "hxg_boost_abroca_is_female_demo.png",
+    )
+    HXBOOST_ROC_DEMO = PresentationFigure(
+        "HXBoost ROC Demo",
+        "The ROC curve for an HXGBoost model",
+        current_file=FIGURES_PATH / "hxg_boost_roc_demo.png",
     )
