@@ -7,14 +7,15 @@ from pathlib import Path
 from IPython.display import Image
 from matplotlib.axis import Axis
 from matplotlib.figure import Figure
-from matplotlib.pyplot import savefig, subplots
+from matplotlib.pyplot import savefig, subplots, title, xlim
 from matplotlib_venn import venn3
 from pandas import DataFrame
 from pymupdf import IRect, Page, Rect
 from pymupdf import open as open_pdf
-from seaborn import color_palette, displot, set_theme
+from seaborn import color_palette, displot, histplot, scatterplot, set_theme
 
 from utils.constants import FIGURES_PATH, LOGOS_PATH, PRESENTATION_RESEARCH_PATH
+from utils.db_helpers import DbHelper
 
 THEME_STYLE = "whitegrid"
 THEME_CONTEXT = "talk"
@@ -51,6 +52,57 @@ def save_figure_from_page(
     page = get_page_from_file(source_file, page_number)
     pix = page.get_pixmap(dpi=dpi, clip=irect)  # create a Pixmap
     pix.save(target_path)  # save the image as png
+
+
+def get_top_activities_scatterplot(dbh: DbHelper) -> tuple[Figure, Axis]:
+    """Create a scatterplot of top activities by popularity."""
+    df = dbh.get_table("agg", "course_activities_by_popularity")
+    fig, ax = subplots(figsize=(8, 8))
+    scatterplot(
+        df,
+        x="n_visits",
+        y="n_clicks",
+        ax=ax,
+        hue="activity_type",
+        alpha=0.75,
+        marker="1",
+    )
+    print("Top Activities by Popularity")
+    return fig, ax
+
+
+def get_days_active_hist(dbh: DbHelper) -> tuple[Figure, Axis]:
+    """Create a histogram of days active by student count."""
+    df = dbh.get_table("first30", "all_features")
+    fig, ax = subplots(figsize=(8, 8))
+    histplot(
+        df,
+        x="n_days_active",
+        hue="final_result",
+        multiple="stack",
+        hue_order=["Distinction", "Pass", "Fail", "Withdrawn"],
+        ax=ax,
+    )
+    title("Days Active by Student Count")
+    xlim(0, 50)
+    return fig, ax
+
+
+def get_total_clicks_by_top_5th_clicks_hist(dbh: DbHelper) -> tuple[Figure, Axis]:
+    """Create a histogram of total clicks on top 5th popular sites by student count."""
+    df = dbh.get_table("first30", "all_features")
+    fig, ax = subplots(figsize=(8, 8))
+    histplot(
+        df,
+        x="n_total_clicks_by_top_5th_clicks",
+        hue="final_result",
+        multiple="stack",
+        hue_order=["Distinction", "Pass", "Fail", "Withdrawn"],
+        ax=ax,
+    )
+    title("Total Clicks on Top 5th Popular Sites by Student Count")
+    xlim(0, 1000)
+    return fig, ax
 
 
 @dataclass(frozen=True)
@@ -141,7 +193,7 @@ class ProjectFigure:
 
     @property
     def filename(self) -> str:
-        return f"{self.name.lower().replace(" ", "_")}.png"
+        return f"{self.name.lower().replace(' ', '_')}.png"
 
     @property
     def filepath(self) -> Path:
@@ -185,6 +237,7 @@ class SharedFigures(Enum):
         "The distribution of student active days in the first 30 days of each course",
         current_file=FIGURES_PATH / "n_days_active.png",
         source_table="first30.all_features",
+        func=get_days_active_hist,
     )
     ABROCA_BY_DEMOG_BALANCE = ProjectFigure(
         "ABROCA by Demographic Characteristic Balance",
@@ -221,6 +274,7 @@ class SharedFigures(Enum):
         "The total number of clicks on activities ranked in the top 5th percentile of activities as measured by student clicks",
         current_file=FIGURES_PATH / "n_total_clicks_by_top_5th_clicks.png",
         figsize=FigSizes.FULL.value,
+        func=get_total_clicks_by_top_5th_clicks_hist,
     )
     N_DAYS_ACTIVE_BY_FINAL_RESULT = ProjectFigure(
         "Days Active by Final Result",
@@ -326,6 +380,7 @@ class PaperFigures(Enum):
         "Top Activities Total Clicks",
         "The total number of clicks on activities ranked in the top 5th percentile of activities as measured by student clicks",
         current_file=FIGURES_PATH / "n_total_clicks_by_top_5th_clicks.png",
+        func=get_top_activities_scatterplot,
     )
     MODEL_TYPE_ROC_FIT = PaperFigure(
         "Model Type ROC Fit",

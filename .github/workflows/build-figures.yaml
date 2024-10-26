@@ -53,8 +53,8 @@ jobs:
     - name: Get Dataset
       run: poetry run get-data
     
-    - name: Run ETL
-      run: poetry run pipe-etl
+    # - name: Run ETL
+    #   run: poetry run pipe-etl
 
     # - name: Upload Dataset
     #   uses: actions/upload-artifact@v3

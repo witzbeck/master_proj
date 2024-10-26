@@ -1,4 +1,4 @@
-FROM python:3.12-alpine as base
+FROM python:3.12-alpine AS base
 
 ARG DEV=false
 ARG poetry_version=1.8.3
@@ -10,7 +10,7 @@ RUN apk update && \
     apk add libpq
 
 
-FROM base as builder
+FROM base AS builder
 
 ENV POETRY_NO_INTERACTION=1 \
     POETRY_VIRTUALENVS_IN_PROJECT=1 \
@@ -34,7 +34,7 @@ RUN if [ "$DEV" = "true" ]; then \
     fi
 
 
-FROM base as runtime
+FROM base AS runtime
 
 COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 
