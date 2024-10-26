@@ -1,4 +1,6 @@
 from dataclasses import dataclass, field
+from functools import cached_property
+from os import environ
 from typing import Any
 
 from scipy.stats import expon, uniform
@@ -11,16 +13,32 @@ from sklearn.ensemble import (
 )
 from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import (
+    BaseCrossValidator,
+    GridSearchCV,
+    ParameterGrid,
+    ParameterSampler,
+    RandomizedSearchCV,
+)
 from sklearn.naive_bayes import ComplementNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 
-from alexlib.core import chkenv
 from alexlib.maths import discrete_exp_dist
 
-from utils.constants import JOB_CORES, MODEL_TYPES, NROWS, RANDOM_STATE
+from utils.constants import (
+    CV_REFIT,
+    JOB_CORES,
+    MODEL_TYPES,
+    PRE_DISPATCH,
+    PREDICT_COL,
+    RANDOM_STATE,
+    SEARCH_ITER,
+    SEARCH_RANDOM,
+    TEST_SIZE,
+)
 
 MODEL_TYPE_MAP = {
     "logreg": LogisticRegression,
@@ -321,66 +339,43 @@ def overwrite_std_params(clf_params: dict, std_params: dict, all: bool = True) -
 
 @dataclass
 class Params:
+    model_type: str
+    predict_col: str = PREDICT_COL
+    test_size: float = TEST_SIZE
+    pre_dispatch: int = PRE_DISPATCH
+    n_iter: int = SEARCH_ITER
+    rand: bool = SEARCH_RANDOM
+    refit: str = CV_REFIT.lower()
+    random_state: int = RANDOM_STATE
     params: dict = field(default_factory=dict)
 
-    @property
-    def model_type(self) -> str:
-        return chkenv("MODEL_TYPE")
+    @cached_property
+    def searchcv(self) -> BaseCrossValidator:
+        return RandomizedSearchCV if self.rand else GridSearchCV
 
-    @property
-    def predict_col(self) -> str:
-        return chkenv("PREDICT_COL")
-
-    @property
-    def test_size(self) -> float:
-        return chkenv("TEST_SIZE", astype=float)
-
-    @property
-    def pre_dispatch(self) -> int:
-        return chkenv("PRE_DISPATCH", astype=int)
-
-    @property
-    def n_iter(self) -> int:
-        return chkenv("SEARCH_ITER", astype=int)
-
-    @property
-    def rand(self) -> bool:
-        return chkenv("SEARCH_RANDOM", astype=bool)
-
-    @property
-    def refit(self) -> str:
-        return chkenv("CV_REFIT").lower()
+    @cached_property
+    def param_dict(self) -> dict:
+        if self.params:
+            return self.params
+        elif self.rand:
+            return RAND_PARAM_MAP[self.model_type]
+        else:
+            return GRID_PARAM_MAP[self.model_type]
 
     def __post_init__(self):
         self.clf = MODEL_TYPE_MAP[self.model_type]
         self.model_types = MODEL_TYPES
-        if self.rand:
-            from sklearn.model_selection import RandomizedSearchCV
-
-            self.searchcv = RandomizedSearchCV
-        else:
-            from sklearn.model_selection import GridSearchCV
-
-            self.searchcv = GridSearchCV
-
         if len(self.params) > 0:
             self._dict = self.params
         elif self.rand:
-            from sklearn.model_selection import ParameterSampler
-
-            self._dict = self.set_rand_param_dict()
-            self.sampler = ParameterSampler(self._dict, n_iter=self.n_iter)
+            self.sampler = ParameterSampler(self.param_dict, n_iter=self.n_iter)
             self._list = list(self.sampler)
         else:
-            from sklearn.model_selection import ParameterGrid
-
-            self._dict = self.set_grid_param_dict()
-            self.grid = ParameterGrid(self._dict)
+            self.grid = ParameterGrid(self.param_dict)
             self._list = list(self.grid)
 
     def get_std_clf_params(self):
-        base_clf = self.set_model_type()
-        return base_clf().get_params()
+        return self.clf().get_params()
 
     def get_param_gen(self):
         for _params in self._list:
@@ -388,9 +383,25 @@ class Params:
             pobj = Params(
                 model_type=self.model_type,
                 predict_col=self.predict_col,
-                nrows=NROWS,
                 test_size=self.test_size,
-                RANDOM_STATE=RANDOM_STATE,
+                random_state=RANDOM_STATE,
                 params=_params,
             )
             yield pobj
+
+
+def show_params(model_type: str, is_rand: bool = True, n: int = 1):
+    stype = "Randomized" if is_rand else "Grid"
+    stype = f"{stype}Search Cross-Validation Parameters"
+    print(f"Example of {stype} for {model_type}:")
+    environ["SEARCH_RANDOM"] = str(is_rand)
+    params = Params(model_type=model_type).get_param_gen()
+    for _ in range(n):
+        try:
+            gs_params = next(params).param_dict
+        except StopIteration:
+            gs_params = next(Params(model_type=model_type).get_param_gen()).param_dict
+
+        for key in list(gs_params.keys()):
+            print(key, gs_params[key])
+        print("\n")

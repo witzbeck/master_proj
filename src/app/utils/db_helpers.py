@@ -17,7 +17,8 @@ from alexlib.core import to_clipboard
 from alexlib.df import get_distinct_col_vals
 from alexlib.maths import euclidean_distance as euclidean
 
-from utils.elt_config import get_cnxn, get_info_schema_df
+from utils.constants import DB_PATH
+from utils.elt_config import get_cnxn, get_info_schema_df, main
 
 
 def get_onehot_case_line(col: str, val: str):
@@ -76,6 +77,11 @@ class DbHelper:
         query = f"SELECT * FROM {schema}.{table} {limit_clause}"
         return self.cnxn.execute(query).fetchdf()
 
+    def show_table(self, schema: str, table: str, nrows: int = 10) -> None:
+        df = self.get_table(schema, table, nrows)
+        print(f"Showing {nrows} rows of {schema}.{table}")
+        return df
+
     def run_object_command(
         self,
         command: str,
@@ -93,6 +99,11 @@ class DbHelper:
     def drop_view(self, schema: str, view: str):
         object_name = f"{schema}.{view}"
         self.run_object_command("DROP", "VIEW", object_name)
+
+    @classmethod
+    def default(cls, run_etl: bool = False) -> "DbHelper":
+        cnxn = main() if run_etl or not DB_PATH.exists() else get_cnxn()
+        return cls(cnxn=cnxn)
 
 
 def create_onehot_view(

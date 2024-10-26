@@ -23,7 +23,8 @@ LOGOS_PATH = FIGURES_PATH / "logos"
 (DATA_PATH := PROJECT_PATH / "data").mkdir(exist_ok=True)
 (RAW_PATH := DATA_PATH / "raw").mkdir(exist_ok=True)
 (EXPORT_PATH := DATA_PATH / "export").mkdir(exist_ok=True)
-DB_PATH = ":memory:"
+DB_NAME = "learning.db"
+DB_PATH = DATA_PATH / DB_NAME
 SCHEMAS = ("landing", "main", "agg", "model", "eval", "feat", "first30", "analysis")
 
 QUERY_PATH = SOURCE_PATH / "queries"
