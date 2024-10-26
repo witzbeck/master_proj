@@ -193,7 +193,7 @@ class ProjectFigure:
 
     @property
     def filename(self) -> str:
-        return f"{self.name.lower().replace(" ", "_")}.png"
+        return f"{self.name.lower().replace(' ', '_')}.png"
 
     @property
     def filepath(self) -> Path:
