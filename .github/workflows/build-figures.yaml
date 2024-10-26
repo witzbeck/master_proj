@@ -2,7 +2,7 @@ name: Master's Project | Build Figures for Paper
 
 on:
   push:
-    branches: [ main, feature/* ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
