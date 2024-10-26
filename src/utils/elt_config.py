@@ -1,6 +1,6 @@
 from collections.abc import Generator
 from dataclasses import dataclass
-from functools import cached_property
+from functools import cached_property, partial
 from itertools import chain
 from logging import getLogger
 from pathlib import Path
@@ -429,6 +429,7 @@ def export_database(cnxn: DuckDBPyConnection, export_path: Path) -> None:
 
 
 def main(
+    database: Path = DB_PATH,
     timer: Timer = None,
     replace: bool = True,
     export_db: bool = False,
@@ -438,7 +439,7 @@ def main(
     if timer is None:
         timer = Timer()
     # Create a connection & all schemas
-    cnxn = get_cnxn()
+    cnxn = get_cnxn(database=database)
     timer.log_from_last("Connection & schemas")
     create_all_schemas(cnxn)
 
@@ -466,7 +467,7 @@ def main(
             schema, table_name, query_path.read_text(), orreplace=replace
         )
         logger.info(
-            f"Creating {schema}.{table_name} from {'/'.join(query_path.parts[-3:])}",
+            f"Creating {schema}.{table_name} from {"/".join(query_path.parts[-3:])}",
             end="... ",
         )
         cnxn.execute(sql)
@@ -477,3 +478,6 @@ def main(
         export_database(cnxn, data_dir.export_path)
         timer.log_from_last("Exported database")
     return cnxn
+
+
+pipeline_etl = partial(main, export_db=True, database=":memory:")
