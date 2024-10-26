@@ -3,6 +3,9 @@
 !*.json
 !*.txt
 
+# Generated Presentation Files
+/presentation/
+!/presentation/*.ipynb
 # proj files
 /data
 /technical_refs
