@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from utils.constants import SOURCE_PATH
+from constants import SOURCE_PATH
 
 
 def test_source_path_is_source(src_path: Path = SOURCE_PATH) -> None:

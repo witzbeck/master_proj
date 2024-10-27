@@ -4,6 +4,7 @@ from enum import Enum
 from functools import partial
 from pathlib import Path
 
+from duckdb import DuckDBPyConnection
 from IPython.display import Image
 from matplotlib.axis import Axis
 from matplotlib.figure import Figure
@@ -14,8 +15,8 @@ from pymupdf import IRect, Page, Rect
 from pymupdf import open as open_pdf
 from seaborn import color_palette, displot, histplot, scatterplot, set_theme
 
-from utils.constants import FIGURES_PATH, LOGOS_PATH, PRESENTATION_RESEARCH_PATH
-from utils.db_helpers import DbHelper
+from constants import FIGURES_PATH, LOGOS_PATH, PRESENTATION_RESEARCH_PATH
+from etl.utils import get_table
 
 THEME_STYLE = "whitegrid"
 THEME_CONTEXT = "talk"
@@ -54,9 +55,9 @@ def save_figure_from_page(
     pix.save(target_path)  # save the image as png
 
 
-def get_top_activities_scatterplot(dbh: DbHelper) -> tuple[Figure, Axis]:
+def get_top_activities_scatterplot(cnxn: DuckDBPyConnection) -> tuple[Figure, Axis]:
     """Create a scatterplot of top activities by popularity."""
-    df = dbh.get_table("agg", "course_activities_by_popularity")
+    df = get_table(cnxn, "agg", "course_activities_by_popularity")
     fig, ax = subplots(figsize=(8, 8))
     scatterplot(
         df,
@@ -71,9 +72,9 @@ def get_top_activities_scatterplot(dbh: DbHelper) -> tuple[Figure, Axis]:
     return fig, ax
 
 
-def get_days_active_hist(dbh: DbHelper) -> tuple[Figure, Axis]:
+def get_days_active_hist(cnxn: DuckDBPyConnection) -> tuple[Figure, Axis]:
     """Create a histogram of days active by student count."""
-    df = dbh.get_table("first30", "all_features")
+    df = get_table(cnxn, "first30", "all_features")
     fig, ax = subplots(figsize=(8, 8))
     histplot(
         df,
@@ -88,9 +89,11 @@ def get_days_active_hist(dbh: DbHelper) -> tuple[Figure, Axis]:
     return fig, ax
 
 
-def get_total_clicks_by_top_5th_clicks_hist(dbh: DbHelper) -> tuple[Figure, Axis]:
+def get_total_clicks_by_top_5th_clicks_hist(
+    cnxn: DuckDBPyConnection,
+) -> tuple[Figure, Axis]:
     """Create a histogram of total clicks on top 5th popular sites by student count."""
-    df = dbh.get_table("first30", "all_features")
+    df = get_table(cnxn, "first30", "all_features")
     fig, ax = subplots(figsize=(8, 8))
     histplot(
         df,

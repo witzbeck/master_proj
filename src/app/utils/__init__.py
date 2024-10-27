@@ -5,7 +5,7 @@ from pandas import DataFrame, Series
 
 from alexlib.files import DotenvFile
 
-from utils.constants import DOTENV_PATH, EVENT_LEVEL, LOG_LEVEL
+from constants import DOTENV_PATH, EVENT_LEVEL, LOG_LEVEL
 
 config = DotenvFile.from_path(
     DOTENV_PATH,

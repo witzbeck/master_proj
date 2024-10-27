@@ -23,8 +23,7 @@ from alexlib.df import filter_df, get_distinct_col_vals
 from alexlib.iters import get_comb_gen
 from alexlib.maths import combine_domains, get_list_difs, get_rect_area
 
-from utils import get_idx_val
-from utils.constants import (
+from constants import (
     ALPHA,
     CV_NREPEATS,
     EVAL_ROPE,
@@ -38,6 +37,7 @@ from utils.constants import (
     ROPE_UPBOUND,
     WINDOWPANE_PLOT_PARAMS,
 )
+from utils import get_idx_val
 
 
 class Abroca:

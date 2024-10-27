@@ -7,7 +7,7 @@ from pandas import DataFrame
 from alexlib.df import filter_df
 from alexlib.iters import rm_pattern
 
-from utils.constants import (
+from constants import (
     USE_ACADEMIC,
     USE_ALL,
     USE_BY_ACTIVITY,

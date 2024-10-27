@@ -4,7 +4,7 @@ from sqlalchemy import Column, Float, Integer, SmallInteger, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
 
-from utils.constants import DATA_PATH
+from constants import DATA_PATH
 
 SCHEMA = "landing"
 Base = declarative_base()

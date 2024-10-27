@@ -4,9 +4,11 @@ from logging import getLogger
 from pathlib import Path
 from zipfile import ZipFile
 
+from click import command
+from duckdb import DuckDBPyConnection
 from requests import get
 
-from utils.constants import OULAD_MD5_URL, OULAD_URL, RAW_PATH
+from constants import OULAD_MD5_URL, OULAD_URL, QUERY_PATH, RAW_PATH
 
 logger = getLogger(__name__)
 SOURCE_TABLE_MAP = {
@@ -59,7 +61,8 @@ def unzip_file(zip_path: Path, extract_path: Path = EXTRACT_PATH) -> None:
     logger.info(f"Unzipped {zip_path} to {extract_path}.")
 
 
-def main() -> None:
+@command(name="get-dataset", help="Download and extract the dataset.")
+def get_dataset() -> None:
     """Download and extract the dataset."""
     if not DATASET_PATH.exists():
         download_dataset()
@@ -73,5 +76,23 @@ def main() -> None:
         (EXTRACT_PATH / f"{orig}.csv").rename(RAW_PATH / f"{dest}.csv")
 
 
-if __name__ == "__main__":
-    main()
+def get_csv_paths(parent_path: Path = RAW_PATH) -> list[Path]:
+    """Return a list of CSV paths."""
+    return list(parent_path.glob("*.csv"))
+
+
+def load_landing_csv(
+    table_name: str,
+    cnxn: DuckDBPyConnection,
+    parent_path: Path = RAW_PATH,
+    query_path: Path = QUERY_PATH,
+    schema: str = "landing",
+) -> DuckDBPyConnection:
+    assert parent_path.is_dir(), f"{parent_path} is not a directory"
+    csv_path = (parent_path / table_name).with_suffix(".csv")
+    assert csv_path.is_file(), f"{csv_path} is not a file"
+    sql_path = query_path / "00_landing" / f"{table_name}.sql"
+    assert sql_path.is_file(), f"{sql_path} is not a file"
+    select = sql_path.read_text().replace(table_name, f"'{str(csv_path)}';")
+    sql = f"CREATE TABLE IF NOT EXISTS {schema}.{table_name} AS {select}"
+    cnxn.execute(sql)

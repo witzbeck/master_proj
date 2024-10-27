@@ -1,10 +1,10 @@
 from numpy.random import choice
 from tqdm import tqdm
 
+from constants import INF_ITER, MODEL_TYPES, SEARCH_GROUPED, SEARCH_RANDOM
 from model.engine import ModelEngine
 from model.features import SPLIT_COLUMNS, Features
 from model.params import Params
-from utils.constants import INF_ITER, MODEL_TYPES, SEARCH_GROUPED, SEARCH_RANDOM
 
 feat_dict = {
     "demographic": Features(to_include=SPLIT_COLUMNS, use_demographic=True),

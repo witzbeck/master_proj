@@ -28,7 +28,7 @@ from sklearn.tree import DecisionTreeClassifier
 
 from alexlib.maths import discrete_exp_dist
 
-from utils.constants import (
+from constants import (
     CV_REFIT,
     JOB_CORES,
     MODEL_TYPES,

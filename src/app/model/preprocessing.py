@@ -12,13 +12,13 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 from alexlib.df import filter_df
 
-from model.features import Features
-from utils.constants import (
+from constants import (
     PREDICT_COL,
     RANDOM_STATE,
     SIMPLE_NUM_IMPUTE,
     TEST_SIZE,
 )
+from model.features import Features
 
 
 @dataclass

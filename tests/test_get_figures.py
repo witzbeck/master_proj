@@ -1,6 +1,6 @@
 from pytest import FixtureRequest, fixture
 
-from utils.get_figures import (
+from utils.figures import (
     PaperFigure,
     PaperFigures,
     PresentationFigure,

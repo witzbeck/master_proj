@@ -5,8 +5,8 @@ from functools import partial
 from duckdb import DuckDBPyConnection
 from pandas import DataFrame
 
-from utils.constants import CV_RESULTS, LOG_SCHEMA
-from utils.elt_config import get_cnxn
+from constants import CV_RESULTS, LOG_SCHEMA
+from etl.utils import get_cnxn
 
 
 @dataclass

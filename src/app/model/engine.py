@@ -20,12 +20,7 @@ from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import GridSearchCV, RepeatedStratifiedKFold
 from sklearn.pipeline import Pipeline
 
-from model.analysis import RocCurve
-from model.features import Features
-from model.logger import Logger
-from model.params import Params, overwrite_std_params
-from model.preprocessing import DataPrep
-from utils.constants import (
+from constants import (
     CV_NREPEATS,
     CV_NSPLITS,
     CV_REFIT,
@@ -36,6 +31,11 @@ from utils.constants import (
     SIMPLE_NUM_IMPUTE,
     TEST_SIZE,
 )
+from model.analysis import RocCurve
+from model.features import Features
+from model.logger import Logger
+from model.params import Params, overwrite_std_params
+from model.preprocessing import DataPrep
 
 
 class ModelEngine:

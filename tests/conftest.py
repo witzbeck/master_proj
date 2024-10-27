@@ -3,7 +3,7 @@ from pathlib import Path
 from duckdb import DuckDBPyConnection
 from pytest import FixtureRequest, fixture
 
-from utils.constants import (
+from constants import (
     BLUE,
     DATA_PATH,
     FIGURES_PATH,
@@ -27,44 +27,22 @@ from utils.constants import (
     XLESS,
     XROPE,
 )
-from utils.elt_config import (
-    DataDirectory,
-    QueriesDirectory,
-    create_all_schemas,
-    get_cnxn,
-    get_csv_paths,
-    load_landing_data,
-)
+from etl import create_schema_logic, load_landing_data_logic
+from etl.extract import get_csv_paths
+from etl.utils import get_cnxn
+from utils.figures import GENERATED_FIGURES_PATH
 
 
 @fixture(scope="session")
 def cnxn() -> DuckDBPyConnection:
-    cnxn = get_cnxn(database=":memory:")
+    return get_cnxn()
+
+
+@fixture(scope="session")
+def cnxn_with_landing_data(cnxn: DuckDBPyConnection) -> DuckDBPyConnection:
+    create_schema_logic(cnxn=cnxn)
+    load_landing_data_logic(cnxn=cnxn)
     return cnxn
-
-
-@fixture(scope="session")
-def cnxn_with_schemas(cnxn: DuckDBPyConnection) -> DuckDBPyConnection:
-    create_all_schemas(cnxn=cnxn)
-    return cnxn
-
-
-@fixture(scope="session")
-def data_dir() -> DataDirectory:
-    return DataDirectory()
-
-
-@fixture(scope="session")
-def queries_dir() -> Path:
-    return QueriesDirectory()
-
-
-@fixture(scope="session")
-def cnxn_with_landing_data(
-    cnxn_with_schemas: DuckDBPyConnection, queries_dir: QueriesDirectory
-) -> DuckDBPyConnection:
-    load_landing_data(queries_dir.landing_query_dict.keys(), cnxn=cnxn_with_schemas)
-    return cnxn_with_schemas
 
 
 @fixture(
@@ -74,6 +52,7 @@ def cnxn_with_landing_data(
         DATA_PATH,
         QUERY_PATH,
         FIGURES_PATH,
+        GENERATED_FIGURES_PATH,
     )
     + tuple(get_csv_paths()),
 )

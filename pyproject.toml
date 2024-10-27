@@ -46,8 +46,6 @@ addopts = [
     "--cov-report=term-missing",
     "--cov-fail-under=30",
     "--durations=10",
-    #"-n", # faster without parallelization
-    #"auto",
 ]
 testpaths = ["tests"]
 
@@ -127,7 +125,7 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$" # Allow unused vari
 
 [tool.ruff.lint.isort]
 known-first-party  = ["alexlib"]
-known-local-folder = ["utils", "model", "orm", "app"]
+known-local-folder = ["utils", "model", "orm", "app", "etl", "constants"]
 
 
 [tool.ruff.lint.per-file-ignores]

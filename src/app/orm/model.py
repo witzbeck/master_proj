@@ -19,16 +19,37 @@ class ModelTypes(Base, ModelTable):
     model_type = Column(String(45))
 
 
+CREATE_MODEL_TYPES_TABLE = """
+create or replace table model.types(
+id integer primary key,
+model_type text not null
+);
+"""
+
+
 class ModelRuns(Base, ModelTable):
     __tablename__ = "runs"
+    iter_id = Column(Integer)
     model_type_id = Column(String(45))
     model_params = Column(JSON)
     timestamp = Column(DateTime)
 
 
+CREATE_MODEL_RUNS_TABLE = """
+create or replace table model.runs (
+    id integer primary key,
+    iter_id integer not null,
+    model_type_id integer not null,
+    model_params json not null,
+    timestamp timestamp not null
+)
+"""
+
+
 class ModelResults(Base, ModelTable):
     __tablename__ = "results"
     run_id = Column(Integer)
+    iter_id = Column(Integer)
     mean_fit_time = Column(Float)
     std_fit_time = Column(Float)
     mean_score_time = Column(Float)
@@ -36,3 +57,67 @@ class ModelResults(Base, ModelTable):
     mean_test_roc_auc = Column(Float)
     std_test_roc_auc = Column(Float)
     rank_test_roc_auc = Column(Integer)
+    mean_test_accuracy = Column(Float)
+    std_test_accuracy = Column(Float)
+
+
+CREATE_MODEL_RESULTS_TABLE = """
+create or replace table model.results(
+id integer primary key,
+run_id integer not null,
+iter_id integer not null,
+mean_fit_time float not null,
+std_fit_time float not null,
+mean_score_time float not null,
+std_score_time float not null,
+mean_test_roc_auc float not null,
+std_test_roc_auc float not null,
+rank_test_roc_auc integer not null,
+mean_test_accuracy float not null,
+std_test_accuracy float not null
+);
+"""
+
+
+class ModelFeatures(Base, ModelTable):
+    __tablename__ = "features"
+    run_id = Column(Integer)
+    to_predict_column = Column(String(45))
+    use_academic = Column(Integer)
+    use_demographic = Column(Integer)
+    use_engagement = Column(Integer)
+    use_moments = Column(Integer)
+    use_ids = Column(Integer)
+    use_text = Column(Integer)
+    use_by_activity = Column(Integer)
+
+
+CREATE_MODEL_FEATURES_TABLE = """
+create or replace table model.features(
+id integer primary key,
+run_id integer not null,
+to_predict_column text not null,
+use_academic boolean not null,
+use_demographic boolean not null,
+use_engagement boolean not null,
+use_moments boolean not null,
+use_ids boolean not null,
+use_text boolean not null,
+use_by_activity boolean not null
+);
+"""
+
+
+class ModelWarnings(Base, ModelTable):
+    __tablename__ = "warnings"
+    run_id = Column(Integer)
+    warnings = Column(String(45))
+
+
+CREATE_MODEL_WARNINGS_TABLE = """
+create or replace table model.warnings(
+id integer primary key,
+run_id integer not null,
+warnings text not null
+);
+"""

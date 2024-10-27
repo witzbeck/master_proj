@@ -6,7 +6,7 @@ from pathlib import Path
 LOG_LEVEL, EVENT_LEVEL = WARNING, WARNING
 
 HOME = Path.home()
-SOURCE_PATH = Path(__file__).parent.parent.parent
+SOURCE_PATH = Path(__file__).parent.parent
 PROJECT_PATH = SOURCE_PATH.parent
 DOTENV_PATH = PROJECT_PATH / ".env"
 
@@ -25,9 +25,22 @@ LOGOS_PATH = FIGURES_PATH / "logos"
 (EXPORT_PATH := DATA_PATH / "export").mkdir(exist_ok=True)
 DB_NAME = "learning.db"
 DB_PATH = DATA_PATH / DB_NAME
-SCHEMAS = ("landing", "main", "agg", "model", "eval", "feat", "first30", "analysis")
+
+ETL_SCHEMAS = ("landing", "main", "agg", "feat", "first30")
+ANALYSIS_SCHEMAS = ("model", "eval", "analysis")
+SCHEMAS = ETL_SCHEMAS + ANALYSIS_SCHEMAS
 
 QUERY_PATH = SOURCE_PATH / "queries"
+SQL_BLACKLIST = (
+    "CREATE",
+    "DROP",
+    "ALTER",
+    "TRUNCATE",
+    "DELETE",
+    "UPDATE",
+    "INSERT",
+    "INTO",
+)
 MODEL_TYPES = (
     "hxg_boost",
     "logreg",
