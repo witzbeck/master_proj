@@ -1,10 +1,11 @@
-FROM python:3.12-alpine AS base
+FROM python:3.13-alpine AS base
 
 ARG DEV=false
 ARG poetry_version=1.8.3
 
 ENV VIRTUAL_ENV=/app/.venv \
-    PATH="/app/.venv/bin:$PATH"
+    PATH="/app/.venv/bin:$PATH" \
+    DBPATH=/data/learning.db
 
 RUN apk update && \
     apk add libpq
@@ -33,10 +34,15 @@ RUN if [ "$DEV" = "true" ]; then \
       poetry install --without dev --no-root && rm -rf $POETRY_CACHE_DIR; \
     fi
 
+RUN poetry shell
+RUN python -m app create-schema -a
+RUN python -m app load-landing-data
+RUN python -m app load-schema -s main -s agg -s first30 -s feat
 
 FROM base AS runtime
 
 COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
+COPY --from=builder /data/${DBPATH} /data/${DBPATH}
 
 COPY src ./src
 

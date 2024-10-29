@@ -67,8 +67,12 @@ def load_schema_logic(
         raise ValueError(f"{schema} is not a valid schema in {SCHEMAS}")
     if schema == "landing":
         return load_landing_data()
+    elif isinstance(schema, (list, tuple)):
+        for schema_name in tqdm(schema, desc="Loading schemas"):
+            load_schema_logic(schema_name, replace, cnxn)
+        return cnxn
     query_paths = queries_dir.get_sorted_schema_query_paths(schema)
-    for query_path in tqdm(query_paths):
+    for query_path in tqdm(query_paths, desc=f"Loading schema: {schema}"):
         if query_path.stem.startswith("_"):
             logger.info(f"skipping {query_path.relative_to(queries_dir.path)}")
             continue

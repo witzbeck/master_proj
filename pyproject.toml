@@ -15,6 +15,8 @@ version = "1.4.7"
 alexlib         = { git = "http://github.com/witzbeck/alexlib.git", branch = "main" }
 baycomp         = "*"
 click           = "^8.1.7"
+duckdb          = "^1.1.1"
+duckdb-server   = { git = "https://github.com/witzbeck/mosaic.git", branch = "main", subdirectory = "packages/duckdb-server" }
 matplotlib      = "^3.9.2"
 matplotlib-venn = "^1.1.1"
 numpy           = "^2.1.1"
