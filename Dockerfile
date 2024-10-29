@@ -1,16 +1,18 @@
-FROM python:3.13-alpine AS base
+# Base image for common dependencies
+FROM python:3.12-alpine AS base
 
 ARG DEV=false
-ARG poetry_version=1.8.3
 
 ENV VIRTUAL_ENV=/app/.venv \
     PATH="/app/.venv/bin:$PATH" \
     DBPATH=/data/learning.db
 
+# Update package index and install dependencies
 RUN apk update && \
-    apk add libpq
+    apk add --no-cache libpq libstdc++ cmake make g++ apache-arrow apache-arrow-dev && \
+    apk add --virtual .build-deps build-base
 
-
+# Builder stage for installing the app dependencies
 FROM base AS builder
 
 ENV POETRY_NO_INTERACTION=1 \
@@ -24,21 +26,26 @@ RUN apk update && \
 WORKDIR /app
 
 # Install Poetry
-RUN pip install poetry==$poetry_version
+RUN pip install poetry==1.8.3
 
-# Install the app
+# Install the app dependencies with Poetry
 COPY pyproject.toml poetry.lock ./
 RUN if [ "$DEV" = "true" ]; then \
-      poetry install --with dev --no-root && rm -rf $POETRY_CACHE_DIR; \
+        poetry install --with dev --no-root && rm -rf $POETRY_CACHE_DIR; \
     else \
-      poetry install --without dev --no-root && rm -rf $POETRY_CACHE_DIR; \
+        poetry install --without dev --no-root && rm -rf $POETRY_CACHE_DIR; \
     fi
 
+# Activate virtual environment to run initialization scripts
 RUN poetry shell
 RUN python -m app create-schema -a
 RUN python -m app load-landing-data
 RUN python -m app load-schema -s main -s agg -s first30 -s feat
 
+# Clean up build dependencies to reduce image size
+RUN apk del .build-deps
+
+# Runtime stage to execute the application
 FROM base AS runtime
 
 COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
@@ -48,4 +55,4 @@ COPY src ./src
 
 WORKDIR /app/src
 
-ENTRYPOINT ["poetry", "run", "pipe-etl"]
+ENTRYPOINT ["poetry", "run", "duckdb-server"]

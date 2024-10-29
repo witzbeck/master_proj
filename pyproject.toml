@@ -27,6 +27,7 @@ scikit-learn    = "^1.5.2"
 scikit-posthocs = "*"
 seaborn         = "^0.13"
 tqdm            = "^4.66"
+pyarrow = "^18.0.0"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel    = "^6.29"
