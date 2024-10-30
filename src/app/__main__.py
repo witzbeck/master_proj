@@ -32,8 +32,8 @@ def list_targets_without_sources():
 
 
 if __name__ == "__main__":
-    cli()
     cli.add_command(create_schema)
     cli.add_command(load_landing_data)
     cli.add_command(load_schema)
     cli.add_command(export_database)
+    cli()

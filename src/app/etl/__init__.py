@@ -1,7 +1,7 @@
 from logging import getLogger
 from pathlib import Path
 
-from click import command, option
+from click import argument, command, option
 from duckdb import DuckDBPyConnection
 from tqdm import tqdm
 
@@ -58,7 +58,7 @@ def load_landing_data() -> DuckDBPyConnection:
 
 
 def load_schema_logic(
-    schema: str, replace: bool, cnxn: DuckDBPyConnection = None
+    schema: str, replace: bool = True, cnxn: DuckDBPyConnection = None
 ) -> DuckDBPyConnection:
     """Load a schema."""
     if cnxn is None:
@@ -83,11 +83,14 @@ def load_schema_logic(
 
 
 @command(name="load-schema", help="Load a schema.")
-@option("--schema", "-s", default="landing", help="The schema to load.")
-@option("--replace", "-r", is_flag=True, help="Replace the schema.")
-def load_schema(schema: str, replace: bool) -> DuckDBPyConnection:
+@option("--replace", "-r", default=True, is_flag=True, help="Replace the schema.")
+@argument("schema", type=str)
+def load_schema(
+    replace: bool,
+    schema: str,
+) -> DuckDBPyConnection:
     """Load a schema."""
-    return load_schema_logic(schema, replace)
+    return load_schema_logic(schema=schema, replace=replace)
 
 
 def export_database_logic(export_path: Path, cnxn: DuckDBPyConnection = None) -> None:

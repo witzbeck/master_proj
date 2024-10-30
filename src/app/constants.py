@@ -15,6 +15,11 @@ OULAD_URL = f"{OULAD_BASE}/open_dataset/download"
 OULAD_MD5_URL = f"{OULAD_BASE}/open_dataset/downloadCheckSum"
 OULAD_MD5 = "7412686fd77cf0e0ee1e8c3e9b354308"
 
+# Kubernetes
+K8S_PATH = PROJECT_PATH / ".k8s"
+PARAM_CONFIGMAP_PATH = K8S_PATH / "hyperparam_configmap.json"
+NAMESPACE = "parallel_learning"
+
 RESEARCH_PATH = PROJECT_PATH / "research"
 PRESENTATION_RESEARCH_PATH = RESEARCH_PATH / "presentation"
 

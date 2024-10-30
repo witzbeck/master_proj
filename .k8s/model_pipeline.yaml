@@ -1,0 +1,191 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ml-parallel-jobs
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: ml-dataset-pv
+  namespace: ml-parallel-jobs
+spec:
+  capacity:
+    storage: 100Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    path: /path/to/nfs/share
+    server: nfs-server.example.com
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ml-dataset-pvc
+  namespace: ml-parallel-jobs
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ml-training-job
+  namespace: ml-parallel-jobs
+spec:
+  parallelism: 5
+  completions: 5
+  template:
+    metadata:
+      name: ml-training-pod
+    spec:
+      containers:
+      - name: ml-model-training
+        image: your-registry/ml-training:latest
+        command: ["python", "/app/train.py"]
+        env:
+        - name: HYPERPARAMETER_SET
+          valueFrom:
+            configMapKeyRef:
+              name: hyperparameter-config
+              key: set1
+        volumeMounts:
+        - name: dataset-storage
+          mountPath: /data
+      restartPolicy: Never
+      volumes:
+      - name: dataset-storage
+        persistentVolumeClaim:
+          claimName: ml-dataset-pvc
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hyperparameter-config
+  namespace: ml-parallel-jobs
+data:
+  set1: "learning_rate=0.01;batch_size=32"
+  set2: "learning_rate=0.001;batch_size=64"
+  set3: "learning_rate=0.1;batch_size=16"
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ml-job-monitor
+  namespace: ml-parallel-jobs
+spec:
+  selector:
+    matchLabels:
+      app: ml-model-training
+  endpoints:
+  - port: metrics
+    interval: 15s
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: ml-parallel-jobs
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+      - name: grafana
+        image: grafana/grafana:latest
+        ports:
+        - containerPort: 3000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+  namespace: ml-parallel-jobs
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      containers:
+      - name: prometheus
+        image: prom/prometheus:latest
+        ports:
+        - containerPort: 9090
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: analytics-db
+  namespace: ml-parallel-jobs
+spec:
+  serviceName: "analytics-db"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres-server
+        image: postgres:latest
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: ml_analytics
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: username
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: password
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: ml-parallel-jobs
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+  namespace: ml-parallel-jobs
+type: Opaque
+data:
+  username: <base64-encoded-username>
+  password: <base64-encoded-password>
