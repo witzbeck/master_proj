@@ -1,5 +1,5 @@
 # Base image for common dependencies
-FROM python:3.12-alpine AS base
+FROM python:3.13-alpine AS base
 
 ARG DEV=false
 
@@ -27,6 +27,7 @@ WORKDIR /app
 
 # Install Poetry
 RUN pip install poetry==1.8.3
+RUN pip install pipx
 
 # Install the app dependencies with Poetry
 COPY pyproject.toml poetry.lock ./
@@ -55,4 +56,4 @@ COPY src ./src
 
 WORKDIR /app/src
 
-ENTRYPOINT ["poetry", "run", "duckdb-server"]
+ENTRYPOINT ["pipx", "run", "duckdb-server"]

@@ -16,18 +16,17 @@ alexlib         = { git = "http://github.com/witzbeck/alexlib.git", branch = "ma
 baycomp         = "*"
 click           = "^8.1.7"
 duckdb          = "^1.1.1"
-duckdb-server   = { git = "https://github.com/witzbeck/mosaic.git", branch = "main", subdirectory = "packages/duckdb-server" }
 matplotlib      = "^3.9.2"
 matplotlib-venn = "^1.1.1"
 numpy           = "^2.1.1"
 pandas          = "^2.2.3"
+pyarrow         = "^18.0.0"
 pymupdf         = "^1.24.12"
 python          = "^3.11"
 scikit-learn    = "^1.5.2"
 scikit-posthocs = "*"
 seaborn         = "^0.13"
 tqdm            = "^4.66"
-pyarrow = "^18.0.0"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel    = "^6.29"
