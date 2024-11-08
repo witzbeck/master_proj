@@ -1,4 +1,5 @@
 # Exceptions: Do not ignore these files
+!data/Dockerfile
 !.gitignore
 !*.json
 
