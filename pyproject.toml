@@ -1,19 +1,23 @@
 [project]
+authors = [
+    { "name" = "Alex Beckwith", "email" = "57322567+witzbeck@users.noreply.github.com" },
+]
 dependencies = [
     "alexlib",
-    "baycomp>=1.0.3",
+    "analysis",
+    "core",
+    "etl",
+    "model",
+    "orm",
+    "duckdb>=1.1.3",
     "ipykernel>=6.29.5",
-    "pre-commit>=4.0.1",
-    "pytest>=8.3.3",
-    "pytest-cov>=6.0.0",
-    "pytest-mock>=3.14.0",
-    "pytest-xdist>=3.6.1",
-    "scikit-posthocs>=0.10.0",
+    "matplotlib>=3.9.2",
+    "pandas>=2.2.3",
+    "scikit-learn>=1.5.2",
+    "scipy>=1.14.1",
     "seaborn>=0.13.2",
-    "sqlfluff>=3.2.5",
     "tqdm>=4.67.0",
-    "tool>=0.8.0",
-    "ruff>=0.7.3",
+    "pytest-cov>=6.0.0",
 ]
 description = "code associated w ms stats capstone"
 name = "master-proj"
@@ -21,26 +25,25 @@ readme = "README.md"
 requires-python = ">=3.12"
 version = "1.2.0"
 
-[tool.poetry]
-authors = ["Alex Beckwith <57322567+witzbeck@users.noreply.github.com>"]
-description = "code associated w ms stats capstone"
-name = "master-proj"
-packages = [
-    { include = "app", from = "src" },
-    { include = "utils", from = "src/app" },
-    { include = "orm", from = "src/app" },
-    { include = "model", from = "src/app" },
-]
-version = "1.4.8"
-
 [tool.uv.sources]
-alexlib = { git = "https://github.com/witzbeck/alexlib", branch = "main" }
+alexlib  = { git = "https://github.com/witzbeck/alexlib", branch = "main" }
+analysis = { workspace = true }
+core     = { workspace = true }
+etl      = { workspace = true }
+model    = { workspace = true }
+orm      = { workspace = true }
 
+[tool.uv.workspace]
+exclude = ["src/packages/__pycache__", "src/packages/*/__pycache__"]
+members = ["src/packages/*"]
 
 [tool.pytest.ini_options]
 addopts = [
-    "--cov=utils",
+    "--cov=analysis",
+    "--cov=core",
+    "--cov=etl",
     "--cov=model",
+    "--cov=orm",
     "--cov-report=term-missing",
     "--cov-fail-under=30",
     "--durations=10",
@@ -79,7 +82,6 @@ aliasing = "explcit"
 
 [tool.sqlfluff.rules.aliasing.column]
 aliasing = "explicit"
-
 
 [tool.ruff]
 exclude = [
@@ -121,7 +123,7 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$" # Allow unused vari
 
 [tool.ruff.lint.isort]
 known-first-party  = ["alexlib"]
-known-local-folder = ["utils", "model", "orm", "app"]
+known-local-folder = ["utils", "model", "orm", "app", "etl", "core", "analysis"]
 
 
 [tool.ruff.lint.per-file-ignores]

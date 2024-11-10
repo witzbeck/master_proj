@@ -3,63 +3,39 @@
 !.gitignore
 !*.json
 
-# Generated Presentation Files
-/presentation/
-!/presentation/*.ipynb
-# proj files
+# Project Files & Directories
 /data
 /technical_refs
-!/research/presentation/*.pdf
-/research
+*.pdf
 
 # file sys
 .vscode/
 *.code-workspace
 
-# Build directories, caches, and temporary files
-.cache/
-cache/
-cache*
+# Caches
+__pycache__/
 .ruff_cache/
+.pytest_cache/
+.DS_Store
+
+# Distribution / Generated Files
 *.egg-info/
+*.py[cod]
+*.html
+*.css
 
 # Log files and directories
 logs/
 *.log
 *.log.*
 
-# Python build artifacts
-__pycache__/
-*.py[cod]
-
 # Python virtual environment directories and environment files
 .env
-*.[eE][nN][vV]*
 .venv/
-venv/
-env/
-ENV/
 
 # Unit test and coverage reports
-htmlcov/
-.tox/
-.nox/
 .coverage
 .coverage.*
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-cover/
-
-# Jupyter Notebook checkpoints
-.ipynb_checkpoints/
-
-# IPython
-profile_default/
-ipython_config.py
 
 # pyenv
 .python-version
@@ -72,15 +48,3 @@ ipython_config.py
 *.out
 *.toc
 *.synctex.gz
-*.log
-
-# Build outputs
-paper/*.pdf
-
-# OS files
-.DS_Store
-
-# Project-specific files and directories
-target/
-runs/
-tensorflow_code/

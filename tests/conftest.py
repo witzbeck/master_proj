@@ -3,31 +3,34 @@ from pathlib import Path
 from duckdb import DuckDBPyConnection
 from pytest import FixtureRequest, fixture
 
-from utils.constants import (
+from analysis.constants import (
     BLUE,
-    DATA_PATH,
-    FIGURES_PATH,
     GRAY,
-    HOME,
     LEFT,
     LIGHTGRAY,
     MID,
-    MODEL_TYPES,
     NODECISION,
     ORANGE,
     OUT,
-    PROJECT_PATH,
-    QUERY_PATH,
     RIGHT,
     ROPE,
-    SOURCE_PATH,
     WHITE,
     WINDOWPANE_PLOT_PARAMS,
     XGREATER,
     XLESS,
     XROPE,
 )
-from utils.elt_config import (
+from core import (
+    DATA_PATH,
+    FIGURES_PATH,
+    HOME,
+    PAPER_PATH,
+    PRESENTATION_PATH,
+    PROJECT_PATH,
+    QUERY_PATH,
+    SOURCE_PATH,
+)
+from etl.elt_config import (
     DataDirectory,
     QueriesDirectory,
     create_all_schemas,
@@ -35,6 +38,7 @@ from utils.elt_config import (
     get_csv_paths,
     load_landing_data,
 )
+from model.constants import MODEL_TYPES
 
 
 @fixture(scope="session")
@@ -74,6 +78,8 @@ def cnxn_with_landing_data(
         DATA_PATH,
         QUERY_PATH,
         FIGURES_PATH,
+        PAPER_PATH,
+        PRESENTATION_PATH,
     )
     + tuple(get_csv_paths()),
 )
