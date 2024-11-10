@@ -1,11 +1,15 @@
-on: [push]
+name: Build and run DuckDB ETL
+on:
+  push:
+    branches:
+      - main
 jobs:
   build-and-run:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      
+
       - name: Build Docker image
         run: |
           docker build \
