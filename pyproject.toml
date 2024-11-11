@@ -51,7 +51,7 @@ addopts = [
     "--cov-report=term-missing",
     "--cov-fail-under=30",
     "--durations=10",
-    #"-n", # faster without parallelization
+    #"-n", # faster without parallelization @ current stats
     #"auto",
 ]
 testpaths = ["tests"]

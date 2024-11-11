@@ -36,27 +36,77 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-       
-      # Install Poetry (if build-tool == poetry or pip needs it)
-      - name: Install Poetry
-        if: ${{ matrix.build-tool == 'poetry' || always() }}
+
+      # Install toml module (needed for the synchronization script)
+      - name: Install toml module
         run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "HOME/.local/bin" >> $GITHUB_PATH
+          python -m pip install toml
 
-      # Install uv for pip and uv builds
-      - name: Install uv
-        if: ${{ matrix.build-tool == 'uv' || matrix.build-tool == 'pip' }}
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
-
-      # Install Poetry (if build-tool == poetry)
+      # Install Poetry (if build-tool is 'poetry' or 'pip' needs it)
       - name: Install Poetry
-        if: ${{ matrix.build-tool == 'poetry' }}
+        if: ${{ matrix.build-tool == 'poetry' || matrix.build-tool == 'pip' }}
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      # Setup Virtual Environment (if build-tool == pip)
+      # Install uv for 'pip' and 'uv' builds
+      - name: Install uv
+        if: ${{ matrix.build-tool == 'uv' || matrix.build-tool == 'pip' }}
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      # Update pyproject.toml with [tool.poetry] section
+      - name: Update pyproject.toml with [tool.poetry] section
+        if: ${{ matrix.build-tool == 'poetry' || matrix.build-tool == 'pip' }}
+        run: |
+          python - <<EOF
+          import toml
+          pyproject_path = 'pyproject.toml'
+          with open(pyproject_path, 'r') as f:
+              pyproject = toml.load(f)
+          if 'tool' not in pyproject:
+              pyproject['tool'] = {}
+          if 'poetry' not in pyproject['tool']:
+              pyproject['tool']['poetry'] = {}
+          # Copy necessary fields from [project] to [tool.poetry]
+          if 'project' in pyproject:
+              project = pyproject['project']
+              poetry = pyproject['tool']['poetry']
+              # Name
+              if 'name' in project:
+                  poetry['name'] = project['name']
+              # Version
+              if 'version' in project:
+                  poetry['version'] = project['version']
+              # Description
+              if 'description' in project:
+                  poetry['description'] = project['description']
+              # Authors
+              if 'authors' in project:
+                  poetry['authors'] = project['authors']
+              # Dependencies
+              if 'dependencies' in project:
+                  poetry_deps = {}
+                  for dep in project['dependencies']:
+                      if isinstance(dep, str):
+                          poetry_deps[dep] = '*'
+                      elif isinstance(dep, dict):
+                          dep_name, dep_version = list(dep.items())[0]
+                          poetry_deps[dep_name] = dep_version
+                  poetry['dependencies'] = poetry_deps
+              # Optional dependencies (extras)
+              if 'optional-dependencies' in project:
+                  poetry['extras'] = project['optional-dependencies']
+          with open(pyproject_path, 'w') as f:
+              toml.dump(pyproject, f)
+          EOF
+
+      # Generate poetry.lock file
+      - name: Generate poetry.lock file
+        if: ${{ matrix.build-tool == 'poetry' || matrix.build-tool == 'pip' }}
+        run: |
+          poetry lock
+
+      # Setup Virtual Environment (if build-tool == 'pip')
       - name: Setup Virtual Environment
         if: ${{ matrix.build-tool == 'pip' }}
         run: python -m venv .venv
@@ -69,9 +119,6 @@ jobs:
           # Attempt to generate requirements.txt using uv
           uv pip-compile pyproject.toml -o requirements.txt || (
             echo "uv failed, attempting with Poetry..."
-            # Install Poetry
-            curl -sSL https://install.python-poetry.org | python3 -
-            echo "${HOME}/.local/bin" >> $GITHUB_PATH
             # Generate requirements.txt using Poetry
             poetry export -f requirements.txt --output requirements.txt --without-hashes
           )
