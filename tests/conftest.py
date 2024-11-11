@@ -59,7 +59,7 @@ def data_dir() -> DataDirectory:
 
 
 @fixture(scope="session")
-def queries_dir() -> Path:
+def queries_dir() -> QueriesDirectory:
     return QueriesDirectory()
 
 
