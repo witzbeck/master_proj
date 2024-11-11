@@ -1,37 +1,27 @@
-# Use a lightweight Python base image
-FROM python:3.11-slim
+FROM python:3.12-alpine AS base
 
-# Build-time arguments with default values
-ARG EXPORT_WHOLE_DB=false
-ARG EXPORT_TABLES=""
-ARG DROP_TABLES=""
-ARG LIMIT_PROCESSING=0
-ARG INITIALIZE_SERVER=false
+ARG uv_version=0.5.4
 
-# Set environment variables based on ARGs
-ENV EXPORT_WHOLE_DB=${EXPORT_WHOLE_DB}
-ENV EXPORT_TABLES=${EXPORT_TABLES}
-ENV DROP_TABLES=${DROP_TABLES}
-ENV LIMIT_PROCESSING=${LIMIT_PROCESSING}
-ENV INITIALIZE_SERVER=${INITIALIZE_SERVER}
+ENV VIRTUAL_ENV=/app/.venv \
+    PATH="/app/.venv/bin:$PATH"
 
-# Install DuckDB and any other necessary Python packages
-RUN pip install duckdb
+RUN apk update && \
+    apk add libpq
 
-# Create the app directory
+
+FROM base AS builder
+
+RUN apk update && \
+    apk add musl-dev build-base gcc gfortran openblas-dev
+
 WORKDIR /app
 
 # Install Poetry
-RUN pip install poetry==$poetry_version
+RUN pip install uv==$uv_version
 
 # Install the app
-COPY pyproject.toml poetry.lock ./
-RUN if [ "$DEV" = "true" ]; then \
-      poetry install --with dev --no-root && rm -rf $POETRY_CACHE_DIR; \
-    else \
-      poetry install --without dev --no-root && rm -rf $POETRY_CACHE_DIR; \
-    fi
-
+COPY pyproject.toml uv.lock ./
+RUN uv sync --locked
 
 FROM base AS runtime
 
