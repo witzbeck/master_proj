@@ -14,8 +14,8 @@ from pymupdf import IRect, Page, Rect
 from pymupdf import open as open_pdf
 from seaborn import color_palette, displot, histplot, scatterplot, set_theme
 
-from utils.constants import FIGURES_PATH, LOGOS_PATH, PRESENTATION_RESEARCH_PATH
-from utils.db_helpers import DbHelper
+from core import FIGURES_PATH, LOGOS_PATH, PRESENTATION_PATH
+from etl.db_helpers import DbHelper
 
 THEME_STYLE = "whitegrid"
 THEME_CONTEXT = "talk"
@@ -415,12 +415,12 @@ class PresentationFigures(Enum):
     AUTOML_FEATURE_ENGINEERING = PresentationFigure(
         "AutoML Feature Engineering",
         "A comparison of the interpretability of features engineered using AutoML",
-        source_file=PRESENTATION_RESEARCH_PATH
+        source_file=PRESENTATION_PATH
         / "AutoML Feature Engineering for Student Modeling Yields High Accuracy, but Limited Interpretability.pdf",
         current_file=FIGURES_PATH / "auto_fe.png",
         func=partial(
             save_figure_from_page,
-            source_file=PRESENTATION_RESEARCH_PATH
+            source_file=PRESENTATION_PATH
             / "AutoML Feature Engineering for Student Modeling Yields High Accuracy, but Limited Interpretability.pdf",
             target_path=GENERATED_FIGURES_PATH / "AutoML_Feature_Engineering.png",
             page_number=18,
@@ -432,13 +432,13 @@ class PresentationFigures(Enum):
     CRITICAL_DIFFERENCE_NEMENYI = PresentationFigure(
         "Critical Difference Nemenyi",
         "Critical difference diagram based on results from post-hoc Nemenyi tests",
-        source_file=PRESENTATION_RESEARCH_PATH
+        source_file=PRESENTATION_PATH
         / "Evaluating Predictive Models of Student Success Closing the Methodological Gap.pdf",
         current_file=FIGURES_PATH / "nemenyi_critical_dif.png",
         figsize=FigSizes.FULL.value,
         func=partial(
             save_figure_from_page,
-            source_file=PRESENTATION_RESEARCH_PATH
+            source_file=PRESENTATION_PATH
             / "Evaluating Predictive Models of Student Success Closing the Methodological Gap.pdf",
             target_path=GENERATED_FIGURES_PATH / "Critical_Difference_Nemenyi.png",
             page_number=13,

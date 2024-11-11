@@ -1,6 +1,8 @@
 [project]
 dependencies    = [
     "baycomp>=1.0.3",
+    "matplotlib-venn>=1.1.1",
+    "pymupdf>=1.24.13",
     "scikit-posthocs>=0.10.0",
 ]
 description     = "Add your description here"
