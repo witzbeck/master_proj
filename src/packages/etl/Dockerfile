@@ -1,34 +1,52 @@
+# Use Python 3.12 on Alpine Linux as the base image
 FROM python:3.12-alpine AS base
 
-ARG uv_version=0.5.4
-
-ENV VIRTUAL_ENV=/app/.venv \
-    PATH="/app/.venv/bin:$PATH"
-
-RUN apk update && \
-    apk add libpq
-
-
-FROM base AS builder
-
-RUN apk update && \
-    apk add musl-dev build-base gcc gfortran openblas-dev
-
+# Set the working directory to /app
 WORKDIR /app
 
-# Install Poetry
-RUN pip install uv==$uv_version
+# Update package index and install libpq (PostgreSQL client library)
+RUN apk update && \
+    apk add --no-cache libpq
 
-# Install the app
+# Builder stage to build dependencies
+FROM base AS builder
+
+# Install build tools and development libraries
+RUN apk update && \
+    apk add --no-cache musl-dev build-base gcc gfortran openblas-dev
+
+# Install 'uv' package manager
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Set virtual environment path and update PATH
+ENV VIRTUAL_ENV=/app/.venv
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+# Copy dependency files to the container
 COPY pyproject.toml uv.lock ./
+
+# Copy source code needed for building packages
+COPY src/packages ./src/packages
+COPY src/queries ./src/queries
+
+# Install dependencies using 'uv' with the locked versions
 RUN uv sync --locked
 
+# Runtime stage
 FROM base AS runtime
 
-COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
+# Set the working directory to /app
+WORKDIR /app
 
+# Set virtual environment path and update PATH
+ENV VIRTUAL_ENV=/app/.venv
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+# Copy the virtual environment from the builder stage
+COPY --from=builder /app/.venv /app/.venv
+
+# Copy the application source code
 COPY src ./src
 
-WORKDIR /app/src
-
-ENTRYPOINT ["poetry", "run", "pipe-etl"]
+# Set the entrypoint command to run the application
+ENTRYPOINT ["uv", "run", "pipe-etl"]
