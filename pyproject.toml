@@ -1,14 +1,14 @@
 [project]
 authors = [
-    { "name" = "Alex Beckwith", "email" = "57322567+witzbeck@users.noreply.github.com" },
+    { name = "Alex Beckwith", email = "57322567+witzbeck@users.noreply.github.com" },
 ]
+description = "code associated w ms stats capstone"
+name = "master-proj"
+readme = "README.md"
+requires-python = ">=3.12"
+version = "1.5.0"
+
 dependencies = [
-    "alexlib",
-    "analysis",
-    "core",
-    "etl",
-    "model",
-    "orm",
     "duckdb>=1.1.3",
     "ipykernel>=6.29.5",
     "matplotlib>=3.9.2",
@@ -19,11 +19,53 @@ dependencies = [
     "tqdm>=4.67.0",
     "pytest-cov>=6.0.0",
 ]
+
+[project.optional-dependencies]
+dev = ["alexlib", "analysis", "core", "etl", "model", "orm"]
+
+[tool.poetry]
+authors = ["Alex Beckwith <57322567+witzbeck@users.noreply.github.com>"]
+classifier = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+]
 description = "code associated w ms stats capstone"
+documentation = "https://witzbeck.github.io/master-proj"
+homepage = "https://github.com/witzbeck/master-proj"
+keywords = ["ms", "stats", "capstone"]
 name = "master-proj"
+packages = [
+    { include = "analysis", from = "src/packages" },
+    { include = "core", from = "src/packages" },
+    { include = "etl", from = "src/packages" },
+    { include = "model", from = "src/packages" },
+    { include = "orm", from = "src/packages" },
+]
 readme = "README.md"
-requires-python = ">=3.12"
-version = "1.2.0"
+repository = "https://github.com/witzbeck/master-proj"
+version = "1.5.0"
+
+[tool.poetry.dependencies]
+duckdb         = ">=1.1.3"
+ipykernel      = ">=6.29.5"
+matplotlib     = ">=3.9.2"
+pandas         = ">=2.2.3"
+"pytest-cov"   = ">=6.0.0"
+python         = ">=3.12"
+"scikit-learn" = ">=1.5.2"
+scipy          = ">=1.14.1"
+seaborn        = ">=0.13.2"
+tqdm           = ">=4.67.0"
+
+alexlib  = { git = "https://github.com/witzbeck/alexlib", branch = "main" }
+analysis = { path = "src/packages/analysis" }
+core     = { path = "src/packages/core" }
+etl      = { path = "src/packages/etl" }
+model    = { path = "src/packages/model" }
+orm      = { path = "src/packages/orm" }
+
+[tool.poetry.dev-dependencies]
+# Add any development dependencies here
 
 [tool.uv.sources]
 alexlib  = { git = "https://github.com/witzbeck/alexlib", branch = "main" }
@@ -38,7 +80,7 @@ exclude = ["src/packages/__pycache__", "src/packages/*/__pycache__"]
 members = ["src/packages/*"]
 
 [project.scripts]
-get-data = "etl.load_dataset:load_dataset"
+get-data       = "etl.load_dataset:load_dataset"
 transform-data = "etl.elt_config:main"
 
 [tool.pytest.ini_options]
