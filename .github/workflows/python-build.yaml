@@ -36,6 +36,13 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+       
+      # Install Poetry (if build-tool == poetry or pip needs it)
+      - name: Install Poetry
+        if: ${{ matrix.build-tool == 'poetry' || always() }}
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "HOME/.local/bin" >> $GITHUB_PATH
 
       # Install uv for pip and uv builds
       - name: Install uv

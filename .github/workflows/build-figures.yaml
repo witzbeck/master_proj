@@ -27,6 +27,12 @@ jobs:
       - name: Install uv
         run: curl -LsSf https://astral.sh/uv/install.sh | sh
       
+      # Install Poetry (if build-tool == poetry or pip needs it)
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "HOME/.local/bin" >> $GITHUB_PATH
+
       # Generate requirements.txt from pyproject.toml (pip only)
       - name: Generate requirements.txt from pyproject.toml
         if: always()
