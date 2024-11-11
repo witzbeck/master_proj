@@ -25,10 +25,6 @@ dev = ["alexlib", "analysis", "core", "etl", "model", "orm"]
 
 [tool.poetry]
 authors = ["Alex Beckwith <57322567+witzbeck@users.noreply.github.com>"]
-classifier = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-]
 description = "code associated w ms stats capstone"
 documentation = "https://witzbeck.github.io/master-proj"
 homepage = "https://github.com/witzbeck/master-proj"
