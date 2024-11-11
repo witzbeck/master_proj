@@ -26,7 +26,27 @@ jobs:
 
       - name: Install uv
         run: curl -LsSf https://astral.sh/uv/install.sh | sh
-
+      
+      # Generate requirements.txt from pyproject.toml (pip only)
+      - name: Generate requirements.txt from pyproject.toml
+        if: always()
+        run: |
+          set -e
+          # Attempt to generate requirements.txt using uv
+          uv pip-compile pyproject.toml -o requirements.txt || (
+            echo "uv failed, attempting with Poetry..."
+            # Install Poetry
+            curl -sSL https://install.python-poetry.org | python3 -
+            echo "${HOME}/.local/bin" >> $GITHUB_PATH
+            # Generate requirements.txt using Poetry
+            poetry export -f requirements.txt --output requirements.txt --without-hashes
+          )
+          # Check if Poetry's lock file is more up to date
+          if [[ pyproject.toml -nt poetry.lock ]]; then
+            echo "Poetry dependencies are more up to date. Regenerating requirements.txt using Poetry..."
+            poetry export -f requirements.txt --output requirements.txt --without-hashes
+          fi
+      
       - name: Check Lock File
         run: uvx poetry check
 

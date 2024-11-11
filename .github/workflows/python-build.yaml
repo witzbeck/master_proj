@@ -37,9 +37,9 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      # Install uv (if build-tool == uv)
+      # Install uv for pip and uv builds
       - name: Install uv
-        if: ${{ matrix.build-tool == 'uv' }}
+        if: ${{ matrix.build-tool == 'uv' || matrix.build-tool == 'pip' }}
         run: curl -LsSf https://astral.sh/uv/install.sh | sh
 
       # Install Poetry (if build-tool == poetry)
@@ -47,12 +47,32 @@ jobs:
         if: ${{ matrix.build-tool == 'poetry' }}
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
-          echo "${{ runner.home }}/.local/bin" >> $GITHUB_ENV
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       # Setup Virtual Environment (if build-tool == pip)
       - name: Setup Virtual Environment
         if: ${{ matrix.build-tool == 'pip' }}
         run: python -m venv .venv
+
+      # Generate requirements.txt from pyproject.toml (pip only)
+      - name: Generate requirements.txt from pyproject.toml
+        if: ${{ matrix.build-tool == 'pip' }}
+        run: |
+          set -e
+          # Attempt to generate requirements.txt using uv
+          uv pip-compile pyproject.toml -o requirements.txt || (
+            echo "uv failed, attempting with Poetry..."
+            # Install Poetry
+            curl -sSL https://install.python-poetry.org | python3 -
+            echo "${HOME}/.local/bin" >> $GITHUB_PATH
+            # Generate requirements.txt using Poetry
+            poetry export -f requirements.txt --output requirements.txt --without-hashes
+          )
+          # Check if Poetry's lock file is more up to date
+          if [[ pyproject.toml -nt poetry.lock ]]; then
+            echo "Poetry dependencies are more up to date. Regenerating requirements.txt using Poetry..."
+            poetry export -f requirements.txt --output requirements.txt --without-hashes
+          fi
 
       # Cache dependencies for pip
       - name: Cache pip dependencies
@@ -101,7 +121,7 @@ jobs:
         run: |
           poetry install
 
-      # Get Dataset (if required)
+      # Get Dataset (uv only)
       - name: Get Dataset
         if: ${{ matrix.build-tool == 'uv' }}
         run: uv run get-data
