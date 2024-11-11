@@ -80,8 +80,8 @@ exclude = ["src/packages/__pycache__", "src/packages/*/__pycache__"]
 members = ["src/packages/*"]
 
 [project.scripts]
-get-data       = "etl.load_dataset:load_dataset"
-transform-data = "etl.elt_config:main"
+get-data       = "src/packages/etl.load_dataset:load_dataset"
+transform-data = "src/packages/etl.elt_config:main"
 
 [tool.pytest.ini_options]
 addopts = [
