@@ -82,7 +82,18 @@ jobs:
                   poetry['description'] = project['description']
               # Authors
               if 'authors' in project:
-                  poetry['authors'] = project['authors']
+                  poetry_authors = []
+                  for author in project['authors']:
+                      if isinstance(author, dict):
+                          name = author.get('name', '')
+                          email = author.get('email', '')
+                          if email:
+                              poetry_authors.append(f"{name} <{email}>")
+                          else:
+                              poetry_authors.append(name)
+                      elif isinstance(author, str):
+                          poetry_authors.append(author)
+                  poetry['authors'] = poetry_authors
               # Dependencies
               if 'dependencies' in project:
                   poetry_deps = {}
