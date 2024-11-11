@@ -2,55 +2,124 @@ name: Master's Project | Build & Test Python
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
-      - '.github/workflows/python-build.yaml'
-      - 'src/**'
-      - 'tests/**'
-      - 'pyproject.toml'
-      - 'uv.lock'
+      - ".github/workflows/python-build.yaml"
+      - "src/**"
+      - "tests/**"
+      - "pyproject.toml"
+      - "uv.lock"
   pull_request:
-    branches: [ main ]
+    branches: [main]
     paths:
-      - '.github/workflows/python-build.yaml'
-      - 'src/**'
-      - 'tests/**'
-      - 'pyproject.toml'
-      - 'uv.lock'
+      - ".github/workflows/python-build.yaml"
+      - "src/**"
+      - "tests/**"
+      - "pyproject.toml"
+      - "uv.lock"
 
 jobs:
   build:
-    runs-on: [ ubuntu-latest ]
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.13', '3.12', '3.11']
-
+        python-version: ["3.13", "3.12", "3.11"]
+        build-tool: ["pip", "poetry", "uv"]
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 1
-    
-    - name: Setup Python
-      id: setup-python
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-    
-    - name: Install uv
-      run: curl -LsSf https://astral.sh/uv/install.sh | sh
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
-    - name: Load Cached Virtualenv
-      id: load-cached-virtualenv
-      uses: actions/cache@v4
-      with:
-        path: .venv
-        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/uv.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-uv-
+      - name: Setup Python
+        id: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Get Dataset
-      run: uv run get-data
+      # Install uv (if build-tool == uv)
+      - name: Install uv
+        if: ${{ matrix.build-tool == 'uv' }}
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
 
-    - name: Run Tests
-      run: uv run pytest
+      # Install Poetry (if build-tool == poetry)
+      - name: Install Poetry
+        if: ${{ matrix.build-tool == 'poetry' }}
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "${{ runner.home }}/.local/bin" >> $GITHUB_ENV
+
+      # Setup Virtual Environment (if build-tool == pip)
+      - name: Setup Virtual Environment
+        if: ${{ matrix.build-tool == 'pip' }}
+        run: python -m venv .venv
+
+      # Cache dependencies for pip
+      - name: Cache pip dependencies
+        if: ${{ matrix.build-tool == 'pip' }}
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            .venv
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ matrix.python-version }}-
+
+      # Cache dependencies for Poetry
+      - name: Cache Poetry dependencies
+        if: ${{ matrix.build-tool == 'poetry' }}
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pypoetry
+            ~/.virtualenvs
+          key: ${{ runner.os }}-poetry-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-${{ matrix.python-version }}-
+
+      # Cache dependencies for uv
+      - name: Load Cached Virtualenv (uv)
+        if: ${{ matrix.build-tool == 'uv' }}
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/uv.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-uv-
+
+      # Install dependencies with pip
+      - name: Install Dependencies (pip)
+        if: ${{ matrix.build-tool == 'pip' }}
+        run: |
+          source .venv/bin/activate
+          pip install -r requirements.txt
+
+      # Install dependencies with Poetry
+      - name: Install Dependencies (Poetry)
+        if: ${{ matrix.build-tool == 'poetry' }}
+        run: |
+          poetry install
+
+      # Get Dataset (if required)
+      - name: Get Dataset
+        if: ${{ matrix.build-tool == 'uv' }}
+        run: uv run get-data
+
+      # Run Tests with pip
+      - name: Run Tests (pip)
+        if: ${{ matrix.build-tool == 'pip' }}
+        run: |
+          source .venv/bin/activate
+          pytest
+
+      # Run Tests with Poetry
+      - name: Run Tests (Poetry)
+        if: ${{ matrix.build-tool == 'poetry' }}
+        run: |
+          poetry run pytest
+
+      # Run Tests with uv
+      - name: Run Tests (uv)
+        if: ${{ matrix.build-tool == 'uv' }}
+        run: uv run pytest
