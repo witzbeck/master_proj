@@ -28,7 +28,7 @@ jobs:
         run: curl -LsSf https://astral.sh/uv/install.sh | sh
 
       - name: Check Lock File
-        run: uv check
+        run: uvx poetry check
 
       - name: Load Cached Virtualenv
         id: load-cached-virtualenv
