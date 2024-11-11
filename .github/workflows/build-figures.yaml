@@ -2,59 +2,48 @@ name: Master's Project | Build Figures for Paper
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.12']
+        python-version: ["3.12"]
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 1
-    
-    - name: Setup Python
-      id: setup-python
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-    
-    - name: Install Poetry
-      uses: snok/install-poetry@v1
-      with:
-        virtualenvs-create: true
-        virtualenvs-in-project: true
-        installer-parallel: true
-    
-    - name: Check Lock File
-      run: poetry check
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
-    - name: Load Cached Virtualenv
-      id: load-cached-virtualenv
-      uses: actions/cache@v4
-      with:
-        path: .venv
-        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-poetry-
-  
-    - name: Install Dependencies
-      if: steps.load-cached-virtualenv.outputs.cache-hit != 'true'
-      run: poetry install --with dev --no-interaction --no-root
-    
-    - name: Install Project
-      run: poetry install
+      - name: Setup Python
+        id: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Get Dataset
-      run: poetry run get-data
-    
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Check Lock File
+        run: uv check
+
+      - name: Load Cached Virtualenv
+        id: load-cached-virtualenv
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-uv-
+
+      - name: Get Dataset
+        run: uv run get-data
+
     # - name: Run ETL
-    #   run: poetry run pipe-etl
+    #   run: uv run pipe-etl
 
     # - name: Upload Dataset
     #   uses: actions/upload-artifact@v3
