@@ -6,6 +6,7 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - "src/packages/core/**"
       - "src/packages/etl/**"
 
 jobs:
@@ -31,11 +32,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Copy Files to Docker Context
-        run: |
-          cp -r src/packages/core ./src/packages/etl/src/packages/
-          cp -r src/queries ./src/packages/etl/src/
 
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v6

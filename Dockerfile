@@ -41,7 +41,6 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 COPY --from=builder /.venv /.venv
 
 # Copy the application source code
-COPY src ./src
+COPY --from=builder /src ./src
 
-# Set the entrypoint command to run the application
-ENTRYPOINT ["uv", "run", "pipe-etl"]
+RUN uv run get-data
