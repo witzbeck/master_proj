@@ -48,9 +48,19 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-uv-
 
+      - name: Restore data cache
+        id: restore-data-cache
+        uses: actions/cache@v4
+        with:
+          path: ./data/raw/
+          key: repo-data-raw
+
       - name: Install dependencies
         run: uv sync --locked
 
+      - name: Get data
+        if: steps.restore-data-cache.outputs.cache-hit != 'true'
+        run: uv run get-data
+
       - name: Run tests
-        run: |
-          uv run pytest
+        run: uv run pytest
