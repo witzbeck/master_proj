@@ -26,7 +26,7 @@ COPY src/packages ./src/packages
 COPY src/queries ./src/queries
 
 # Install dependencies using 'uv' with the locked versions
-RUN uv sync --frozen
+RUN uv sync --frozen --without-dev
 
 # Runtime stage
 FROM base AS runtime
