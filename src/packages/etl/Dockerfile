@@ -5,15 +5,13 @@ FROM python:3.12-alpine AS base
 WORKDIR /app
 
 # Update package index and install libpq (PostgreSQL client library)
-RUN apk update &&
-    apk add --no-cache libpq
+RUN apk update && apk add --no-cache libpq
 
 # Builder stage to build dependencies
 FROM base AS builder
 
 # Install build tools and development libraries
-RUN apk update &&
-    apk add --no-cache musl-dev build-base gcc gfortran openblas-dev
+RUN apk add --no-cache musl-dev build-base gcc gfortran openblas-dev
 
 # Install 'uv' package manager
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -35,15 +33,12 @@ RUN uv sync --frozen --compile-bytecode
 # Runtime stage
 FROM base AS runtime
 
-# Set the working directory to /app
-WORKDIR /app
-
 # Set virtual environment path and update PATH
-ENV VIRTUAL_ENV=/app/.venv
+ENV VIRTUAL_ENV=/.venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # Copy the virtual environment from the builder stage
-COPY --from=builder /app/.venv /app/.venv
+COPY --from=builder /.venv /.venv
 
 # Copy the application source code
 COPY src ./src
