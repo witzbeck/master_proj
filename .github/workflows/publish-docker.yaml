@@ -36,6 +36,6 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v6
         with:
-          context: ./src/packages/etl
+          context: .
           push: ${{ github.event_name == 'push' }}
           tags: ghcr.io/${{ github.repository }}:latest
