@@ -1,7 +1,7 @@
 # Use Python 3.12 on Alpine Linux as the base image
 FROM python:3.12-alpine AS base
 
-# Update package index and install libpq (PostgreSQL client library)
+# Update package index and install libpq (PostgreSQL client library for DuckDB)
 RUN apk update && apk add --no-cache libpq
 
 # Builder stage to build dependencies
