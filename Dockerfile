@@ -8,7 +8,7 @@ RUN apk update && apk add --no-cache libpq
 FROM base AS builder
 
 # Install build tools and development libraries
-RUN apk add --no-cache musl-dev build-base gcc gfortran openblas-dev curl
+RUN apk add --no-cache musl-dev build-base gcc gfortran openblas-dev curl git
 
 # Install 'uv' package manager
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
