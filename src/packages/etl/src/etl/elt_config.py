@@ -262,11 +262,6 @@ class QueriesDirectory(Directory):
 class DataDirectory(Directory):
     path: Path = DATA_PATH
 
-    def make_subdir(self, name: str) -> Path:
-        """Make a subdirectory."""
-        (path := self.path / name).mkdir(exist_ok=True)
-        return path
-
     @cached_property
     def export_path(self) -> Path:
         """Return the staging path."""
