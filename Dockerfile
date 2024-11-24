@@ -11,11 +11,12 @@ FROM base AS builder
 RUN apk add --no-cache musl-dev build-base gcc gfortran openblas-dev curl
 
 # Install 'uv' package manager
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh && $SHELL
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Set virtual environment path and update PATH
 ENV VIRTUAL_ENV=/.venv
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+# Add /root/.local/bin to PATH
+ENV PATH="/root/.local/bin:$VIRTUAL_ENV/bin:$PATH"
 
 # Copy dependency files to the container
 COPY pyproject.toml uv.lock ./
