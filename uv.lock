@@ -717,16 +717,6 @@ dependencies = [
     { name = "tqdm" },
 ]
 
-[package.optional-dependencies]
-dev = [
-    { name = "ipykernel" },
-    { name = "pytest" },
-    { name = "pytest-cov" },
-    { name = "pytest-xdist" },
-    { name = "ruff" },
-    { name = "sqlfluff" },
-]
-
 [package.dev-dependencies]
 dev = [
     { name = "ipykernel" },
@@ -744,19 +734,13 @@ requires-dist = [
     { name = "core", editable = "src/packages/core" },
     { name = "duckdb", specifier = ">=1.1.3" },
     { name = "etl", editable = "src/packages/etl" },
-    { name = "ipykernel", marker = "extra == 'dev'" },
     { name = "matplotlib", specifier = ">=3.9.2" },
     { name = "model", editable = "src/packages/model" },
     { name = "orm", editable = "src/packages/orm" },
     { name = "pandas", specifier = ">=2.2.3" },
-    { name = "pytest", marker = "extra == 'dev'" },
-    { name = "pytest-cov", marker = "extra == 'dev'" },
-    { name = "pytest-xdist", marker = "extra == 'dev'" },
-    { name = "ruff", marker = "extra == 'dev'" },
     { name = "scikit-learn", specifier = ">=1.5.2" },
     { name = "scipy", specifier = ">=1.14.1" },
     { name = "seaborn", specifier = ">=0.13.2" },
-    { name = "sqlfluff", marker = "extra == 'dev'" },
     { name = "tqdm", specifier = ">=4.67.0" },
 ]
 
