@@ -5,14 +5,14 @@ FROM python:3.12-alpine AS base
 WORKDIR /app
 
 # Update package index and install libpq (PostgreSQL client library)
-RUN apk update && \
+RUN apk update &&
     apk add --no-cache libpq
 
 # Builder stage to build dependencies
 FROM base AS builder
 
 # Install build tools and development libraries
-RUN apk update && \
+RUN apk update &&
     apk add --no-cache musl-dev build-base gcc gfortran openblas-dev
 
 # Install 'uv' package manager
@@ -26,11 +26,11 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 COPY pyproject.toml uv.lock ./
 
 # Copy source code needed for building packages
-COPY src/packages ./src/packages
-COPY src/queries ./src/queries
+COPY ./src/packages ./src/packages
+COPY ./src/queries ./src/queries
 
 # Install dependencies using 'uv' with the locked versions
-RUN uv sync --locked
+RUN uv sync --frozen --compile-bytecode
 
 # Runtime stage
 FROM base AS runtime
