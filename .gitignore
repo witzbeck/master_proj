@@ -1,7 +1,6 @@
 # Exceptions: Do not ignore these files
 !.gitignore
 !*.json
-!*.txt
 
 # Generated Presentation Files
 /presentation/
@@ -21,6 +20,7 @@
 cache/
 cache*
 .ruff_cache/
+*.egg-info/
 
 # Log files and directories
 logs/
