@@ -49,7 +49,6 @@ jobs:
             ${{ runner.os }}-uv-
 
       - name: Install dependencies
-        if: steps.load-cached-virtualenv.outputs.cache-hit != 'true'
         run: uv sync --locked
 
       - name: Run tests
