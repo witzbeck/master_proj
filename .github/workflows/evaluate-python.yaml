@@ -54,4 +54,4 @@ jobs:
 
       - name: Run tests
         run: |
-          uvx pytest
+          uv run pytest
