@@ -21,11 +21,11 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 COPY pyproject.toml uv.lock ./
 
 # Copy source code needed for building packages
-COPY ./src/packages ./src/packages
-COPY ./src/queries ./src/queries
+COPY src/packages ./src/packages
+COPY src/queries ./src/queries
 
 # Install dependencies using 'uv' with the locked versions
-RUN uv sync --frozen --compile-bytecode
+RUN uv sync --frozen
 
 # Runtime stage
 FROM base AS runtime
