@@ -1,9 +1,6 @@
 # Use Python 3.12 on Alpine Linux as the base image
 FROM python:3.12-alpine AS base
 
-# Set the working directory to /app
-WORKDIR /app
-
 # Update package index and install libpq (PostgreSQL client library)
 RUN apk update && apk add --no-cache libpq
 
@@ -11,7 +8,7 @@ RUN apk update && apk add --no-cache libpq
 FROM base AS builder
 
 # Install build tools and development libraries
-RUN apk add --no-cache musl-dev build-base gcc gfortran openblas-dev
+RUN apk add --no-cache musl-dev build-base gcc gfortran openblas-dev curl
 
 # Install 'uv' package manager
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
