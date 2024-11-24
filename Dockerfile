@@ -27,7 +27,7 @@ COPY src/queries ./src/queries
 
 # Install dependencies using 'uv' with the locked versions
 # -n == --no-cache
-RUN uv sync -n --frozen --no-dev --no-editable --no-progress
+RUN uv sync -n --frozen --no-dev --no-editable
 
 # Runtime stage
 FROM base AS runtime
@@ -43,3 +43,5 @@ COPY --from=builder /.venv /.venv
 COPY --from=builder /src ./src
 
 RUN uv run get-data
+
+ENTRYPOINT ["source", "/.venv/bin/activate"]
