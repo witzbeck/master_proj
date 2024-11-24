@@ -2,84 +2,81 @@ name: Master's Project | Compile LaTeX PDF
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
-      - '.github/workflows/latex-compile.yaml'
-      - 'paper/**'
-      - 'figures/**'
+      - ".github/workflows/latex-compile.yaml"
+      - "research/*"
+  pull_request:
+    paths:
+      - ".github/workflows/latex-compile.yaml"
+      - "research/*"
 
 permissions:
   contents: write
 
 jobs:
   build_pdf:
-    runs-on: [ ubuntu-latest ]
+    runs-on: [ubuntu-latest]
     steps:
-    - uses: actions/checkout@v4
-      with:
-        lfs: true
-        sparse-checkout: |
-          paper/
-          figures/
-          .github/workflows/latex-compile.yaml
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          sparse-checkout: |
+            research/
+            .github/workflows/latex-compile.yaml
 
-    - name: Compile LaTeX PDF
-      uses: xu-cheng/latex-action@v3
-      with:
-        working_directory: paper
-        root_file: paper.tex
-        continue_on_error: true
+      - name: Compile LaTeX PDF
+        uses: xu-cheng/latex-action@v3
+        with:
+          working_directory: research/paper
+          root_file: paper.tex
+          continue_on_error: true
 
-    - name: Upload PDF as Artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: PDF
-        path: 'paper/paper.pdf'
+      - name: Upload PDF as Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: PDF
+          path: "research/paper/paper.pdf"
 
   release:
     needs: build_pdf
     runs-on: [ubuntu-latest]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
         with:
           sparse-checkout: |
             .github/workflows/latex-compile.yaml
             pyproject.toml
-  
+
       - name: Download PDF
         uses: actions/download-artifact@v3
         with:
           name: PDF
           path: paper
 
-      - name: Install uv
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+      - name: Get Project Version
+        id: get-version
+        run: echo version=$(grep -m 1 version pyproject.toml | tr -s ' ' | tr -d '"' | tr -d "'" | cut -d' ' -f3) >> $GITHUB_OUTPUT
 
-      # Get Updated Version
-      - name: Get Updated Version With Poetry
-        id: get_version
-        run: echo version=$(uvx poetry version | cut -d' ' -f2) >> $GITHUB_OUTPUT
-  
-      # Create Release
       - name: Create Release
-        id: create_release
+        id: create-release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.get_version.outputs.version }}
-          release_name: Release ${{ steps.get_version.outputs.version }}
+          tag_name: ${{ steps.get-version.outputs.version }}
+          release_name: Release ${{ steps.get-version.outputs.version }}
           body: "The latest compiled PDF of the paper."
           draft: false
           prerelease: false
-  
-      # Upload Release Asset
+
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./paper/paper.pdf
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: ./research/paper/paper.pdf
           asset_name: paper.pdf
           asset_content_type: application/pdf
