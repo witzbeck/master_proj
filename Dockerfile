@@ -29,6 +29,9 @@ COPY src/queries ./src/queries
 # -n == --no-cache
 RUN uv sync -n --frozen --no-dev --no-editable
 
+# Get the raw data
+RUN uv run get-data
+
 # Runtime stage
 FROM base AS runtime
 
@@ -42,6 +45,8 @@ COPY --from=builder /.venv /.venv
 # Copy the application source code
 COPY --from=builder /src ./src
 
-RUN uv run get-data
+# Copy the raw data
+COPY --from=builder /data ./data
 
+# Activate the virtual environment
 ENTRYPOINT ["source", "/.venv/bin/activate"]
