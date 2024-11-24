@@ -27,7 +27,7 @@ COPY src/queries ./src/queries
 
 # Install dependencies using 'uv' with the locked versions
 # -n == --no-cache
-RUN uv sync -n --frozen --no-dev --no-editable
+RUN uv sync -n --frozen --no-dev --no-editable --no-progress
 
 # Get the raw data
 RUN uv run get-data
