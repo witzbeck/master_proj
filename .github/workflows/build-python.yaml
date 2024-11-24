@@ -10,7 +10,7 @@ on:
       - "pyproject.toml"
       - "uv.lock"
   pull_request:
-    branches: [main]
+    branches: [main, next/*]
     paths:
       - ".github/workflows/python-build.yaml"
       - "src/**"
@@ -24,148 +24,23 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.13", "3.12", "3.11"]
-        build-tool: ["pip", "poetry", "uv"]
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        name: Checkout repository
         with:
           fetch-depth: 1
 
-      - name: Setup Python
+      - name: Set up Python
         id: setup-python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
-      # Install toml module (needed for the synchronization script)
-      - name: Install toml module
-        run: |
-          python -m pip install toml
-
-      # Install Poetry (if build-tool is 'poetry' or 'pip' needs it)
-      - name: Install Poetry
-        if: ${{ matrix.build-tool == 'poetry' || matrix.build-tool == 'pip' }}
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-      # Install uv for 'pip' and 'uv' builds
       - name: Install uv
-        if: ${{ matrix.build-tool == 'uv' || matrix.build-tool == 'pip' }}
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+        uses: astral-sh/setup-uv@v3
 
-      # Update pyproject.toml with [tool.poetry] section
-      - name: Update pyproject.toml with [tool.poetry] section
-        if: ${{ matrix.build-tool == 'poetry' || matrix.build-tool == 'pip' }}
-        run: |
-          python - <<EOF
-          import toml
-          pyproject_path = 'pyproject.toml'
-          with open(pyproject_path, 'r') as f:
-              pyproject = toml.load(f)
-          if 'tool' not in pyproject:
-              pyproject['tool'] = {}
-          if 'poetry' not in pyproject['tool']:
-              pyproject['tool']['poetry'] = {}
-          # Copy necessary fields from [project] to [tool.poetry]
-          if 'project' in pyproject:
-              project = pyproject['project']
-              poetry = pyproject['tool']['poetry']
-              # Name
-              if 'name' in project:
-                  poetry['name'] = project['name']
-              # Version
-              if 'version' in project:
-                  poetry['version'] = project['version']
-              # Description
-              if 'description' in project:
-                  poetry['description'] = project['description']
-              # Authors
-              if 'authors' in project:
-                  poetry_authors = []
-                  for author in project['authors']:
-                      if isinstance(author, dict):
-                          name = author.get('name', '')
-                          email = author.get('email', '')
-                          if email:
-                              poetry_authors.append(f"{name} <{email}>")
-                          else:
-                              poetry_authors.append(name)
-                      elif isinstance(author, str):
-                          poetry_authors.append(author)
-                  poetry['authors'] = poetry_authors
-              # Dependencies
-              if 'dependencies' in project:
-                  poetry_deps = {}
-                  for dep in project['dependencies']:
-                      if isinstance(dep, str):
-                          poetry_deps[dep] = '*'
-                      elif isinstance(dep, dict):
-                          dep_name, dep_version = list(dep.items())[0]
-                          poetry_deps[dep_name] = dep_version
-                  poetry['dependencies'] = poetry_deps
-              # Optional dependencies (extras)
-              if 'optional-dependencies' in project:
-                  poetry['extras'] = project['optional-dependencies']
-          with open(pyproject_path, 'w') as f:
-              toml.dump(pyproject, f)
-          EOF
-
-      # Generate poetry.lock file
-      - name: Generate poetry.lock file
-        if: ${{ matrix.build-tool == 'poetry' || matrix.build-tool == 'pip' }}
-        run: |
-          poetry lock
-
-      # Setup Virtual Environment (if build-tool == 'pip')
-      - name: Setup Virtual Environment
-        if: ${{ matrix.build-tool == 'pip' }}
-        run: python -m venv .venv
-
-      # Generate requirements.txt from pyproject.toml (pip only)
-      - name: Generate requirements.txt from pyproject.toml
-        if: ${{ matrix.build-tool == 'pip' }}
-        run: |
-          set -e
-          # Attempt to generate requirements.txt using uv
-          uv pip-compile pyproject.toml -o requirements.txt || (
-            echo "uv failed, attempting with Poetry..."
-            # Generate requirements.txt using Poetry
-            poetry export -f requirements.txt --output requirements.txt --without-hashes
-          )
-          # Check if Poetry's lock file is more up to date
-          if [[ pyproject.toml -nt poetry.lock ]]; then
-            echo "Poetry dependencies are more up to date. Regenerating requirements.txt using Poetry..."
-            poetry export -f requirements.txt --output requirements.txt --without-hashes
-          fi
-
-      # Cache dependencies for pip
-      - name: Cache pip dependencies
-        if: ${{ matrix.build-tool == 'pip' }}
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/pip
-            .venv
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-${{ matrix.python-version }}-
-
-      # Cache dependencies for Poetry
-      - name: Cache Poetry dependencies
-        if: ${{ matrix.build-tool == 'poetry' }}
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/pypoetry
-            ~/.virtualenvs
-          key: ${{ runner.os }}-poetry-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-poetry-${{ matrix.python-version }}-
-
-      # Cache dependencies for uv
-      - name: Load Cached Virtualenv (uv)
-        if: ${{ matrix.build-tool == 'uv' }}
+      - name: Load cached virtualenv
+        id: load-cached-virtualenv
         uses: actions/cache@v4
         with:
           path: .venv
@@ -173,38 +48,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-uv-
 
-      # Install dependencies with pip
-      - name: Install Dependencies (pip)
-        if: ${{ matrix.build-tool == 'pip' }}
+      - name: Install dependencies
+        if: steps.load-cached-virtualenv.outputs.cache-hit != 'true'
+        run: uv sync --locked
+
+      - name: Run tests
         run: |
-          source .venv/bin/activate
-          pip install -r requirements.txt
-
-      # Install dependencies with Poetry
-      - name: Install Dependencies (Poetry)
-        if: ${{ matrix.build-tool == 'poetry' }}
-        run: |
-          poetry install
-
-      # Get Dataset (uv only)
-      - name: Get Dataset
-        if: ${{ matrix.build-tool == 'uv' }}
-        run: uv run get-data
-
-      # Run Tests with pip
-      - name: Run Tests (pip)
-        if: ${{ matrix.build-tool == 'pip' }}
-        run: |
-          source .venv/bin/activate
-          pytest
-
-      # Run Tests with Poetry
-      - name: Run Tests (Poetry)
-        if: ${{ matrix.build-tool == 'poetry' }}
-        run: |
-          poetry run pytest
-
-      # Run Tests with uv
-      - name: Run Tests (uv)
-        if: ${{ matrix.build-tool == 'uv' }}
-        run: uv run pytest
+          uv run pytest --cov=alexlib --cov-fail-under=75 -n auto
