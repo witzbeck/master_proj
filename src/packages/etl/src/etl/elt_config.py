@@ -347,6 +347,7 @@ def get_create_object_command(
 def main(
     timer: Timer = None,
     replace: bool = True,
+    export_database: bool = False,
 ) -> None:
     """Main function."""
 
@@ -383,10 +384,13 @@ def main(
         cnxn.execute(sql)
         timer.log_from_start(f"{schema}.{table_name}")
 
-    # Export database
-    [x.unlink() for x in data_dir.export_path.iterdir() if x.is_file()]
-    cnxn.execute(f"""EXPORT DATABASE '{str(data_dir.export_path)}' (FORMAT PARQUET)""")
-    timer.log_from_last("Export database")
+    if export_database:
+        # Export database
+        [x.unlink() for x in data_dir.export_path.iterdir() if x.is_file()]
+        cnxn.execute(
+            f"""EXPORT DATABASE '{str(data_dir.export_path)}' (FORMAT PARQUET)"""
+        )
+        timer.log_from_start("Export database")
     cnxn.close()
 
 
