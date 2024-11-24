@@ -2,9 +2,7 @@
 authors = [
     { "name" = "Alex Beckwith", "email" = "57322567+witzbeck@users.noreply.github.com" },
 ]
-dependencies = [
-    "sqlalchemy>=2.0.36",
-]
+dependencies = ["core", "sqlalchemy>=2.0.36"]
 description = "Add your description here"
 name = "orm"
 readme = "README.md"

@@ -51,7 +51,6 @@ model    = { workspace = true }
 orm      = { workspace = true }
 
 [tool.uv.workspace]
-exclude = ["src/packages/__pycache__", "src/packages/*/__pycache__"]
 members = ["src/packages/*"]
 
 [tool.pytest.ini_options]

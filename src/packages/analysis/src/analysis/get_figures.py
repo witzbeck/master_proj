@@ -14,7 +14,8 @@ from pymupdf import IRect, Page, Rect
 from pymupdf import open as open_pdf
 from seaborn import color_palette, displot, histplot, scatterplot, set_theme
 
-from core import FIGURES_PATH, LOGOS_PATH, PRESENTATION_PATH
+from packages.core import FIGURES_PATH, LOGOS_PATH, PRESENTATION_PATH
+
 from etl.db_helpers import DbHelper
 
 THEME_STYLE = "whitegrid"

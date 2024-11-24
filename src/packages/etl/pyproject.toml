@@ -2,9 +2,7 @@
 authors = [
     { "name" = "Alex Beckwith", "email" = "57322567+witzbeck@users.noreply.github.com" },
 ]
-dependencies = [
- "requests>=2.32.3",
-]
+dependencies = ["core", "requests>=2.32.3"]
 description = "Add your description here"
 name = "etl"
 readme = "README.md"

@@ -6,7 +6,8 @@ from zipfile import ZipFile
 
 from requests import get
 
-from core import RAW_PATH
+from packages.core import RAW_PATH
+
 from etl.constants import OULAD_MD5_URL, OULAD_URL
 
 logger = getLogger(__name__)

@@ -34,6 +34,7 @@ version = "0.1.0"
 source = { editable = "src/packages/analysis" }
 dependencies = [
     { name = "baycomp" },
+    { name = "core" },
     { name = "matplotlib-venn" },
     { name = "pymupdf" },
     { name = "scikit-posthocs" },
@@ -42,6 +43,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "baycomp", specifier = ">=1.0.3" },
+    { name = "core", editable = "src/packages/core" },
     { name = "matplotlib-venn", specifier = ">=1.1.1" },
     { name = "pymupdf", specifier = ">=1.24.13" },
     { name = "scikit-posthocs", specifier = ">=0.10.0" },
@@ -401,11 +403,15 @@ name = "etl"
 version = "0.1.0"
 source = { editable = "src/packages/etl" }
 dependencies = [
+    { name = "core" },
     { name = "requests" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "requests", specifier = ">=2.32.3" }]
+requires-dist = [
+    { name = "core", editable = "src/packages/core" },
+    { name = "requests", specifier = ">=2.32.3" },
+]
 
 [[package]]
 name = "execnet"
@@ -817,6 +823,12 @@ sdist = { url = "https://files.pythonhosted.org/packages/fe/a7/6e34cd021e9b66867
 name = "model"
 version = "0.1.0"
 source = { editable = "src/packages/model" }
+dependencies = [
+    { name = "core" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "core", editable = "src/packages/core" }]
 
 [[package]]
 name = "nest-asyncio"
@@ -870,11 +882,15 @@ name = "orm"
 version = "0.1.0"
 source = { editable = "src/packages/orm" }
 dependencies = [
+    { name = "core" },
     { name = "sqlalchemy" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "sqlalchemy", specifier = ">=2.0.36" }]
+requires-dist = [
+    { name = "core", editable = "src/packages/core" },
+    { name = "sqlalchemy", specifier = ">=2.0.36" },
+]
 
 [[package]]
 name = "packaging"

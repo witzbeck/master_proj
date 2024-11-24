@@ -1,3 +1,5 @@
+from packages.core import QUERY_PATH
+
 from .analysis import CREATE_ANALYSIS_ABROCA_TABLE
 from .model import (
     CREATE_MODEL_FEATURES_TABLE,
@@ -6,7 +8,6 @@ from .model import (
     CREATE_MODEL_TYPES_TABLE,
     CREATE_MODEL_WARNINGS_TABLE,
 )
-from core import QUERY_PATH
 
 SCHEMAS = {x.name.split("_")[-1] for x in QUERY_PATH.iterdir() if x.is_dir()}
 CREATE_TABLES = (

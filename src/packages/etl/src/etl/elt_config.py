@@ -10,13 +10,13 @@ from tqdm import tqdm
 
 from alexlib.files import Directory, File
 from alexlib.times import Timer
-
-from core import (
+from packages.core import (
     DATA_PATH,
     DB_PATH,
     QUERY_PATH,
     RAW_PATH,
 )
+
 from etl.constants import (
     SCHEMAS,
     SQL_BLACKLIST,

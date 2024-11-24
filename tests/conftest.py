@@ -3,6 +3,17 @@ from pathlib import Path
 from duckdb import DuckDBPyConnection
 from pytest import FixtureRequest, fixture
 
+from packages.core import (
+    DATA_PATH,
+    FIGURES_PATH,
+    HOME,
+    PAPER_PATH,
+    PRESENTATION_PATH,
+    PROJECT_PATH,
+    QUERY_PATH,
+    SOURCE_PATH,
+)
+
 from analysis.constants import (
     BLUE,
     GRAY,
@@ -19,16 +30,6 @@ from analysis.constants import (
     XGREATER,
     XLESS,
     XROPE,
-)
-from core import (
-    DATA_PATH,
-    FIGURES_PATH,
-    HOME,
-    PAPER_PATH,
-    PRESENTATION_PATH,
-    PROJECT_PATH,
-    QUERY_PATH,
-    SOURCE_PATH,
 )
 from etl.elt_config import (
     DataDirectory,

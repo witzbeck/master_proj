@@ -1,6 +1,6 @@
 from click import echo, group, option
 
-from utils.elt_config import QueriesDirectory, main
+from .elt_config import QueriesDirectory, main
 
 
 @group()

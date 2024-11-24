@@ -2,7 +2,7 @@
 authors = [
     { "name" = "Alex Beckwith", "email" = "57322567+witzbeck@users.noreply.github.com" },
 ]
-dependencies = []
+dependencies = ["core"]
 description = "Add your description here"
 name = "model"
 readme = "README.md"
