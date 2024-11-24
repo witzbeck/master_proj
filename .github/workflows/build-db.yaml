@@ -1,0 +1,25 @@
+name: Build and run DuckDB ETL
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build-and-run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            --build-arg EXPORT_WHOLE_DB=true \
+            --build-arg EXPORT_TABLES="table1,table2" \
+            --build-arg DROP_TABLES="table3,table4" \
+            --build-arg LIMIT_PROCESSING=5 \
+            --build-arg INITIALIZE_SERVER=true \
+            -t my_duckdb_image .
+
+      - name: Run Docker container
+        run: |
+          docker run --rm -d -p 8000:8000 --name my_duckdb_container my_duckdb_image

@@ -1,55 +1,150 @@
-[tool.poetry]
-authors = ["Alex Beckwith <57322567+witzbeck@users.noreply.github.com>"]
-description = "code associated w ms stats capstone"
-name = "master-proj"
-package-mode = true
-packages = [
-    { include = "app", from = "src" },
-    { include = "utils", from = "src/app" },
-    { include = "orm", from = "src/app" },
-    { include = "model", from = "src/app" },
+[project]
+authors = [
+    { name = "Alex Beckwith", email = "57322567+witzbeck@users.noreply.github.com" },
 ]
-version = "1.4.8"
+dependencies = [
+    "alexlib",
+    "analysis",
+    "core",
+    "etl",
+    "model",
+    "orm",
+    "duckdb>=1.1.3",
+    "matplotlib>=3.9.2",
+    "pandas>=2.2.3",
+    "scikit-learn>=1.5.2",
+    "scipy>=1.14.1",
+    "seaborn>=0.13.2",
+    "tqdm>=4.67.0",
+]
+description = "Packages created as part of the author's Master of Science in Statistics Capstone: An Exploration of Analysis Methods on Predictive Models of Student Success"
+license = { text = "MIT" }
+name = "master-proj"
+readme = "README.md"
+requires-python = ">=3.11"
+version = "1.5.0"
 
-[tool.poetry.dependencies]
-alexlib         = { git = "http://github.com/witzbeck/alexlib.git", branch = "main" }
-baycomp         = "*"
-click           = "^8.1.7"
-matplotlib      = "^3.9.2"
-matplotlib-venn = "^1.1.1"
-numpy           = "^2.1.1"
-pandas          = "^2.2.3"
-pymupdf         = "^1.24.12"
-python          = "^3.11"
-scikit-learn    = "^1.5.2"
-scikit-posthocs = "*"
-seaborn         = "^0.13"
-tqdm            = "^4.66"
+[dependency-groups]
+dev = [
+    "ipykernel>=6.29.5",
+    "pytest>=8.3.3",
+    "pytest-cov>=6.0.0",
+    "pytest-xdist>=3.6.1",
+    "ruff>=0.8.0",
+    "sqlfluff>=3.2.5",
+]
 
-[tool.poetry.group.dev.dependencies]
-ipykernel    = "^6.29"
-pre-commit   = "^3.8.0"
-pytest       = "^8.0"
-pytest-cov   = "^5.0"
-pytest-mock  = "^3.12"
-pytest-xdist = "^3.5"
-sqlfluff     = "^3.0"
+[build-system]
+build-backend = "setuptools.build_meta"
+requires      = ["setuptools", "wheel"]
 
-[tool.poetry.scripts]
-get-data = "utils.get_dataset:main"
-pipe-etl = "utils.elt_config:pipeline_etl"
+[project.scripts]
+get-data       = "etl.load_dataset:load_dataset"
+transform-data = "etl.elt_config:main"
+
+[tool.uv.sources]
+alexlib  = { git = "https://github.com/witzbeck/alexlib", branch = "main" }
+analysis = { workspace = true }
+core     = { workspace = true }
+etl      = { workspace = true }
+model    = { workspace = true }
+orm      = { workspace = true }
+
+[tool.uv.workspace]
+exclude = ["src/packages/__pycache__"]
+members = ["src/packages/*"]
 
 [tool.pytest.ini_options]
 addopts = [
-    "--cov=utils",
+    "--cov=analysis",
+    "--cov=core",
+    "--cov=etl",
     "--cov=model",
+    "--cov=orm",
     "--cov-report=term-missing",
     "--cov-fail-under=30",
     "--durations=10",
-    #"-n", # faster without parallelization
-    #"auto",
 ]
 testpaths = ["tests"]
+[tool.coverage.report]
+# Regexes for lines to exclude from consideration
+exclude_also = [
+    # Don't complain about missing debug-only code:
+    "def __repr__",
+    "if self\\.debug",
+
+    # Don't complain if tests don't hit defensive assertion code:
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "raise OSError",
+    "raise RuntimeError",
+
+    # Don't complain if non-runnable code isn't run:
+    "if 0:",
+    "if __name__ == .__main__.:",
+
+    # Don't complain about abstract methods, they aren't run:
+    "@(abc\\.)?abstractmethod",
+
+    # Don't complain about pass or continue:
+    "pass",
+    "continue",
+
+    # Don't complain about main module code not being run:
+    "def main\\(",
+]
+ignore_errors = true
+
+[tool.ruff]
+exclude = [
+    ".git",
+    ".git-rewrite",
+    ".ipynb_checkpoints",
+    ".pyenv",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".venv",
+    ".vscode",
+    "build",
+    "dist",
+    "site-packages",
+]
+extend-include = ["*.ipynb"]
+fix = true
+indent-width = 4
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$" # Allow unused variables when underscore-prefixed.
+extend-select = ["I"] # Allow linter to sort imports.
+fixable = ["ALL"] # Allow fix for all enabled rules (when `--fix`) is provided.
+select = [
+    "E4", # Import order
+    "E7", # Import statements
+    "E9", # Blank lines
+    "F",  # String formatting
+    "B",  # Bugbear
+    "Q",  # Quotes
+    "W",  # PEP8
+    "C",  # Complexity
+    "I",  # Imports
+]
+
+[tool.ruff.lint.isort]
+known-first-party  = ["alexlib"]
+known-local-folder = ["utils", "model", "orm", "app", "etl", "core", "analysis"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/{tests,docs,tools}/*" = [
+    "E402",
+] # Ignore `E402` (import violations) in all `__init__.py` files, and in select subdirectories.
+
+[tool.ruff.format]
+indent-style              = "space"
+line-ending               = "auto"
+quote-style               = "double"
+skip-magic-trailing-comma = false
 
 [tool.sqlfluff.core]
 dialect         = "postgres"
@@ -81,92 +176,3 @@ aliasing = "explcit"
 
 [tool.sqlfluff.rules.aliasing.column]
 aliasing = "explicit"
-
-[build-system]
-build-backend = "poetry.core.masonry.api"
-requires      = ["poetry-core"]
-
-
-[tool.ruff]
-exclude = [
-    ".git",
-    ".git-rewrite",
-    ".ipynb_checkpoints",
-    ".pyenv",
-    ".pytest_cache",
-    ".ruff_cache",
-    ".venv",
-    ".vscode",
-    "build",
-    "dist",
-    "site-packages",
-]
-extend-include = ["*.ipynb"]
-fix = true
-indent-width = 4
-line-length = 88
-target-version = "py311"
-
-[tool.ruff.lint]
-
-extend-select = ["I"] # Allow linter to sort imports.
-fixable = ["ALL"] # Allow fix for all enabled rules (when `--fix`) is provided.
-select = [
-    "E4", # Import order
-    "E7", # Import statements
-    "E9", # Blank lines
-    "F",  # String formatting
-    "B",  # Bugbear
-    "Q",  # Quotes
-    "W",  # PEP8
-    "C",  # Complexity
-    "I",  # Imports
-]
-
-dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$" # Allow unused variables when underscore-prefixed.
-
-[tool.ruff.lint.isort]
-known-first-party  = ["alexlib"]
-known-local-folder = ["utils", "model", "orm", "app"]
-
-
-[tool.ruff.lint.per-file-ignores]
-"**/{tests,docs,tools}/*" = [
-    "E402",
-] # Ignore `E402` (import violations) in all `__init__.py` files, and in select subdirectories.
-
-[tool.ruff.format]
-indent-style              = "space"
-line-ending               = "auto"
-quote-style               = "double"
-skip-magic-trailing-comma = false
-
-[tool.coverage.report]
-# Regexes for lines to exclude from consideration
-exclude_also = [
-    # Don't complain about missing debug-only code:
-    "def __repr__",
-    "if self\\.debug",
-
-    # Don't complain if tests don't hit defensive assertion code:
-    "raise AssertionError",
-    "raise NotImplementedError",
-    "raise OSError",
-    "raise RuntimeError",
-
-    # Don't complain if non-runnable code isn't run:
-    "if 0:",
-    "if __name__ == .__main__.:",
-
-    # Don't complain about abstract methods, they aren't run:
-    "@(abc\\.)?abstractmethod",
-
-    # Don't complain about pass or continue:
-    "pass",
-    "continue",
-
-    # Don't complain about main module code not being run:
-    "def main\\(",
-]
-
-ignore_errors = true

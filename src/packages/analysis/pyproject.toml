@@ -1,0 +1,17 @@
+[project]
+dependencies = [
+    "core",
+    "baycomp>=1.0.3",
+    "matplotlib-venn>=1.1.1",
+    "pymupdf>=1.24.13",
+    "scikit-posthocs>=0.10.0",
+]
+description = "Add your description here"
+name = "analysis"
+readme = "README.md"
+requires-python = ">=3.12"
+version = "0.1.0"
+
+[build-system]
+build-backend = "setuptools.build_meta"
+requires      = ["setuptools", "wheel"]

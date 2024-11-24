@@ -1,17 +1,29 @@
-name: Master's Project | Build Figures for Paper
+name: Master's Project | Build & Test Python
 
 on:
   push:
     branches: [main]
+    paths:
+      - ".github/workflows/python-build.yaml"
+      - "src/**"
+      - "tests/**"
+      - "pyproject.toml"
+      - "uv.lock"
   pull_request:
     branches: [main]
+    paths:
+      - ".github/workflows/python-build.yaml"
+      - "src/**"
+      - "tests/**"
+      - "pyproject.toml"
+      - "uv.lock"
 
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.12"]
+        python-version: ["3.13", "3.12", "3.11"]
     steps:
       - uses: actions/checkout@v4
         name: Checkout repository
@@ -36,17 +48,19 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-uv-
 
+      - name: Restore data cache
+        id: restore-data-cache
+        uses: actions/cache@v4
+        with:
+          path: ./data/raw/
+          key: repo-data-raw
+
       - name: Install dependencies
         run: uv sync --locked
 
-      - name: Get Dataset
+      - name: Get data
+        if: steps.restore-data-cache.outputs.cache-hit != 'true'
         run: uv run get-data
 
-    # - name: Run ETL
-    #   run: uv run pipe-etl
-
-    # - name: Upload Dataset
-    #   uses: actions/upload-artifact@v3
-    #   with:
-    #     name: dataset
-    #     path: data
+      - name: Run tests
+        run: uv run pytest

@@ -1,0 +1,14 @@
+[project]
+authors = [
+    { "name" = "Alex Beckwith", "email" = "57322567+witzbeck@users.noreply.github.com" },
+]
+dependencies = ["core"]
+description = "Add your description here"
+name = "model"
+readme = "README.md"
+requires-python = ">=3.12"
+version = "0.1.0"
+
+[build-system]
+build-backend = "setuptools.build_meta"
+requires      = ["setuptools", "wheel"]

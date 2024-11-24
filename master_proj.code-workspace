@@ -1,0 +1,12 @@
+{
+    "folders": [
+        {
+            "path": "../alexlib",
+            "defaultInterpreterPath": "../alexlib/.venv/bin/python"
+        },
+        {
+            "path": ".",
+            "defaultInterpreterPath": "./.venv/bin/python"
+        }
+    ]
+}

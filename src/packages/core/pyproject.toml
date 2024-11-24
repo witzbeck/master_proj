@@ -1,0 +1,11 @@
+[project]
+dependencies    = []
+description     = "Add your description here"
+name            = "core"
+readme          = "README.md"
+requires-python = ">=3.12"
+version         = "0.1.0"
+
+[build-system]
+build-backend = "setuptools.build_meta"
+requires      = ["setuptools", "wheel"]

@@ -1,45 +1,52 @@
+# Use Python 3.12 on Alpine Linux as the base image
 FROM python:3.12-alpine AS base
 
-ARG DEV=false
-ARG poetry_version=1.8.3
+# Update package index and install libpq (PostgreSQL client library for DuckDB)
+RUN apk update && apk add --no-cache libpq
 
-ENV VIRTUAL_ENV=/app/.venv \
-    PATH="/app/.venv/bin:$PATH"
-
-RUN apk update && \
-    apk add libpq
-
-
+# Builder stage to build dependencies
 FROM base AS builder
 
-ENV POETRY_NO_INTERACTION=1 \
-    POETRY_VIRTUALENVS_IN_PROJECT=1 \
-    POETRY_VIRTUALENVS_CREATE=1 \
-    POETRY_CACHE_DIR=/tmp/poetry_cache
+# Install build tools and development libraries
+RUN apk add --no-cache musl-dev build-base gcc gfortran openblas-dev curl git python3-dev linux-headers
 
-RUN apk update && \
-    apk add musl-dev build-base gcc gfortran openblas-dev
+# Install 'uv' package manager
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
-WORKDIR /app
+# Set virtual environment path and update PATH
+ENV VIRTUAL_ENV=/.venv
+# Add /root/.local/bin to PATH
+ENV PATH="/root/.local/bin:$VIRTUAL_ENV/bin:$PATH"
 
-# Install Poetry
-RUN pip install poetry==$poetry_version
+# Copy dependency files to the container
+COPY pyproject.toml uv.lock ./
 
-# Install the app
-COPY pyproject.toml poetry.lock ./
-RUN if [ "$DEV" = "true" ]; then \
-      poetry install --with dev --no-root && rm -rf $POETRY_CACHE_DIR; \
-    else \
-      poetry install --without dev --no-root && rm -rf $POETRY_CACHE_DIR; \
-    fi
+# Copy source code needed for building packages
+COPY src/packages ./src/packages
+COPY src/queries ./src/queries
 
+# Install dependencies using 'uv' with the locked versions
+# -n == --no-cache
+RUN uv sync -n --frozen --no-dev --no-editable --no-progress
 
+# Get the raw data
+RUN uv run get-data
+
+# Runtime stage
 FROM base AS runtime
 
-COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
+# Set virtual environment path and update PATH
+ENV VIRTUAL_ENV=/.venv
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-COPY src ./src
+# Copy the virtual environment from the builder stage
+COPY --from=builder /.venv /.venv
 
-WORKDIR /app/src
+# Copy the application source code
+COPY --from=builder /src ./src
 
-ENTRYPOINT ["poetry", "run", "pipe-etl"]
+# Copy the raw data
+COPY --from=builder /data ./data
+
+# Activate the virtual environment
+ENTRYPOINT ["source", "/.venv/bin/activate"]
