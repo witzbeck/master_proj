@@ -2,10 +2,6 @@
 
 This project explores machine learning models that predict student success in online courses, using a dataset from the Open University. Specifically, it compares traditional and Bayesian methods for model evaluation and introduces a fairness metric, Absolute Between Receiver Operating Characteristic Area (ABROCA), which assesses the model’s predictions across demographic subgroups.
 
-## TODO
-
-- sort order queries and map with deps for figure gen towards efficient parallization of data transformations neceessary
-
 ## Overview
 
 The primary goal is to predict students at risk of failing or withdrawing within the first 30 days of a course. Predictions like these could help guide resource allocation toward at-risk students.
