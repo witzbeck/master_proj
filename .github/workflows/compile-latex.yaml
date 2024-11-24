@@ -30,7 +30,7 @@ jobs:
         id: pdf-cache
         uses: actions/cache@v4
         with:
-          path: research/paper/paper.pdf
+          path: ./research/paper/paper.pdf
           key: pdf-${{ hashFiles('research/**') }}
 
       - name: Compile LaTeX PDF
@@ -45,7 +45,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: PDF
-          path: research/paper/paper.pdf
+          path: ./research/paper/paper.pdf
 
   release:
     needs: build_pdf
@@ -86,6 +86,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: ./research/paper/paper.pdf
+          asset_path: paper/paper.pdf
           asset_name: paper.pdf
           asset_content_type: application/pdf
