@@ -26,7 +26,15 @@ jobs:
             research/
             .github/workflows/latex-compile.yaml
 
+      - name: Restore PDF from cache
+        id: pdf-cache
+        uses: actions/cache@v4
+        with:
+          path: research/paper/paper.pdf
+          key: pdf-${{ hashFiles('research/**') }}
+
       - name: Compile LaTeX PDF
+        if: steps.pdf-cache.outputs.cache-hit != 'true'
         uses: xu-cheng/latex-action@v3
         with:
           working_directory: research/paper
@@ -37,11 +45,11 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: PDF
-          path: "research/paper/paper.pdf"
+          path: research/paper/paper.pdf
 
   release:
     needs: build_pdf
-    runs-on: [ubuntu-latest]
+    runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
