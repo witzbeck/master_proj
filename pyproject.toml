@@ -21,7 +21,7 @@ description = "Packages created as part of the author's Master of Science in Sta
 license = { text = "MIT" }
 name = "master-proj"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 version = "1.5.0"
 
 [dependency-groups]
