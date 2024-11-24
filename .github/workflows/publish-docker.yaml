@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -29,6 +31,9 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Copy Files to Docker Context
+        run: cp -r src ./src/packages/etl
 
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v6
