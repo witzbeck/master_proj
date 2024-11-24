@@ -10,7 +10,6 @@ on:
       - "pyproject.toml"
       - "uv.lock"
   pull_request:
-    branches: [main, next/*]
     paths:
       - ".github/workflows/python-build.yaml"
       - "src/**"
