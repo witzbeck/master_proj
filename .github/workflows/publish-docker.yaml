@@ -2,9 +2,11 @@ name: Build and Push Docker Image
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
+    paths:
+      - "src/packages/etl/**"
 
 jobs:
   build:
@@ -31,6 +33,6 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: ./src/packages/etl
           push: ${{ github.event_name == 'push' }}
           tags: ghcr.io/${{ github.repository }}:latest
