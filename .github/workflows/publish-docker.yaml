@@ -34,7 +34,7 @@ jobs:
 
       - name: Copy Files to Docker Context
         run: |
-          cp -r src/packages ./src/packages/etl/src/
+          cp -r src/packages/core ./src/packages/etl/src/packages/
           cp -r src/queries ./src/packages/etl/src/
 
       - name: Build and Push Docker Image
