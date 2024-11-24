@@ -33,7 +33,9 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Copy Files to Docker Context
-        run: cp -r src ./src/packages/etl
+        run: |
+          cp -r src/packages ./src/packages/etl/src/
+          cp -r src/queries ./src/packages/etl/src/
 
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v6
