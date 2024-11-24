@@ -8,9 +8,8 @@
 /technical_refs
 *.pdf
 
-# file sys
+# User-specific files
 .vscode/
-*.code-workspace
 
 # Caches
 __pycache__/
