@@ -4,13 +4,13 @@ on:
   push:
     branches: [main]
     paths:
-      - ".github/workflows/compile-latex.yaml"
+      - ".github/workflows/create-release.yaml"
       - "research/**"
       - "src/**"
   pull_request:
     branches: [main]
     paths:
-      - ".github/workflows/compile-latex.yaml"
+      - ".github/workflows/create-release.yaml"
       - "research/**"
       - "src/**"
 
@@ -71,8 +71,50 @@ jobs:
           name: database
           path: data/learning.db
 
+  build-figures:
+    needs:
+      - build-database
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          sparse-checkout: |
+            src/
+            research/
+
+      - name: Restore figures from cache
+        id: figures-cache
+        uses: actions/cache@v4
+        with:
+          path: research/figures/generated
+          key: generated-figures-${{ hashFiles('src/analysis/**', 'research/references/**', 'src/queries/**') }}
+
+      - name: Download Database
+        uses: actions/download-artifact@v3
+        if: steps.figures-cache.outputs.cache-hit != 'true'
+        with:
+          name: database
+          path: data/learning.db
+
+      - name: Export Database to CSV
+        if: steps.figures-cache.outputs.cache-hit != 'true'
+        run: uv run export-database
+
+      - name: Generate Figures
+        if: steps.figures-cache.outputs.cache-hit != 'true'
+        run: uv run generate-figures
+
+      - name: Upload Figures as Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: figures
+          path: research/figures/generated/**
+
   build-pdf:
     runs-on: ubuntu-latest
+    needs:
+      - build-figures
     steps:
       - uses: actions/checkout@v4
         with:
@@ -100,7 +142,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: PDF
-          path: '**/paper.pdf'
+          path: "**/paper.pdf"
 
   create-release:
     needs:
@@ -147,7 +189,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: '**/paper.pdf'
+          asset_path: "**/paper.pdf"
           asset_name: paper.pdf
           asset_content_type: application/pdf
 
@@ -157,6 +199,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: data/learning.db
+          asset_path: "**/learning.db"
           asset_name: learning.db
           asset_content_type: application/sqlite
