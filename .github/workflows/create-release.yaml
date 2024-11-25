@@ -66,7 +66,7 @@ jobs:
         run: uv run transform-data
 
       - name: Upload Database as Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: database
           path: data/learning.db
@@ -95,7 +95,7 @@ jobs:
           key: generated-figures-${{ hashFiles('src/analysis/**', 'research/references/**', 'src/queries/**') }}
 
       - name: Download Database
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         if: steps.figures-cache.outputs.cache-hit != 'true'
         with:
           name: database
@@ -131,7 +131,7 @@ jobs:
         run: uv run generate-figures
 
       - name: Upload Figures as Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: figures
           path: research/figures/generated/**
@@ -164,7 +164,7 @@ jobs:
           continue_on_error: true
 
       - name: Upload PDF as Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: PDF
           path: "**/paper.pdf"
@@ -183,12 +183,12 @@ jobs:
             pyproject.toml
 
       - name: Download PDF
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: PDF
 
       - name: Download Database
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: database
 
