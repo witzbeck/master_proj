@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 from duckdb import DuckDBPyConnection
 from pandas import DataFrame, Series
-from pytest import approx, fixture, raises
+from pytest import approx, fixture, mark, raises
 
 from etl.db_helpers import (
     Column,
@@ -24,6 +24,7 @@ def info_schema_df_from_db(dbhelper: DbHelper) -> DataFrame:
     return dbhelper.info_schema
 
 
+@mark.slow
 def test_get_info_schema_df(info_schema_df_from_db: DataFrame):
     assert not info_schema_df_from_db.empty, "info_schema_df_from_db is empty"
     assert (

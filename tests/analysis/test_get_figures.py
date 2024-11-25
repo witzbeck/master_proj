@@ -111,10 +111,8 @@ def test_generate_figures(
         patch("analysis.get_figures.scatterplot"),
         patch("analysis.get_figures.histplot"),
         patch("analysis.get_figures.savefig"),
-        patch("analysis.get_figures.ProjectFigure.func") as mock_func,
+        patch("analysis.get_figures.ProjectFigure.func", return_value=MagicMock()),
     ):
-        mock_func.return_value = None
-
         figures_to_generate = generate_figures(
             include_paper=include_paper,
             include_presentation=include_presentation,
