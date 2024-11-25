@@ -112,6 +112,7 @@ def test_generate_figures(
         patch("analysis.get_figures.histplot"),
         patch("analysis.get_figures.savefig"),
         patch("analysis.get_figures.ProjectFigure.func", return_value=MagicMock()),
+        patch("analysis.get_figures.ProjectFigure.filepath.exists", return_value=True),
     ):
         figures_to_generate = generate_figures(
             include_paper=include_paper,
