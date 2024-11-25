@@ -9,12 +9,18 @@ from matplotlib.axis import Axis
 from matplotlib.figure import Figure
 from matplotlib.pyplot import savefig, subplots, title, xlim
 from matplotlib_venn import venn3
-from pandas import DataFrame
+from pandas import DataFrame, read_parquet
 from pymupdf import IRect, Page, Rect
 from pymupdf import open as open_pdf
 from seaborn import color_palette, displot, histplot, scatterplot, set_theme
+from tqdm import tqdm
 
-from packages.core import FIGURES_PATH, LOGOS_PATH, PRESENTATION_PATH
+from packages.core import (
+    EXPORT_PATH,
+    FIGURES_PATH,
+    LOGOS_PATH,
+    RESEARCH_PATH,
+)
 
 from etl.db_helpers import DbHelper
 
@@ -24,6 +30,7 @@ set_theme(style=THEME_STYLE, context=THEME_CONTEXT)
 (GENERATED_FIGURES_PATH := FIGURES_PATH / "generated").mkdir(
     parents=True, exist_ok=True
 )
+PRESENTATION_REFERENCES_PATH = RESEARCH_PATH / "references/presentation"
 
 
 def get_page_from_file(source_file: Path, page_number: int) -> Page:
@@ -55,9 +62,16 @@ def save_figure_from_page(
     pix.save(target_path)  # save the image as png
 
 
-def get_top_activities_scatterplot(dbh: DbHelper) -> tuple[Figure, Axis]:
+def get_top_activities_scatterplot(df: DataFrame = None) -> tuple[Figure, Axis]:
     """Create a scatterplot of top activities by popularity."""
-    df = dbh.get_table("agg", "course_activities_by_popularity")
+    schema, table = "agg", "most_popular_activities"
+    parquet_path = EXPORT_PATH / f"{schema}_{table}.parquet"
+    if df is None and parquet_path.exists():
+        df = read_parquet(parquet_path)
+    elif df is None:
+        raise ValueError(
+            f"No DataFrame provided and no parquet file found @ {parquet_path}."
+        )
     fig, ax = subplots(figsize=(8, 8))
     scatterplot(
         df,
@@ -72,9 +86,15 @@ def get_top_activities_scatterplot(dbh: DbHelper) -> tuple[Figure, Axis]:
     return fig, ax
 
 
-def get_days_active_hist(dbh: DbHelper) -> tuple[Figure, Axis]:
+def get_days_active_hist(df: DataFrame = None) -> tuple[Figure, Axis]:
     """Create a histogram of days active by student count."""
-    df = dbh.get_table("first30", "all_features")
+    parquet_path = EXPORT_PATH / "first___all_features.parquet"
+    if df is None and parquet_path.exists():
+        df = read_parquet(parquet_path)
+    elif df is None:
+        raise ValueError(
+            f"No DataFrame provided and no parquet file found @ {parquet_path}."
+        )
     fig, ax = subplots(figsize=(8, 8))
     histplot(
         df,
@@ -89,9 +109,17 @@ def get_days_active_hist(dbh: DbHelper) -> tuple[Figure, Axis]:
     return fig, ax
 
 
-def get_total_clicks_by_top_5th_clicks_hist(dbh: DbHelper) -> tuple[Figure, Axis]:
+def get_total_clicks_by_top_5th_clicks_hist(
+    df: DataFrame = None,
+) -> tuple[Figure, Axis]:
     """Create a histogram of total clicks on top 5th popular sites by student count."""
-    df = dbh.get_table("first30", "all_features")
+    parquet_path = EXPORT_PATH / "first___all_features.parquet"
+    if df is None and parquet_path.exists():
+        df = read_parquet(parquet_path)
+    elif df is None:
+        raise ValueError(
+            f"No DataFrame provided and no parquet file found @ {parquet_path}."
+        )
     fig, ax = subplots(figsize=(8, 8))
     histplot(
         df,
@@ -205,12 +233,15 @@ class ProjectFigure:
         cur_exists = self.current_file is not None and Path(self.current_file).exists()
         return self.filepath.exists() or cur_exists or self.func is not None
 
-    @property
-    def image(self) -> Image:
+    def get_image(self, dbh: DbHelper = None) -> Image:
         if self.filepath.exists():
             ret = Image(filename=self.filepath, **self.figsize.asdict)
         elif self.current_file is not None:
             ret = Image(filename=self.current_file, **self.figsize.asdict)
+        elif self.func is not None and dbh is not None:
+            self.func(dbh)
+            savefig(self.filepath)
+            ret = Image(filename=self.filepath, **self.figsize.asdict)
         elif self.func is not None:
             self.func()
             savefig(self.filepath)
@@ -416,12 +447,12 @@ class PresentationFigures(Enum):
     AUTOML_FEATURE_ENGINEERING = PresentationFigure(
         "AutoML Feature Engineering",
         "A comparison of the interpretability of features engineered using AutoML",
-        source_file=PRESENTATION_PATH
+        source_file=PRESENTATION_REFERENCES_PATH
         / "AutoML Feature Engineering for Student Modeling Yields High Accuracy, but Limited Interpretability.pdf",
         current_file=FIGURES_PATH / "auto_fe.png",
         func=partial(
             save_figure_from_page,
-            source_file=PRESENTATION_PATH
+            source_file=PRESENTATION_REFERENCES_PATH
             / "AutoML Feature Engineering for Student Modeling Yields High Accuracy, but Limited Interpretability.pdf",
             target_path=GENERATED_FIGURES_PATH / "AutoML_Feature_Engineering.png",
             page_number=18,
@@ -433,13 +464,13 @@ class PresentationFigures(Enum):
     CRITICAL_DIFFERENCE_NEMENYI = PresentationFigure(
         "Critical Difference Nemenyi",
         "Critical difference diagram based on results from post-hoc Nemenyi tests",
-        source_file=PRESENTATION_PATH
+        source_file=PRESENTATION_REFERENCES_PATH
         / "Evaluating Predictive Models of Student Success Closing the Methodological Gap.pdf",
         current_file=FIGURES_PATH / "nemenyi_critical_dif.png",
         figsize=FigSizes.FULL.value,
         func=partial(
             save_figure_from_page,
-            source_file=PRESENTATION_PATH
+            source_file=PRESENTATION_REFERENCES_PATH
             / "Evaluating Predictive Models of Student Success Closing the Methodological Gap.pdf",
             target_path=GENERATED_FIGURES_PATH / "Critical_Difference_Nemenyi.png",
             page_number=13,
@@ -592,3 +623,39 @@ class PresentationFigures(Enum):
         current_file=FIGURES_PATH / "tables_by_schema.png",
         figsize=FigSizes.FULL.value,
     )
+
+
+def generate_figures(
+    include_paper: bool = True,
+    include_presentation: bool = False,
+    overwrite: bool = False,
+) -> list[ProjectFigure]:
+    """Generate all figures that do not already exist."""
+    enum = list(SharedFigures)
+    if include_paper:
+        enum += list(PaperFigures)
+    if include_presentation:
+        enum += list(PresentationFigures)
+    figures_to_generate = [
+        fig.value
+        for fig in enum
+        if (overwrite or not fig.value.filepath.exists()) and fig.value.func is not None
+    ]
+    for figure in tqdm(figures_to_generate, desc="Generating Figures"):
+        figure.func()
+        savefig(figure.filepath)
+    return figures_to_generate
+
+
+generate_shared_figures = partial(
+    generate_figures, include_paper=False, include_presentation=False
+)
+generate_paper_figures = partial(
+    generate_figures, include_paper=True, include_presentation=False
+)
+generate_presentation_figures = partial(
+    generate_figures, include_paper=False, include_presentation=True
+)
+generate_all_figures = partial(
+    generate_figures, include_paper=True, include_presentation=True
+)

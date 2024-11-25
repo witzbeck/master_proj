@@ -16,6 +16,7 @@ dependencies = [
     "scipy>=1.14.1",
     "seaborn>=0.13.2",
     "tqdm>=4.67.0",
+    "pyarrow>=18.0.0",
 ]
 description = "Packages created as part of the author's Master of Science in Statistics Capstone: An Exploration of Analysis Methods on Predictive Models of Student Success"
 license = { text = "MIT" }
@@ -39,8 +40,13 @@ build-backend = "setuptools.build_meta"
 requires      = ["setuptools", "wheel"]
 
 [project.scripts]
-get-data       = "etl.load_dataset:load_dataset"
-transform-data = "etl.elt_config:main"
+gen-figures        = "analysis.get_figures:generate_figures"
+gen-paper-figures  = "analysis.get_figures:generate_paper_figures"
+gen-pres-figures   = "analysis.get_figures:generate_presentation_figures"
+gen-shared-figures = "analysis.get_figures:generate_shared_figures"
+get-data           = "etl.load_dataset:load_dataset"
+transform-data     = "etl.elt_config:transform_data"
+export-data        = "etl.elt_config:export_database"
 
 [tool.uv.sources]
 alexlib  = { git = "https://github.com/witzbeck/alexlib", branch = "main" }

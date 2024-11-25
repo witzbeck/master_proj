@@ -344,12 +344,12 @@ def get_create_object_command(
     return f"CREATE {orreplace} {obj_type} {ifnotexists} {schema}.{table_name} AS {sql}"
 
 
-def main(
+def transform_data(
     timer: Timer = None,
     replace: bool = True,
     export_database: bool = False,
 ) -> None:
-    """Main function."""
+    """Executes the ETL processes."""
 
     if timer is None:
         timer = Timer()
@@ -359,7 +359,7 @@ def main(
     create_all_schemas(cnxn)
 
     # Load landing data
-    data_dir = DataDirectory()
+    DataDirectory()
     queries = QueriesDirectory()
     load_landing_data(queries.landing_query_dict.keys(), cnxn)
     timer.log_from_last("Landing data")
@@ -384,28 +384,24 @@ def main(
         cnxn.execute(sql)
         timer.log_from_start(f"{schema}.{table_name}")
 
-    if export_database:
-        # Export database
-        [x.unlink() for x in data_dir.export_path.iterdir() if x.is_file()]
-        cnxn.execute(
-            f"""EXPORT DATABASE '{str(data_dir.export_path)}' (FORMAT PARQUET)"""
-        )
-        timer.log_from_start("Export database")
     cnxn.close()
 
 
+def export_database() -> None:
+    """Export the database to parquet."""
+    # Set up
+    timer = Timer()
+    cnxn = get_cnxn(read_only=True)
+    data_dir = DataDirectory()
+
+    # Delete existing files
+    [x.unlink() for x in data_dir.export_path.iterdir() if x.is_file()]
+
+    # Export database
+    cnxn.execute(f"""EXPORT DATABASE '{str(data_dir.export_path)}' (FORMAT PARQUET)""")
+
+    timer.log_from_start("Export database")
+
+
 if __name__ == "__main__":
-    # main()
-    qdir = QueriesDirectory()
-    """
-    for path, sources in qdir.path_source_map.items():
-        print("/".join(path.parts[-3:]), "\n\t" + "\n\t".join(sources))
-        print(qdir.path_normalized_name_map[path])
-        break
-    print(qdir.target_source_df)
-    print(qdir.source_ntargets_map)
-    print(qdir.target_nsources_map, "\n")
-    """
-    print("Sources Without Targets:", sorted(qdir.sources_without_targets))
-    print("Targets Without Sources:", sorted(qdir.targets_without_sources))
-    main()
+    transform_data()

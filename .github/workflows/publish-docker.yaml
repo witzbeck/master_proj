@@ -11,7 +11,7 @@ on:
       - ".github/workflows/publish-docker.yaml"
 
 jobs:
-  build:
+  publish-docker:
     runs-on: ubuntu-latest
     permissions:
       contents: read

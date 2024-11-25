@@ -1,27 +1,25 @@
 # Exceptions: Do not ignore these files
-!data/Dockerfile
 !.gitignore
 !*.json
 
 # Project Files & Directories
-/data
-/technical_refs
+data/
+technical_refs/
 *.pdf
 
 # User-specific files
 .vscode/
 
-# Caches
+# Caches / Distribution / Generated Files
 __pycache__/
 .ruff_cache/
 .pytest_cache/
 .DS_Store
-
-# Distribution / Generated Files
 *.egg-info/
 *.py[cod]
 *.html
 *.css
+research/figures/generated/*
 
 # Log files and directories
 logs/

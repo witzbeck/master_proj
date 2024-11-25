@@ -19,7 +19,7 @@ on:
       - "uv.lock"
 
 jobs:
-  build:
+  evaluate-python:
     runs-on: ubuntu-latest
     strategy:
       matrix:
