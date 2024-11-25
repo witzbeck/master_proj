@@ -45,7 +45,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: PDF
-          path: ./research/paper/paper.pdf
+          path: '**/paper.pdf'
 
   release:
     needs: build_pdf
@@ -62,7 +62,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: PDF
-          path: paper
+          path: .
 
       - name: Get Project Version
         id: get-version
@@ -86,6 +86,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: paper/paper.pdf
+          asset_path: '**/paper.pdf'
           asset_name: paper.pdf
           asset_content_type: application/pdf
