@@ -21,6 +21,7 @@ from etl.constants import (
     SCHEMAS,
     SQL_BLACKLIST,
 )
+from etl.load_dataset import SOURCE_TABLE_MAP, load_dataset
 
 logger = getLogger(__name__)
 
@@ -41,7 +42,7 @@ SOURCE_TABLES = {
 
 def get_csv_paths(parent_path: Path = RAW_PATH) -> list[Path]:
     """Return a list of CSV paths."""
-    return list(parent_path.glob("*.csv"))
+    return [RAW_PATH / f"{x}.csv" for x in SOURCE_TABLE_MAP.values()]
 
 
 def get_cnxn(database: Path = DB_PATH, read_only: bool = False) -> DuckDBPyConnection:
@@ -347,7 +348,6 @@ def get_create_object_command(
 def transform_data(
     timer: Timer = None,
     replace: bool = True,
-    export_database: bool = False,
 ) -> None:
     """Executes the ETL processes."""
 
@@ -357,6 +357,9 @@ def transform_data(
     cnxn = get_cnxn()
     timer.log_from_last("Connection & schemas")
     create_all_schemas(cnxn)
+
+    # Load raw data
+    load_dataset()
 
     # Load landing data
     DataDirectory()

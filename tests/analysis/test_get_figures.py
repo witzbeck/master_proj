@@ -1,4 +1,3 @@
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from pytest import FixtureRequest, fixture, mark
@@ -114,7 +113,9 @@ def test_generate_figures(
         patch("analysis.get_figures.savefig"),
         patch("analysis.get_figures.ProjectFigure.func", return_value=MagicMock()),
         patch(
-            "analysis.get_figures.ProjectFigure.filepath", return_value=Path(__file__)
+            "analysis.get_figures.Path.exists",
+            return_value=True,
+            new_callable=MagicMock,
         ),
     ):
         figures_to_generate = generate_figures(
