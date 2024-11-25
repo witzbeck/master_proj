@@ -99,7 +99,7 @@ jobs:
         if: steps.figures-cache.outputs.cache-hit != 'true'
         with:
           name: database
-          path: data/learning.db
+          path: data
 
       - name: Set up Python
         id: setup-python
