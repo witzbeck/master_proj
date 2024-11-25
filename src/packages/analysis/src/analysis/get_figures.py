@@ -22,8 +22,6 @@ from packages.core import (
     RESEARCH_PATH,
 )
 
-from etl.db_helpers import DbHelper
-
 THEME_STYLE = "whitegrid"
 THEME_CONTEXT = "talk"
 set_theme(style=THEME_STYLE, context=THEME_CONTEXT)
@@ -233,15 +231,11 @@ class ProjectFigure:
         cur_exists = self.current_file is not None and Path(self.current_file).exists()
         return self.filepath.exists() or cur_exists or self.func is not None
 
-    def get_image(self, dbh: DbHelper = None) -> Image:
+    def get_image(self) -> Image:
         if self.filepath.exists():
             ret = Image(filename=self.filepath, **self.figsize.asdict)
         elif self.current_file is not None:
             ret = Image(filename=self.current_file, **self.figsize.asdict)
-        elif self.func is not None and dbh is not None:
-            self.func(dbh)
-            savefig(self.filepath)
-            ret = Image(filename=self.filepath, **self.figsize.asdict)
         elif self.func is not None:
             self.func()
             savefig(self.filepath)

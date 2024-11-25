@@ -71,7 +71,9 @@ addopts = [
     "--cov-fail-under=30",
     "--durations=10",
 ]
+markers = ["slow: mark test as slow to run", "skip: mark test as skipped"]
 testpaths = ["tests"]
+
 [tool.coverage.report]
 # Regexes for lines to exclude from consideration
 exclude_also = [

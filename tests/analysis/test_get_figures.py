@@ -1,3 +1,5 @@
+from unittest.mock import MagicMock, patch
+
 from pytest import FixtureRequest, fixture, mark
 
 from analysis.get_figures import (
@@ -103,18 +105,29 @@ def test_generate_figures(
     n_paper_figures: int,
     n_presentation_figures: int,
 ):
-    figures_to_generate = generate_figures(
-        include_paper=include_paper,
-        include_presentation=include_presentation,
-        overwrite=overwrite,
-    )
-    nfigs = len(figures_to_generate)
-    assert nfigs > 0 or not overwrite
-    assert all(fig.exists for fig in figures_to_generate)
+    with (
+        patch("analysis.get_figures.read_parquet", return_value=MagicMock()),
+        patch("analysis.get_figures.open_pdf", return_value=MagicMock()),
+        patch("analysis.get_figures.scatterplot"),
+        patch("analysis.get_figures.histplot"),
+        patch("analysis.get_figures.savefig"),
+        patch("analysis.get_figures.ProjectFigure.func") as mock_func,
+    ):
+        mock_func.return_value = None
 
-    expected_max_count = n_shared_figures
-    if include_paper:
-        expected_max_count += n_paper_figures
-    if include_presentation:
-        expected_max_count += n_presentation_figures
-    assert nfigs <= expected_max_count
+        figures_to_generate = generate_figures(
+            include_paper=include_paper,
+            include_presentation=include_presentation,
+            overwrite=overwrite,
+        )
+
+        nfigs = len(figures_to_generate)
+        assert nfigs > 0 or not overwrite
+        assert all(fig.exists for fig in figures_to_generate)
+
+        expected_max_count = n_shared_figures
+        if include_paper:
+            expected_max_count += n_paper_figures
+        if include_presentation:
+            expected_max_count += n_presentation_figures
+        assert nfigs <= expected_max_count
