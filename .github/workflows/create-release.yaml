@@ -1,4 +1,4 @@
-name: Master's Project | Compile LaTeX PDF
+name: Compile Paper & Create Release
 
 on:
   push:
@@ -6,17 +6,72 @@ on:
     paths:
       - ".github/workflows/compile-latex.yaml"
       - "research/**"
+      - "src/**"
   pull_request:
     branches: [main]
     paths:
       - ".github/workflows/compile-latex.yaml"
       - "research/**"
+      - "src/**"
 
 permissions:
   contents: write
 
 jobs:
-  build_pdf:
+  build-database:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+    steps:
+      - uses: actions/checkout@v4
+        name: Checkout repository
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        id: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Load cached virtualenv
+        id: load-cached-virtualenv
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/uv.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-uv-
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Restore database from cache
+        id: restore-db
+        uses: actions/cache@v4
+        with:
+          path: data/learning.db
+          key: learningdb-${{ runner.os }}-${{ hashFiles('src/queries/**') }}
+
+      - name: Get Dataset
+        if: steps.restore-db.outputs.cache-hit != 'true'
+        run: uv run get-data
+
+      - name: Run ETL
+        if: steps.restore-db.outputs.cache-hit != 'true'
+        run: uv run transform-data
+
+      - name: Upload Database as Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: database
+          path: data/learning.db
+
+  build-pdf:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -47,8 +102,10 @@ jobs:
           name: PDF
           path: '**/paper.pdf'
 
-  release:
-    needs: build_pdf
+  create-release:
+    needs:
+      - build-database
+      - build-pdf
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
@@ -62,7 +119,11 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: PDF
-          path: .
+
+      - name: Download Database
+        uses: actions/download-artifact@v3
+        with:
+          name: database
 
       - name: Get Project Version
         id: get-version
@@ -80,7 +141,7 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Upload Release Asset
+      - name: Upload Paper as Release Asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -89,3 +150,13 @@ jobs:
           asset_path: '**/paper.pdf'
           asset_name: paper.pdf
           asset_content_type: application/pdf
+
+      - name: Upload Database as Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: data/learning.db
+          asset_name: learning.db
+          asset_content_type: application/sqlite
