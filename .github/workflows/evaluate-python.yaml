@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - ".github/workflows/python-build.yaml"
+      - ".github/workflows/evaluate-python.yaml"
       - "src/**"
       - "tests/**"
       - "pyproject.toml"
@@ -12,7 +12,7 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - ".github/workflows/python-build.yaml"
+      - ".github/workflows/evaluate-python.yaml"
       - "src/**"
       - "tests/**"
       - "pyproject.toml"
@@ -53,7 +53,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ./data/raw/
-          key: repo-data-raw
+          key: data-raw
 
       - name: Install dependencies
         run: uv sync --locked
