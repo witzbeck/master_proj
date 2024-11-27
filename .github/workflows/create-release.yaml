@@ -122,7 +122,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-uv-
 
-      - name: Export Database to CSV
+      - name: Export Database to Parquet
         if: steps.figures-cache.outputs.cache-hit != 'true'
         run: uv run export-database
 
