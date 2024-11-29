@@ -106,7 +106,6 @@ def test_generate_figures(
     n_presentation_figures: int,
 ):
     with (
-        patch("analysis.get_figures.read_parquet", return_value=MagicMock()),
         patch("analysis.get_figures.open_pdf", return_value=MagicMock()),
         patch("analysis.get_figures.scatterplot"),
         patch("analysis.get_figures.histplot"),

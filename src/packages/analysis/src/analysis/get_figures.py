@@ -2,6 +2,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
 from functools import partial
+from logging import getLogger
 from pathlib import Path
 
 from IPython.display import Image
@@ -9,18 +10,22 @@ from matplotlib.axis import Axis
 from matplotlib.figure import Figure
 from matplotlib.pyplot import savefig, subplots, title, xlim
 from matplotlib_venn import venn3
-from pandas import DataFrame, read_parquet
+from pandas import DataFrame
 from pymupdf import IRect, Page, Rect
 from pymupdf import open as open_pdf
 from seaborn import color_palette, displot, histplot, scatterplot, set_theme
 from tqdm import tqdm
 
 from packages.core import (
-    EXPORT_PATH,
+    DB_PATH,
     FIGURES_PATH,
     LOGOS_PATH,
     RESEARCH_PATH,
 )
+
+from etl.db_helpers import DbHelper
+
+logger = getLogger(__name__)
 
 THEME_STYLE = "whitegrid"
 THEME_CONTEXT = "talk"
@@ -60,16 +65,21 @@ def save_figure_from_page(
     pix.save(target_path)  # save the image as png
 
 
-def get_top_activities_scatterplot(df: DataFrame = None) -> tuple[Figure, Axis]:
+def get_top_activities_scatterplot(
+    df: DataFrame = None, dbh: DbHelper = None
+) -> tuple[Figure, Axis]:
     """Create a scatterplot of top activities by popularity."""
     schema, table = "agg", "most_popular_activities"
-    parquet_path = EXPORT_PATH / f"{schema}_{table}.parquet"
-    if df is None and parquet_path.exists():
-        df = read_parquet(parquet_path)
-    elif df is None:
-        raise ValueError(
-            f"No DataFrame provided and no parquet file found @ {parquet_path}."
-        )
+    if df is None and not DB_PATH.exists():
+        raise ValueError("No DataFrame provided and no database connection available.")
+    elif df is None and dbh is not None:
+        df = dbh.get_table(schema, table)
+    elif df is not None:
+        logger.info("Using provided DataFrame.")
+    else:
+        logger.info("No DataFrame provided. Fetching from database.")
+        dbh = DbHelper.read_cnxn()
+        df = dbh.get_table(schema, table)
     fig, ax = subplots(figsize=(8, 8))
     scatterplot(
         df,
@@ -84,15 +94,21 @@ def get_top_activities_scatterplot(df: DataFrame = None) -> tuple[Figure, Axis]:
     return fig, ax
 
 
-def get_days_active_hist(df: DataFrame = None) -> tuple[Figure, Axis]:
+def get_days_active_hist(
+    df: DataFrame = None, dbh: DbHelper = None
+) -> tuple[Figure, Axis]:
     """Create a histogram of days active by student count."""
-    parquet_path = EXPORT_PATH / "first___all_features.parquet"
-    if df is None and parquet_path.exists():
-        df = read_parquet(parquet_path)
-    elif df is None:
-        raise ValueError(
-            f"No DataFrame provided and no parquet file found @ {parquet_path}."
-        )
+    schema, table = "first30", "all_features"
+    if df is None and not DB_PATH.exists():
+        raise ValueError("No DataFrame provided and no database connection available.")
+    elif df is None and dbh is not None:
+        df = dbh.get_table(schema, table)
+    elif df is not None:
+        logger.info("Using provided DataFrame.")
+    else:
+        logger.info("No DataFrame provided. Fetching from database.")
+        dbh = DbHelper.read_cnxn()
+        df = dbh.get_table(schema, table)
     fig, ax = subplots(figsize=(8, 8))
     histplot(
         df,
@@ -108,16 +124,20 @@ def get_days_active_hist(df: DataFrame = None) -> tuple[Figure, Axis]:
 
 
 def get_total_clicks_by_top_5th_clicks_hist(
-    df: DataFrame = None,
+    df: DataFrame = None, dbh: DbHelper = None
 ) -> tuple[Figure, Axis]:
     """Create a histogram of total clicks on top 5th popular sites by student count."""
-    parquet_path = EXPORT_PATH / "first___all_features.parquet"
-    if df is None and parquet_path.exists():
-        df = read_parquet(parquet_path)
-    elif df is None:
-        raise ValueError(
-            f"No DataFrame provided and no parquet file found @ {parquet_path}."
-        )
+    schema, table = "first30", "all_features"
+    if df is None and not DB_PATH.exists():
+        raise ValueError("No DataFrame provided and no database connection available.")
+    elif df is None and dbh is not None:
+        df = dbh.get_table(schema, table)
+    elif df is not None:
+        logger.info("Using provided DataFrame.")
+    else:
+        logger.info("No DataFrame provided. Fetching from database.")
+        dbh = DbHelper.read_cnxn()
+        df = dbh.get_table(schema, table)
     fig, ax = subplots(figsize=(8, 8))
     histplot(
         df,

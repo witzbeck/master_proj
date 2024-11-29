@@ -16,7 +16,6 @@ dependencies = [
     "scipy>=1.14.1",
     "seaborn>=0.13.2",
     "tqdm>=4.67.0",
-    "fastparquet>=2024.11.0",
 ]
 description = "Packages created as part of the author's Master of Science in Statistics Capstone: An Exploration of Analysis Methods on Predictive Models of Student Success"
 license = { text = "MIT" }
