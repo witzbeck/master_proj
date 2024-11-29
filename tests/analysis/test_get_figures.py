@@ -11,6 +11,7 @@ from analysis.get_figures import (
     SharedFigures,
     generate_figures,
 )
+from etl.db_helpers import DbHelper
 
 
 @fixture(scope="module", params=[x.value for x in SharedFigures])
@@ -116,7 +117,9 @@ def test_generate_figures(
             return_value=True,
             new_callable=MagicMock,
         ),
+        patch("analysis.get_figures.DbHelper") as dbh,
     ):
+        dbh.return_value = MagicMock(spec=DbHelper)
         figures_to_generate = generate_figures(
             include_paper=include_paper,
             include_presentation=include_presentation,

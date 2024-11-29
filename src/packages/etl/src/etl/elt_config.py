@@ -43,7 +43,7 @@ SOURCE_TABLES = {
 
 def get_csv_paths(parent_path: Path = RAW_PATH) -> list[Path]:
     """Return a list of CSV paths."""
-    return [RAW_PATH / f"{x}.csv" for x in SOURCE_TABLE_MAP.values()]
+    return [parent_path / f"{x}.csv" for x in SOURCE_TABLE_MAP.values()]
 
 
 def get_cnxn(database: Path = DB_PATH, read_only: bool = False) -> DuckDBPyConnection:
