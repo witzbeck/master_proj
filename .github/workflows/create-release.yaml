@@ -71,7 +71,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: database
-          path: data/learning.db
+          path: "**/learning.db"
 
   build-figures:
     needs:
@@ -196,6 +196,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: database
+
+      - name: Show Files
+        run: tree .
 
       - name: Get Project Version
         id: get-version
