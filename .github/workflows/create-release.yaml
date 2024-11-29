@@ -92,13 +92,14 @@ jobs:
           sparse-checkout: |
             src/
             research/
+            .github/workflows/create-release.yaml
 
       - name: Restore figure from cache
         id: figure-cache
         uses: actions/cache@v4
         with:
-          path: research/figures/generated/${{ matrix.figure-name }}
-          key: generated-figure-${{ matrix.figure-name }}-${{ hashFiles('src/analysis/**', 'research/references/**', 'src/queries/**') }}
+          path: research/figures/generated
+          key: generated-figure-${{ matrix.figure-name }}-${{ hashFiles('src/packages/analysis/**', 'research/references/**', 'src/queries/**') }}
 
       - name: Download Database
         uses: actions/download-artifact@v4
