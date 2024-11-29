@@ -130,7 +130,7 @@ jobs:
 
       - name: Generate Figure
         if: steps.figure-cache.outputs.cache-hit != 'true'
-        run: uv run python -m analysis generate-figures --name ${{ matrix.figure-name }}
+        run: uv run python -m analysis generate-figures --name "${{ matrix.figure-name }}"
 
       - name: Upload Figure as Artifact
         uses: actions/upload-artifact@v4
