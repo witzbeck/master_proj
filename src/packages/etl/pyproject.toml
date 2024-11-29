@@ -3,7 +3,7 @@ authors = [
     { "name" = "Alex Beckwith", "email" = "57322567+witzbeck@users.noreply.github.com" },
 ]
 dependencies = ["core", "requests>=2.32.3"]
-description = "Add your description here"
+description = "The ETL processes for the feature engineering pipeline."
 name = "etl"
 readme = "README.md"
 requires-python = ">=3.12"

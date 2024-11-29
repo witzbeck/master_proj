@@ -44,5 +44,32 @@ def list_targets_without_sources():
         echo(target)
 
 
+@cli.command
+@option("--name", default=None, help="Name of the figure to generate.")
+def generate_figures(name):
+    if name:
+        # Generate only the specified figure
+        generate_figure(name)
+    else:
+        # Generate all figures
+        generate_all_figures()
+
+
+def generate_figure(name):
+    # Code to generate the specified figure
+    print(f"Generating figure: {name}")
+    # Add your figure generation logic here
+
+
+def generate_all_figures():
+    # Code to generate all figures
+    print("Generating all figures")
+    # Add your figure generation logic here
+
+
+if __name__ == "__main__":
+    generate_figures()
+
+
 if __name__ == "__main__":
     cli()

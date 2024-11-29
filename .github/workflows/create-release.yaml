@@ -78,6 +78,10 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.12"]
+        figure-name:
+          - figure1
+          - figure2
+          - figure3 # Replace with actual figure names
     steps:
       - uses: actions/checkout@v4
         with:
@@ -87,16 +91,16 @@ jobs:
             src/
             research/
 
-      - name: Restore figures from cache
-        id: figures-cache
+      - name: Restore figure from cache
+        id: figure-cache
         uses: actions/cache@v4
         with:
-          path: research/figures/generated
-          key: generated-figures-${{ hashFiles('src/analysis/**', 'research/references/**', 'src/queries/**') }}
+          path: research/figures/generated/${{ matrix.figure-name }}
+          key: generated-figure-${{ matrix.figure-name }}-${{ hashFiles('src/analysis/**', 'research/references/**', 'src/queries/**') }}
 
       - name: Download Database
         uses: actions/download-artifact@v4
-        if: steps.figures-cache.outputs.cache-hit != 'true'
+        if: steps.figure-cache.outputs.cache-hit != 'true'
         with:
           name: database
           path: data
@@ -104,37 +108,33 @@ jobs:
       - name: Set up Python
         id: setup-python
         uses: actions/setup-python@v5
-        if: steps.figures-cache.outputs.cache-hit != 'true'
+        if: steps.figure-cache.outputs.cache-hit != 'true'
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Install uv
         uses: astral-sh/setup-uv@v3
-        if: steps.figures-cache.outputs.cache-hit != 'true'
+        if: steps.figure-cache.outputs.cache-hit != 'true'
 
       - name: Load cached virtualenv
         id: load-cached-virtualenv
         uses: actions/cache@v4
-        if: steps.figures-cache.outputs.cache-hit != 'true'
+        if: steps.figure-cache.outputs.cache-hit != 'true'
         with:
           path: .venv
           key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/uv.lock') }}
           restore-keys: |
             ${{ runner.os }}-uv-
 
-      # - name: Export Database to Parquet
-      #   if: steps.figures-cache.outputs.cache-hit != 'true'
-      #   run: uv run export-database
+      - name: Generate Figure
+        if: steps.figure-cache.outputs.cache-hit != 'true'
+        run: uv run python -m analysis generate-figures --name ${{ matrix.figure-name }}
 
-      - name: Generate Figures
-        if: steps.figures-cache.outputs.cache-hit != 'true'
-        run: uv run generate-figures
-
-      - name: Upload Figures as Artifact
+      - name: Upload Figure as Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: figures
-          path: research/figures/generated/**
+          name: figure-${{ matrix.figure-name }}
+          path: research/figures/generated/${{ matrix.figure-name }}
 
   build-pdf:
     runs-on: ubuntu-latest
