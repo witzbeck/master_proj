@@ -1,4 +1,5 @@
 from click import group, option
+from matplotlib.pyplot import savefig
 from tqdm import tqdm
 
 from analysis import get_figure_name_map
@@ -32,7 +33,9 @@ def generate_figures(name: str, force: bool, paper: bool, presentation: bool) ->
         figure_name_map = get_figure_name_map(paper=True, presentation=True)
         if name not in figure_name_map:
             raise ValueError(f"Figure {name} not found.")
-        figure_name_map[name].func()
+        figure = figure_name_map[name]
+        figure.func()
+        savefig(figure.filepath)
     else:
         # Generate all figures
         to_gen_figures = {
@@ -48,6 +51,7 @@ def generate_figures(name: str, force: bool, paper: bool, presentation: bool) ->
                     print(f"Skipping existing figure: {name}")
                     continue
                 figure.func()
+                savefig(figure.filepath)
                 print(f"Generated figure: {name}")
             except Exception as e:
                 print(f"Failed to generate figure: {name}")
