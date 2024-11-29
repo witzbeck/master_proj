@@ -1,0 +1,231 @@
+name: Create Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/create-release.yaml"
+      - "research/**"
+      - "src/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/create-release.yaml"
+      - "research/**"
+      - "src/**"
+
+permissions:
+  contents: write
+
+jobs:
+  build-database:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+    steps:
+      - uses: actions/checkout@v4
+        name: Checkout repository
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        id: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Load cached virtualenv
+        id: load-cached-virtualenv
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/uv.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-uv-
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Restore database from cache
+        id: restore-db
+        uses: actions/cache@v4
+        with:
+          path: data/learning.db
+          key: learningdb-${{ runner.os }}-${{ hashFiles('src/queries/**') }}
+
+      - name: Get Dataset
+        if: steps.restore-db.outputs.cache-hit != 'true'
+        run: uv run get-data
+
+      - name: Run ETL
+        if: steps.restore-db.outputs.cache-hit != 'true'
+        run: uv run transform-data
+
+      - name: Upload Database as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: database
+          path: data/learning.db
+
+  build-figures:
+    needs:
+      - build-database
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+        figure-name:
+          - First 30 Days Active by Final Result
+          - Top Activities Total Clicks
+          - EDM LA Venn
+          - AutoML Feature Engineering
+          - Critical Difference Nemenyi
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          lfs: true
+          sparse-checkout: |
+            src/
+            research/
+
+      - name: Restore figure from cache
+        id: figure-cache
+        uses: actions/cache@v4
+        with:
+          path: research/figures/generated/${{ matrix.figure-name }}
+          key: generated-figure-${{ matrix.figure-name }}-${{ hashFiles('src/analysis/**', 'research/references/**', 'src/queries/**') }}
+
+      - name: Download Database
+        uses: actions/download-artifact@v4
+        if: steps.figure-cache.outputs.cache-hit != 'true'
+        with:
+          name: database
+          path: data
+
+      - name: Set up Python
+        id: setup-python
+        uses: actions/setup-python@v5
+        if: steps.figure-cache.outputs.cache-hit != 'true'
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        if: steps.figure-cache.outputs.cache-hit != 'true'
+
+      - name: Load cached virtualenv
+        id: load-cached-virtualenv
+        uses: actions/cache@v4
+        if: steps.figure-cache.outputs.cache-hit != 'true'
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/uv.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-uv-
+
+      - name: Generate Figure
+        if: steps.figure-cache.outputs.cache-hit != 'true'
+        run: uv run python -m analysis generate-figures --name "${{ matrix.figure-name }}"
+
+      - name: Upload Figure as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: figure-${{ matrix.figure-name }}
+          path: research/figures/generated/*.png
+
+  build-pdf:
+    runs-on: ubuntu-latest
+    needs:
+      - build-figures
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          sparse-checkout: |
+            research/
+            .github/workflows/latex-compile.yaml
+
+      - name: Restore PDF from cache
+        id: pdf-cache
+        uses: actions/cache@v4
+        with:
+          path: ./research/paper/paper.pdf
+          key: pdf-${{ hashFiles('research/**') }}
+
+      - name: Compile LaTeX PDF
+        if: steps.pdf-cache.outputs.cache-hit != 'true'
+        uses: xu-cheng/latex-action@v3
+        with:
+          working_directory: research/paper
+          root_file: paper.tex
+          continue_on_error: true
+
+      - name: Upload PDF as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PDF
+          path: "**/paper.pdf"
+
+  create-release:
+    needs:
+      - build-database
+      - build-pdf
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github/workflows/latex-compile.yaml
+            pyproject.toml
+
+      - name: Download PDF
+        uses: actions/download-artifact@v4
+        with:
+          name: PDF
+
+      - name: Download Database
+        uses: actions/download-artifact@v4
+        with:
+          name: database
+
+      - name: Get Project Version
+        id: get-version
+        run: echo version=$(grep -m 1 version pyproject.toml | tr -s ' ' | tr -d '"' | tr -d "'" | cut -d' ' -f3) >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        id: create-release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.get-version.outputs.version }}
+          release_name: Release ${{ steps.get-version.outputs.version }}
+          body: "The latest compiled PDF of the paper."
+          draft: false
+          prerelease: false
+
+      - name: Upload Paper as Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: "**/paper.pdf"
+          asset_name: paper.pdf
+          asset_content_type: application/pdf
+
+      - name: Upload Database as Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: "**/learning.db"
+          asset_name: learning.db
+          asset_content_type: application/sqlite

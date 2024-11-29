@@ -1,7 +1,9 @@
-name: Ruff
+name: Lint Python
+
 on: [pull_request]
+
 jobs:
-  ruff:
+  ruff-check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

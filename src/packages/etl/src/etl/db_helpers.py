@@ -16,8 +16,9 @@ from tqdm import tqdm
 from alexlib.core import to_clipboard
 from alexlib.df import get_distinct_col_vals
 from alexlib.maths import euclidean_distance as euclidean
+from packages.core import DB_PATH
 
-from .elt_config import get_info_schema_df
+from .elt_config import get_cnxn, get_info_schema_df
 
 
 def get_onehot_case_line(col: str, val: str):
@@ -72,8 +73,8 @@ class DbHelper:
 
     # Add missing get_table method
     def get_table(self, schema: str, table: str, nrows: int = None) -> DataFrame:
-        limit_clause = f"LIMIT {nrows}" if nrows else ""
-        query = f"SELECT * FROM {schema}.{table} {limit_clause}"
+        limit_clause = f" LIMIT {nrows}" if nrows else " "
+        query = f"SELECT * FROM {schema}.{table}{limit_clause}"
         return self.cnxn.execute(query).fetchdf()
 
     def run_object_command(
@@ -93,6 +94,10 @@ class DbHelper:
     def drop_view(self, schema: str, view: str):
         object_name = f"{schema}.{view}"
         self.run_object_command("DROP", "VIEW", object_name)
+
+    @classmethod
+    def read_cnxn(cls, db_path: Path = DB_PATH) -> "DbHelper":
+        return cls(get_cnxn(db_path, read_only=True))
 
 
 def create_onehot_view(
@@ -210,13 +215,11 @@ class Column:
 
     @cached_property
     def proportions_df(self) -> DataFrame:
-        return DataFrame.from_dict(
-            {
-                "value": self.unique_vals,
-                "frequency": self.frequencies,
-                "proportion": self.proportions,
-            }
-        )
+        return DataFrame.from_dict({
+            "value": self.unique_vals,
+            "frequency": self.frequencies,
+            "proportion": self.proportions,
+        })
 
     @property
     def nnulls(self) -> int:

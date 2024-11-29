@@ -8,6 +8,7 @@ from duckdb import DuckDBPyConnection, connect
 from pandas import DataFrame
 from tqdm import tqdm
 
+from alexlib.core import show_dict
 from alexlib.files import Directory, File
 from alexlib.times import Timer
 from packages.core import (
@@ -21,6 +22,7 @@ from etl.constants import (
     SCHEMAS,
     SQL_BLACKLIST,
 )
+from etl.load_dataset import SOURCE_TABLE_MAP, load_dataset
 
 logger = getLogger(__name__)
 
@@ -41,7 +43,7 @@ SOURCE_TABLES = {
 
 def get_csv_paths(parent_path: Path = RAW_PATH) -> list[Path]:
     """Return a list of CSV paths."""
-    return list(parent_path.glob("*.csv"))
+    return [parent_path / f"{x}.csv" for x in SOURCE_TABLE_MAP.values()]
 
 
 def get_cnxn(database: Path = DB_PATH, read_only: bool = False) -> DuckDBPyConnection:
@@ -239,10 +241,12 @@ class QueriesDirectory(Directory):
 
     @cached_property
     def target_nsources_map(self) -> dict[str, int]:
+        """Return a dictionary of targets and the number of sources."""
         return self.target_groupby.to_dict()["Source"]
 
     @cached_property
     def sources_without_targets(self) -> set[str]:
+        """Return a set of sources without targets."""
         return (
             set(self.target_nsources_map.keys())
             - set(self.source_ntargets_map.keys())
@@ -251,6 +255,7 @@ class QueriesDirectory(Directory):
 
     @cached_property
     def targets_without_sources(self) -> set[str]:
+        """Return a set of targets without sources."""
         return (
             set(self.source_ntargets_map.keys())
             - set(self.target_nsources_map.keys())
@@ -344,12 +349,11 @@ def get_create_object_command(
     return f"CREATE {orreplace} {obj_type} {ifnotexists} {schema}.{table_name} AS {sql}"
 
 
-def main(
+def transform_data(
     timer: Timer = None,
     replace: bool = True,
-    export_database: bool = False,
 ) -> None:
-    """Main function."""
+    """Executes the ETL processes."""
 
     if timer is None:
         timer = Timer()
@@ -358,8 +362,11 @@ def main(
     timer.log_from_last("Connection & schemas")
     create_all_schemas(cnxn)
 
+    # Load raw data
+    load_dataset()
+
     # Load landing data
-    data_dir = DataDirectory()
+    DataDirectory()
     queries = QueriesDirectory()
     load_landing_data(queries.landing_query_dict.keys(), cnxn)
     timer.log_from_last("Landing data")
@@ -384,28 +391,24 @@ def main(
         cnxn.execute(sql)
         timer.log_from_start(f"{schema}.{table_name}")
 
-    if export_database:
-        # Export database
-        [x.unlink() for x in data_dir.export_path.iterdir() if x.is_file()]
-        cnxn.execute(
-            f"""EXPORT DATABASE '{str(data_dir.export_path)}' (FORMAT PARQUET)"""
-        )
-        timer.log_from_start("Export database")
     cnxn.close()
 
 
+def export_database() -> None:
+    """Export the database to parquet."""
+    # Set up
+    timer = Timer()
+    cnxn = get_cnxn(read_only=True)
+    data_dir = DataDirectory()
+
+    # Delete existing files
+    [x.unlink() for x in data_dir.export_path.iterdir() if x.is_file()]
+
+    # Export database
+    cnxn.execute(f"""EXPORT DATABASE '{str(data_dir.export_path)}' (FORMAT PARQUET)""")
+
+    timer.log_from_start("Export database")
+
+
 if __name__ == "__main__":
-    # main()
-    qdir = QueriesDirectory()
-    """
-    for path, sources in qdir.path_source_map.items():
-        print("/".join(path.parts[-3:]), "\n\t" + "\n\t".join(sources))
-        print(qdir.path_normalized_name_map[path])
-        break
-    print(qdir.target_source_df)
-    print(qdir.source_ntargets_map)
-    print(qdir.target_nsources_map, "\n")
-    """
-    print("Sources Without Targets:", sorted(qdir.sources_without_targets))
-    print("Targets Without Sources:", sorted(qdir.targets_without_sources))
-    main()
+    show_dict(QueriesDirectory().target_nsources_map)

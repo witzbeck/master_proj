@@ -1,4 +1,6 @@
-from pytest import FixtureRequest, fixture
+from unittest.mock import MagicMock, patch
+
+from pytest import FixtureRequest, fixture, mark
 
 from analysis.get_figures import (
     PaperFigure,
@@ -7,7 +9,9 @@ from analysis.get_figures import (
     PresentationFigures,
     ProjectFigure,
     SharedFigures,
+    generate_figures,
 )
+from etl.db_helpers import DbHelper
 
 
 @fixture(scope="module", params=[x.value for x in SharedFigures])
@@ -61,3 +65,74 @@ def test_paper_figure_path_exists(paper_figure: PaperFigure):
 
 def test_presentation_figure_path_exists(presentation_figure: PresentationFigure):
     assert presentation_figure.exists, f"{presentation_figure.name}"
+
+
+@fixture(scope="module", params=[True, False])
+def include_paper(request: FixtureRequest) -> bool:
+    return request.param
+
+
+@fixture(scope="module", params=[True, False])
+def include_presentation(request: FixtureRequest) -> bool:
+    return request.param
+
+
+@fixture(scope="module", params=[True, False])
+def overwrite(request: FixtureRequest) -> bool:
+    return request.param
+
+
+@fixture(scope="module")
+def n_shared_figures() -> int:
+    return len(SharedFigures)
+
+
+@fixture(scope="module")
+def n_paper_figures() -> int:
+    return len(PaperFigures)
+
+
+@fixture(scope="module")
+def n_presentation_figures() -> int:
+    return len(PresentationFigures)
+
+
+@mark.slow
+def test_generate_figures(
+    include_paper: bool,
+    include_presentation: bool,
+    overwrite: bool,
+    n_shared_figures: int,
+    n_paper_figures: int,
+    n_presentation_figures: int,
+):
+    with (
+        patch("analysis.get_figures.open_pdf", return_value=MagicMock()),
+        patch("analysis.get_figures.scatterplot"),
+        patch("analysis.get_figures.histplot"),
+        patch("analysis.get_figures.savefig"),
+        patch("analysis.get_figures.ProjectFigure.func", return_value=MagicMock()),
+        patch(
+            "analysis.get_figures.Path.exists",
+            return_value=True,
+            new_callable=MagicMock,
+        ),
+        patch("analysis.get_figures.DbHelper") as dbh,
+    ):
+        dbh.return_value = MagicMock(spec=DbHelper)
+        figures_to_generate = generate_figures(
+            include_paper=include_paper,
+            include_presentation=include_presentation,
+            overwrite=overwrite,
+        )
+
+        nfigs = len(figures_to_generate)
+        assert nfigs > 0 or not overwrite
+        assert all(fig.exists for fig in figures_to_generate)
+
+        expected_max_count = n_shared_figures
+        if include_paper:
+            expected_max_count += n_paper_figures
+        if include_presentation:
+            expected_max_count += n_presentation_figures
+        assert nfigs <= expected_max_count
