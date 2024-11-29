@@ -118,8 +118,17 @@ def rename_files(force: bool = False, cleanup: bool = True) -> None:
         ):
             orig.rename(dest)
     if cleanup:
-        for file_path in tqdm(EXTRACT_CSV_PATHS, desc="Cleaning up"):
+        for file_path in tqdm(
+            [
+                x
+                for x in EXTRACT_CSV_PATHS
+                if x.stem in SOURCE_TABLE_MAP.keys()
+                and x.stem not in SOURCE_TABLE_MAP.values()
+            ],
+            desc="Cleaning up",
+        ):
             file_path.unlink(missing_ok=True)
+            logger.info(f"Deleted {file_path}.")
 
 
 def load_dataset(force: bool = False, cleanup: bool = True) -> None:

@@ -72,17 +72,20 @@ def cnxn_with_landing_data(
     return cnxn_with_schemas
 
 
+CONSTANT_PATHS = (
+    PROJECT_PATH,
+    DATA_PATH,
+    QUERY_PATH,
+    FIGURES_PATH,
+    PAPER_PATH,
+    PRESENTATION_PATH,
+) + tuple(get_csv_paths())
+
+
 @fixture(
     scope="session",
-    params=(
-        PROJECT_PATH,
-        DATA_PATH,
-        QUERY_PATH,
-        FIGURES_PATH,
-        PAPER_PATH,
-        PRESENTATION_PATH,
-    )
-    + tuple(get_csv_paths()),
+    params=CONSTANT_PATHS,
+    ids=[x.name for x in CONSTANT_PATHS],
 )
 def constant_path(request: FixtureRequest) -> Path:
     return request.param
