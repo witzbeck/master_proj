@@ -8,6 +8,7 @@ from duckdb import DuckDBPyConnection, connect
 from pandas import DataFrame
 from tqdm import tqdm
 
+from alexlib.core import show_dict
 from alexlib.files import Directory, File
 from alexlib.times import Timer
 from packages.core import (
@@ -240,10 +241,12 @@ class QueriesDirectory(Directory):
 
     @cached_property
     def target_nsources_map(self) -> dict[str, int]:
+        """Return a dictionary of targets and the number of sources."""
         return self.target_groupby.to_dict()["Source"]
 
     @cached_property
     def sources_without_targets(self) -> set[str]:
+        """Return a set of sources without targets."""
         return (
             set(self.target_nsources_map.keys())
             - set(self.source_ntargets_map.keys())
@@ -252,6 +255,7 @@ class QueriesDirectory(Directory):
 
     @cached_property
     def targets_without_sources(self) -> set[str]:
+        """Return a set of targets without sources."""
         return (
             set(self.source_ntargets_map.keys())
             - set(self.target_nsources_map.keys())
@@ -407,4 +411,4 @@ def export_database() -> None:
 
 
 if __name__ == "__main__":
-    transform_data()
+    show_dict(QueriesDirectory().target_nsources_map)

@@ -15,7 +15,7 @@ from etl.load_dataset import download_file, load_dataset, unzip_file, validate_c
         (True, True),  # File exists, force=True
     ],
 )
-def test_download_file(force, file_exists):
+def test_download_file(force: bool, file_exists: bool):
     with (
         patch("etl.load_dataset.get") as mock_get,
         patch("etl.load_dataset.logger") as mock_logger,
