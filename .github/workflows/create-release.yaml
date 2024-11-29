@@ -1,4 +1,4 @@
-name: Compile Paper & Create Release
+name: Create Release
 
 on:
   push:

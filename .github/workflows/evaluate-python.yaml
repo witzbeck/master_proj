@@ -1,4 +1,4 @@
-name: Master's Project | Build & Test Python
+name: Evaluate Python
 
 on:
   push:
