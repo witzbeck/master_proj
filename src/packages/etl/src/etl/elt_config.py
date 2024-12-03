@@ -3,12 +3,12 @@ from functools import cached_property
 from itertools import chain
 from logging import getLogger
 from pathlib import Path
+from time import perf_counter
 
 from duckdb import DuckDBPyConnection, connect
 from pandas import DataFrame
 from tqdm import tqdm
 
-from alexlib.core import show_dict
 from alexlib.files import Directory, File
 from alexlib.times import Timer
 from packages.core import (
@@ -397,18 +397,28 @@ def transform_data(
 def export_database() -> None:
     """Export the database to parquet."""
     # Set up
-    timer = Timer()
+    start = perf_counter()
     cnxn = get_cnxn(read_only=True)
     data_dir = DataDirectory()
+    assert data_dir.path.name == "data", f"{data_dir.path} is not a data directory"
+    assert data_dir.export_path.is_dir(), f"{data_dir.export_path} is not a directory"
+    assert (
+        data_dir.export_path.name == "export"
+    ), f"{data_dir.export_path} is not export"
 
     # Delete existing files
-    [x.unlink() for x in data_dir.export_path.iterdir() if x.is_file()]
+    for x in tqdm(data_dir.export_path.iterdir(), desc="Deleting existing files"):
+        if x.is_dir():
+            [x.unlink(missing_ok=True) for x in x.iterdir() if x.is_file()]
+        else:
+            x.unlink(missing_ok=True)
 
     # Export database
+    print("Exporting database...", end=" ")
     cnxn.execute(f"""EXPORT DATABASE '{str(data_dir.export_path)}' (FORMAT PARQUET)""")
 
-    timer.log_from_start("Export database")
+    print(f"done in {perf_counter() - start:.2f} seconds")
 
 
 if __name__ == "__main__":
-    show_dict(QueriesDirectory().target_nsources_map)
+    export_database()

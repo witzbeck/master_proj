@@ -10,6 +10,7 @@ SOURCE_PATH = Path(__file__).parent.parent.parent
 assert SOURCE_PATH.name == "src"
 
 PROJECT_PATH = SOURCE_PATH.parent
+assert PROJECT_PATH.name == "master_proj"
 
 LOG_LEVEL, EVENT_LEVEL = WARNING, WARNING
 LOG_SCHEMA = "model"
